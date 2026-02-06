@@ -125,6 +125,37 @@
             border-bottom-color: var(--accent-var);
             background: rgba(0, 255, 65, 0.05);
         }
+
+        /* League Expand/Collapse Styles */
+        .league-container {
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--ledger-border);
+            background: rgba(22, 24, 28, 0.5);
+        }
+        .league-header {
+            display: flex;
+            align-items: stretch;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .league-header:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .league-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+        }
+        .league-content.open {
+            max-height: 1000px;
+            transition: max-height 1s ease-in-out;
+        }
+        .league-arrow {
+            transition: transform 0.3s ease;
+        }
+        .league-arrow.open {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -177,87 +208,91 @@
     <!-- MAIN STRUCTURE -->
     <main class="max-w-7xl mx-auto">
         
-        <!-- ROUND & LEAGUE SELECTOR (NEW) -->
-        <div class="mb-8 border border-[#2d3139] bg-[#16181c]/50">
-            <div class="flex items-stretch border-b border-[#2d3139]">
-                <!-- Round Indicator -->
-                <div class="bg-white text-black flex items-center px-4 py-2 gap-2">
-                    <span class="text-2xl font-black italic tracking-tighter">1</span>
-                    <span class="text-xs font-bold uppercase tracking-widest">round</span>
+        <!-- LEAGUE MATCHES SECTIONS -->
+        <div class="mb-12">
+            <!-- K LEAGUE 1 -->
+            <div class="league-container">
+                <div class="league-header" onclick="toggleLeague('k1')">
+                    <div class="bg-white text-black flex items-center px-4 py-2 gap-2">
+                        <span class="text-2xl font-black italic tracking-tighter">5</span>
+                        <span class="text-xs font-bold uppercase tracking-widest">round</span>
+                    </div>
+                    <div class="flex flex-1 items-center px-6">
+                        <span class="text-sm font-black italic tracking-widest uppercase">K League 1</span>
+                    </div>
+                    <div class="flex items-center px-6 border-l border-[#2d3139]">
+                        <div class="league-arrow" id="k1-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                        </div>
+                    </div>
                 </div>
-                <!-- League Tabs -->
-                <div class="flex flex-1 items-center px-2">
-                    <button class="league-tab active">LEAGUE 1</button>
-                    <button class="league-tab">LEAGUE 2</button>
+                <div class="league-content open" id="k1-content">
+                    <div class="match-slider-container p-4">
+                        <!-- Match 1 -->
+                        <div class="match-card-mini flex flex-col items-center gap-2">
+                            <div class="text-[var(--accent-respect)] font-bold mono">2026/02/28</div>
+                            <div class="flex items-center gap-4 w-full justify-between">
+                                <div class="w-8 h-8 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">INCHEON</div>
+                                <div class="font-black italic text-xl">VS</div>
+                                <div class="w-8 h-8 bg-red-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">SEOUL</div>
+                            </div>
+                            <div class="text-[10px] text-[var(--text-muted)] mono text-center">인천 전용 | 14:00</div>
+                        </div>
+                        <!-- Match 2 -->
+                        <div class="match-card-mini flex flex-col items-center gap-2">
+                            <div class="text-[var(--accent-respect)] font-bold mono">2026/02/28</div>
+                            <div class="flex items-center gap-4 w-full justify-between">
+                                <div class="w-8 h-8 bg-blue-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">ULSAN</div>
+                                <div class="font-black italic text-xl">VS</div>
+                                <div class="w-8 h-8 bg-green-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">GANGWON</div>
+                            </div>
+                            <div class="text-[10px] text-[var(--text-muted)] mono text-center">울산 문수 | 14:00</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Match Slider -->
-            <div class="relative group">
-                <div class="match-slider-container p-4">
-                    <!-- Match 1 -->
-                    <div class="match-card-mini flex flex-col items-center gap-2">
-                        <div class="text-[var(--accent-respect)] font-bold mono">2026/02/28</div>
-                        <div class="flex items-center gap-4 w-full justify-between">
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-8 h-8 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">INCHEON</div>
-                            </div>
-                            <div class="font-black italic text-xl">VS</div>
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-8 h-8 bg-red-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">SEOUL</div>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-[var(--text-muted)] mono">인천 전용 | 14:00</div>
+            <!-- K LEAGUE 2 -->
+            <div class="league-container">
+                <div class="league-header" onclick="toggleLeague('k2')">
+                    <div class="bg-zinc-800 text-white flex items-center px-4 py-2 gap-2">
+                        <span class="text-2xl font-black italic tracking-tighter text-[var(--accent-var)]">7</span>
+                        <span class="text-xs font-bold uppercase tracking-widest">round</span>
                     </div>
-                    <!-- Match 2 -->
-                    <div class="match-card-mini flex flex-col items-center gap-2">
-                        <div class="text-[var(--accent-respect)] font-bold mono">2026/02/28</div>
-                        <div class="flex items-center gap-4 w-full justify-between">
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-8 h-8 bg-blue-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">ULSAN</div>
-                            </div>
-                            <div class="font-black italic text-xl">VS</div>
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-8 h-8 bg-green-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">GANGWON</div>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-[var(--text-muted)] mono">울산 문수 | 14:00</div>
+                    <div class="flex flex-1 items-center px-6">
+                        <span class="text-sm font-black italic tracking-widest uppercase text-zinc-400">K League 2</span>
                     </div>
-                    <!-- Match 3 -->
-                    <div class="match-card-mini flex flex-col items-center gap-2">
-                        <div class="text-[var(--accent-respect)] font-bold mono">2026/02/28</div>
-                        <div class="flex items-center gap-4 w-full justify-between">
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-8 h-8 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">GIMCHEON</div>
-                            </div>
-                            <div class="font-black italic text-xl">VS</div>
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-8 h-8 bg-zinc-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">POHANG</div>
-                            </div>
+                    <div class="flex items-center px-6 border-l border-[#2d3139]">
+                        <div class="league-arrow" id="k2-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
                         </div>
-                        <div class="text-[10px] text-[var(--text-muted)] mono">김천 종합 | 16:30</div>
-                    </div>
-                    <!-- Match 4 -->
-                    <div class="match-card-mini flex flex-col items-center gap-2">
-                        <div class="text-[var(--accent-respect)] font-bold mono">2026/03/01</div>
-                        <div class="flex items-center gap-4 w-full justify-between">
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-8 h-8 bg-green-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">JEONBUK</div>
-                            </div>
-                            <div class="font-black italic text-xl">VS</div>
-                            <div class="flex flex-col items-center gap-1">
-                                <div class="w-8 h-8 bg-red-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">DAEJEON</div>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-[var(--text-muted)] mono">전주 월드컵 | 14:00</div>
                     </div>
                 </div>
-                <!-- Slider Nav -->
-                <button class="absolute right-0 top-0 bottom-0 bg-black/50 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
-                </button>
+                <div class="league-content" id="k2-content">
+                    <div class="match-slider-container p-4">
+                        <!-- K2 Match 1 -->
+                        <div class="match-card-mini flex flex-col items-center gap-2">
+                            <div class="text-[var(--accent-respect)] font-bold mono">2026/03/01</div>
+                            <div class="flex items-center gap-4 w-full justify-between">
+                                <div class="w-8 h-8 bg-purple-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">ANYANG</div>
+                                <div class="font-black italic text-xl">VS</div>
+                                <div class="w-8 h-8 bg-yellow-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">BUSAN</div>
+                            </div>
+                            <div class="text-[10px] text-[var(--text-muted)] mono text-center">안양 종합 | 16:00</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <script>
+            function toggleLeague(id) {
+                const content = document.getElementById(id + '-content');
+                const arrow = document.getElementById(id + '-arrow');
+                content.classList.toggle('open');
+                arrow.classList.toggle('open');
+            }
+        </script>
         
         <!-- LEAGUE SELECTOR -->
         <header class="mb-8 flex justify-between items-end">
