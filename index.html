@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ledger-bg: #0d0e10;
+            --ledger-surface: #16181c;
+            --ledger-border: #2d3139;
+            --accent-var: #00ff41;
+            --accent-respect: #3b82f6;
+            --text-muted: #8b949e;
+        }
+
+        body {
+            background-color: var(--ledger-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+
+        /* Monolithic Texture */
+        .ledger-surface {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3ExternalLink %3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--ledger-bg); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--ledger-border); }
+
+        .btn-structural {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--ledger-border);
+        }
+
+        .btn-structural:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-color: #fff;
+        }
+
+        .var-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .graph-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw 3s forwards ease-out;
+        }
+
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .menu-link {
+            position: relative;
+            padding-bottom: 2px;
+        }
+        .menu-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 0; height: 1px;
+            background: var(--accent-var);
+            transition: width 0.3s ease;
+        }
+        .menu-link:hover::after { width: 100%; }
+
+        /* Match Slider Styles */
+        .match-slider-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            scrollbar-width: none; /* Firefox */
+        }
+        .match-slider-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        .match-card-mini {
+            min-width: 200px;
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            padding: 1rem;
+            font-size: 0.75rem;
+            transition: border-color 0.3s;
+        }
+        .match-card-mini:hover {
+            border-color: var(--accent-var);
+        }
+        .league-tab {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 900;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+        .league-tab.active {
+            color: white;
+            border-bottom-color: var(--accent-var);
+            background: rgba(0, 255, 65, 0.05);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="grain-overlay"></div>
+
+    <!-- NAVIGATION BLOCK -->
+    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 mb-12 border-b border-[#2d3139] pb-6">
+        <div class="flex items-center gap-4">
+            <a href="index.html" class="text-3xl font-black tracking-tighter leading-none italic">
+                SEE <span class="text-[var(--accent-var)]">VAR</span>
+            </a>
+            <div class="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
+        </div>
+
+        <div class="relative flex-1 w-full max-w-md">
+            <input type="text" placeholder="SEARCH MATCH, PLAYER, DATA..." 
+                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
+            <span class="absolute right-3 top-2.5 opacity-30">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </span>
+        </div>
+
+        <div class="flex items-center gap-8 text-xs font-bold tracking-widest mono ml-auto">
+            <a href="about.html" class="menu-link text-[var(--text-muted)] hover:text-white">ABOUT</a>
+            <a href="matches.html" class="menu-link text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
+            <a href="referee_list.html" class="menu-link text-[var(--text-muted)] hover:text-white">REFEREES</a>
+            <a href="teams.html" class="menu-link text-[var(--text-muted)] hover:text-white">TEAMS</a>
+            <a href="supporters.html" class="menu-link text-[var(--text-muted)] hover:text-white">SUPPORTERS</a>
+            
+            <!-- USER PROFILE (REPLACED LOGIN) -->
+            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800">
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
+                    <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
+                </div>
+                <div class="relative">
+                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <!-- Team Emblem (Incheon: Blue & Black) -->
+                        <div class="w-full h-full flex flex-col">
+                            <div class="flex-1 bg-blue-700"></div>
+                            <div class="flex-1 bg-black"></div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN STRUCTURE -->
+    <main class="max-w-7xl mx-auto">
+        
+        <!-- ROUND & LEAGUE SELECTOR (NEW) -->
+        <div class="mb-8 border border-[#2d3139] bg-[#16181c]/50">
+            <div class="flex items-stretch border-b border-[#2d3139]">
+                <!-- Round Indicator -->
+                <div class="bg-white text-black flex items-center px-4 py-2 gap-2">
+                    <span class="text-2xl font-black italic tracking-tighter">1</span>
+                    <span class="text-xs font-bold uppercase tracking-widest">round</span>
+                </div>
+                <!-- League Tabs -->
+                <div class="flex flex-1 items-center px-2">
+                    <button class="league-tab active">LEAGUE 1</button>
+                    <button class="league-tab">LEAGUE 2</button>
+                </div>
+            </div>
+
+            <!-- Match Slider -->
+            <div class="relative group">
+                <div class="match-slider-container p-4">
+                    <!-- Match 1 -->
+                    <div class="match-card-mini flex flex-col items-center gap-2">
+                        <div class="text-[var(--accent-respect)] font-bold mono">2026/02/28</div>
+                        <div class="flex items-center gap-4 w-full justify-between">
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-8 h-8 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">INCHEON</div>
+                            </div>
+                            <div class="font-black italic text-xl">VS</div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-8 h-8 bg-red-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">SEOUL</div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-[var(--text-muted)] mono">인천 전용 | 14:00</div>
+                    </div>
+                    <!-- Match 2 -->
+                    <div class="match-card-mini flex flex-col items-center gap-2">
+                        <div class="text-[var(--accent-respect)] font-bold mono">2026/02/28</div>
+                        <div class="flex items-center gap-4 w-full justify-between">
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-8 h-8 bg-blue-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">ULSAN</div>
+                            </div>
+                            <div class="font-black italic text-xl">VS</div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-8 h-8 bg-green-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">GANGWON</div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-[var(--text-muted)] mono">울산 문수 | 14:00</div>
+                    </div>
+                    <!-- Match 3 -->
+                    <div class="match-card-mini flex flex-col items-center gap-2">
+                        <div class="text-[var(--accent-respect)] font-bold mono">2026/02/28</div>
+                        <div class="flex items-center gap-4 w-full justify-between">
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-8 h-8 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">GIMCHEON</div>
+                            </div>
+                            <div class="font-black italic text-xl">VS</div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-8 h-8 bg-zinc-900 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">POHANG</div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-[var(--text-muted)] mono">김천 종합 | 16:30</div>
+                    </div>
+                    <!-- Match 4 -->
+                    <div class="match-card-mini flex flex-col items-center gap-2">
+                        <div class="text-[var(--accent-respect)] font-bold mono">2026/03/01</div>
+                        <div class="flex items-center gap-4 w-full justify-between">
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-8 h-8 bg-green-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">JEONBUK</div>
+                            </div>
+                            <div class="font-black italic text-xl">VS</div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-8 h-8 bg-red-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px]">DAEJEON</div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-[var(--text-muted)] mono">전주 월드컵 | 14:00</div>
+                    </div>
+                </div>
+                <!-- Slider Nav -->
+                <button class="absolute right-0 top-0 bottom-0 bg-black/50 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- LEAGUE SELECTOR -->
+        <header class="mb-8 flex justify-between items-end">
+            <div>
+                <h2 class="text-4xl font-black italic tracking-tighter mb-1 uppercase">K League 1</h2>
+                <div class="flex items-center gap-2 mono text-xs text-[var(--text-muted)]">
+                    <span class="bg-[var(--accent-var)] text-black px-2 py-0.5 font-bold">ROUND 1</span>
+                    <span class="opacity-50 underline">2024 REGULAR SEASON</span>
+                </div>
+            </div>
+            <div class="flex gap-1">
+                <button class="w-10 h-10 border border-[#2d3139] flex items-center justify-center hover:bg-white hover:text-black transition-all">←</button>
+                <button class="w-10 h-10 border border-[#2d3139] flex items-center justify-center hover:bg-white hover:text-black transition-all">→</button>
+            </div>
+        </header>
+
+        <!-- MATCH CARD: THE MONOLITH -->
+        <section class="ledger-surface mb-8 p-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 mono text-[10px] text-zinc-700 pointer-events-none">
+                COORD_SYST: 37.5665° N, 126.9780° E<br>STADIUM_ID: SEOUL_WORLD_CUP
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 items-center gap-12">
+                <!-- TEAM A -->
+                <div class="flex flex-col items-center gap-6">
+                    <div class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative">
+                        <div class="w-20 h-20 bg-red-600 rounded-lg rotate-45"></div>
+                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic">FC SEOUL</div>
+                    </div>
+                </div>
+
+                <!-- MATCH STATUS -->
+                <div class="text-center flex flex-col items-center">
+                    <div class="mono text-[var(--accent-var)] text-sm mb-2 var-pulse">● LIVE 12’</div>
+                    <div class="text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-6">
+                        <span>1</span>
+                        <span class="text-zinc-800 text-4xl">:</span>
+                        <span>0</span>
+                    </div>
+                    <div class="w-full h-[1px] bg-zinc-800 mb-6"></div>
+                    
+                    <!-- OFFICIALS GRID -->
+                    <div class="grid grid-cols-3 gap-y-4 gap-x-8 mono text-[10px] text-left">
+                        <div>
+                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Referee</p>
+                            <a href="referee.html" class="font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                KIM HEE-GON
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                            </a>
+                        </div>
+                        <div>
+                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Asst 1</p>
+                            <p class="font-bold">PARK SANG-JUN</p>
+                        </div>
+                        <div>
+                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Asst 2</p>
+                            <p class="font-bold">KWAK SEUNG-SOON</p>
+                        </div>
+                        <div>
+                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">4th Official</p>
+                            <p class="font-bold">KO HYUNG-JIN</p>
+                        </div>
+                        <div>
+                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">VAR</p>
+                            <p class="font-bold text-[var(--accent-var)]">CHOI HYUN-JAI</p>
+                        </div>
+                        <div>
+                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">AVAR</p>
+                            <p class="font-bold">KANG DONG-HO</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEAM B -->
+                <div class="flex flex-col items-center gap-6">
+                    <div class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative">
+                        <div class="w-20 h-20 bg-blue-700 rounded-full"></div>
+                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic">ULSAN HD</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ANALYSIS GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- GRAPH COMPONENT -->
+            <div class="lg:col-span-8 ledger-surface p-6 min-h-[400px] flex flex-col">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="mono text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">SENTIMENT & PRESSURE TIMELINE</h3>
+                    <div class="flex gap-4 mono text-[10px]">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-[var(--accent-var)]"></span> SEE VAR</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-[var(--accent-respect)]"></span> RESPECT</span>
+                    </div>
+                </div>
+                
+                <div class="flex-1 relative">
+                    <svg class="w-full h-full min-h-[300px]" viewBox="0 0 800 300" preserveAspectRatio="none">
+                        <!-- Grid Lines -->
+                        <line x1="0" y1="75" x2="800" y2="75" stroke="#2d3139" stroke-width="1" />
+                        <line x1="0" y1="150" x2="800" y2="150" stroke="#2d3139" stroke-width="1" />
+                        <line x1="0" y1="225" x2="800" y2="225" stroke="#2d3139" stroke-width="1" />
+                        
+                        <!-- VAR Data Line -->
+                        <path class="graph-line" d="M0,225 L100,210 L200,120 L300,165 L400,45 L500,90 L600,15 L700,75 L800,30" 
+                            fill="none" stroke="var(--accent-var)" stroke-width="3" />
+                        
+                        <!-- Respect Data Line -->
+                        <path class="graph-line" d="M0,270 L100,255 L200,225 L300,210 L400,180 L500,195 L600,165 L700,135 L800,150" 
+                            fill="none" stroke="var(--accent-respect)" stroke-dasharray="5,5" stroke-width="2" />
+                    </svg>
+                    <div class="flex justify-between mono text-[10px] text-zinc-600 mt-4">
+                        <span>0’</span>
+                        <span>15’</span>
+                        <span>30’</span>
+                        <span>45’</span>
+                        <span>60’</span>
+                        <span>75’</span>
+                        <span>90’</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHAT INTERACTION -->
+            <div class="lg:col-span-4 ledger-surface flex flex-col p-6 min-h-[400px]">
+                <h3 class="mono text-xs font-bold tracking-widest text-[var(--text-muted)] mb-6 uppercase">LIVE INTERACTION HUB</h3>
+                
+                <!-- Chat Messages Area -->
+                <div class="flex-1 overflow-y-auto space-y-4 custom-scrollbar mb-6 pr-4">
+                    <div class="text-[11px] mono border-l-2 border-[var(--accent-var)] pl-3 py-1 bg-zinc-900/30">
+                        <span class="text-[var(--accent-var)]">[08:24]</span> <span class="text-zinc-400">USER_882:</span> IS THAT OFFSIDE? SEE VAR!!
+                    </div>
+                    <div class="text-[11px] mono border-l-2 border-[var(--accent-respect)] pl-3 py-1 bg-zinc-900/30">
+                        <span class="text-[var(--accent-respect)]">[10:12]</span> <span class="text-zinc-400">K-FAN:</span> RESPECT THE REFEREE'S DECISION.
+                    </div>
+                    <div class="text-[11px] mono border-l-2 border-[var(--accent-var)] pl-3 py-1 bg-zinc-900/30">
+                        <span class="text-[var(--accent-var)]">[12:05]</span> <span class="text-zinc-400">DATA_BOT:</span> VAR CHECK IN PROGRESS...
+                    </div>
+                </div>
+
+                <!-- Bottom Input Bar -->
+                <div class="flex flex-col gap-4 border-t border-zinc-800 pt-6">
+                    <div class="flex flex-col gap-3">
+                        <!-- Attachment & Action Buttons Row -->
+                        <div class="flex justify-between items-center">
+                            <div class="flex gap-2">
+                                <button class="w-8 h-8 border border-[#2d3139] flex items-center justify-center hover:bg-zinc-800 transition-colors text-zinc-400" title="Attach Image">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                </button>
+                                <button class="w-8 h-8 border border-[#2d3139] flex items-center justify-center hover:bg-zinc-800 transition-colors text-zinc-400" title="Attach Video">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                                </button>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn-structural bg-[#00ff41] text-black font-black px-3 py-1.5 text-[10px] tracking-tighter italic whitespace-nowrap">SEE VAR</button>
+                                <button class="btn-structural border-blue-600 text-blue-500 font-black px-3 py-1.5 text-[10px] tracking-tighter italic hover:bg-blue-600 hover:text-white whitespace-nowrap">RESPECT</button>
+                            </div>
+                        </div>
+
+                        <!-- Input and Send -->
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="ENTER MESSAGE..." 
+                                class="flex-1 bg-zinc-900 border border-[#2d3139] px-3 py-2 text-xs mono focus:outline-none focus:border-zinc-500 transition-colors">
+                            <button class="bg-white text-black px-4 py-2 font-black italic mono text-[10px] hover:bg-[var(--accent-var)] transition-colors">SEND</button>
+                        </div>
+                    </div>
+                    <p class="mono text-[8px] text-zinc-600 italic">
+                        * LIVE SENTIMENT IMPACT ENABLED.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="max-w-7xl mx-auto mt-12 pb-12 border-t border-zinc-900 pt-8 opacity-20 mono text-[10px] flex justify-between">
+        <div>© 2024 K LEAGUE DATA PORTAL. ALL RIGHTS RESERVED.</div>
+        <div>STUCTURAL_LEDGER_V1.0.4</div>
+    </footer>
+
+    <script>
+        // Micro-interaction: Button sounds or haptic simulation could be added here
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 100);
+            });
+        });
+    </script>
+</body>
+</html>

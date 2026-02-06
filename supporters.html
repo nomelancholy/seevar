@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPPORTERS | SEE VAR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ledger-bg: #0d0e10;
+            --ledger-surface: #16181c;
+            --ledger-border: #2d3139;
+            --accent-var: #00ff41;
+            --accent-respect: #3b82f6;
+            --text-muted: #8b949e;
+        }
+
+        body {
+            background-color: var(--ledger-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+
+        .ledger-surface {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="grain-overlay"></div>
+
+    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 mb-12 border-b border-[#2d3139] pb-6">
+        <div class="flex items-center gap-4">
+            <a href="index.html" class="text-2xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity">
+                SEE <span class="text-[var(--accent-var)]">VAR</span>
+            </a>
+            <div class="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
+        </div>
+
+        <div class="relative flex-1 w-full max-w-md">
+            <input type="text" placeholder="SEARCH SUPPORTERS, DATA..." 
+                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
+            <span class="absolute right-3 top-2.5 opacity-30">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </span>
+        </div>
+
+        <div class="flex items-center gap-8 text-xs font-bold tracking-widest mono ml-auto">
+            <a href="about.html" class="menu-link text-[var(--text-muted)] hover:text-white">ABOUT</a>
+            <a href="matches.html" class="menu-link text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
+            <a href="referee_list.html" class="menu-link text-[var(--text-muted)] hover:text-white">REFEREES</a>
+            <a href="teams.html" class="menu-link text-[var(--text-muted)] hover:text-white">TEAMS</a>
+            <a href="supporters.html" class="text-white border-b border-[var(--accent-var)] pb-1">SUPPORTERS</a>
+
+            <!-- USER PROFILE -->
+            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800">
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
+                    <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
+                </div>
+                <div class="relative">
+                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <div class="w-full h-full flex flex-col">
+                            <div class="flex-1 bg-blue-700"></div>
+                            <div class="flex-1 bg-black"></div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto">
+        <header class="mb-12">
+            <h1 class="text-6xl font-black italic tracking-tighter uppercase mb-4">OUR SUPPORTERS</h1>
+            <p class="mono text-sm text-[var(--text-muted)]">공정하고 투명한 리그를 위해 힘을 보태주신 분들입니다.</p>
+        </header>
+
+        <!-- TOP: SUPPORTERS LIST (FULL WIDTH) -->
+        <div class="ledger-surface p-8 mb-12">
+            <h3 class="mono text-xs font-black tracking-widest text-[var(--accent-var)] mb-8 uppercase">Supporter List</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-y-8 gap-x-4">
+                <div class="mono text-xs">
+                    <p class="text-white font-bold">INCHEON_KING</p>
+                    <p class="text-zinc-600 text-[10px]">2024.01.15</p>
+                </div>
+                <div class="mono text-xs">
+                    <p class="text-white font-bold">SEOUL_PRIDE</p>
+                    <p class="text-zinc-600 text-[10px]">2024.01.20</p>
+                </div>
+                <div class="mono text-xs">
+                    <p class="text-white font-bold">ULSAN_TIGER</p>
+                    <p class="text-zinc-600 text-[10px]">2024.01.22</p>
+                </div>
+                <div class="mono text-xs">
+                    <p class="text-white font-bold">DATA_LOVER</p>
+                    <p class="text-zinc-600 text-[10px]">2024.02.01</p>
+                </div>
+                <div class="mono text-xs opacity-50">
+                    <p class="text-white font-bold italic">ANONYMOUS</p>
+                    <p class="text-zinc-600 text-[10px]">2024.02.03</p>
+                </div>
+                <div class="mono text-xs">
+                    <p class="text-white font-bold">VAR_WATCHER</p>
+                    <p class="text-zinc-600 text-[10px]">2024.02.04</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM: MONTHLY FINANCIAL REPORT -->
+        <div class="space-y-8">
+            <div class="flex justify-between items-end">
+                <h3 class="mono text-xs font-black tracking-widest text-[var(--accent-respect)] uppercase italic">Monthly Expenditure Report</h3>
+                <div class="flex gap-2">
+                    <select id="yearFilter" onchange="filterReports()" class="bg-zinc-900 border border-zinc-800 px-3 py-1 text-[10px] mono focus:outline-none">
+                        <option value="2024">2024 YEAR</option>
+                        <option value="2023">2023 YEAR</option>
+                    </select>
+                    <select id="monthFilter" onchange="filterReports()" class="bg-zinc-900 border border-zinc-800 px-3 py-1 text-[10px] mono focus:outline-none">
+                        <option value="ALL">ALL MONTHS</option>
+                        <option value="02">FEBRUARY</option>
+                        <option value="01">JANUARY</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="reportContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- February 2024 -->
+                <div class="ledger-surface p-6 report-card" data-year="2024" data-month="02">
+                    <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-4">
+                        <span class="mono text-sm font-black text-white">FEBRUARY 2024</span>
+                        <span class="mono text-[10px] text-[var(--accent-var)]">STATUS: SETTLED</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-zinc-400">Server Hosting (AWS)</span>
+                            <span class="mono">₩ 45,000</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-zinc-400">Data API Subscription</span>
+                            <span class="mono">₩ 120,000</span>
+                        </div>
+                        <div class="pt-4 border-t border-zinc-800 flex justify-between font-bold">
+                            <span class="text-[10px] mono text-zinc-500 uppercase">Monthly Total</span>
+                            <span class="mono text-sm">₩ 165,000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- January 2024 -->
+                <div class="ledger-surface p-6 report-card" data-year="2024" data-month="01">
+                    <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-4">
+                        <span class="mono text-sm font-black text-white">JANUARY 2024</span>
+                        <span class="mono text-[10px] text-[var(--accent-var)]">STATUS: SETTLED</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-zinc-400">Domain Renewal</span>
+                            <span class="mono">₩ 22,000</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-zinc-400">IFAB Rulebook License</span>
+                            <span class="mono">₩ 80,000</span>
+                        </div>
+                        <div class="pt-4 border-t border-zinc-800 flex justify-between font-bold">
+                            <span class="text-[10px] mono text-zinc-500 uppercase">Monthly Total</span>
+                            <span class="mono text-sm">₩ 102,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="max-w-7xl mx-auto mt-12 pb-12 border-t border-zinc-900 pt-8 opacity-20 mono text-[10px] flex justify-between">
+        <div>© 2024 K LEAGUE DATA PORTAL. ALL RIGHTS RESERVED.</div>
+        <div>SEE VAR SYSTEM V1.0.4</div>
+    </footer>
+
+    <script>
+        function filterReports() {
+            const year = document.getElementById('yearFilter').value;
+            const month = document.getElementById('monthFilter').value;
+            const cards = document.querySelectorAll('.report-card');
+
+            cards.forEach(card => {
+                const cardYear = card.getAttribute('data-year');
+                const cardMonth = card.getAttribute('data-month');
+                
+                const yearMatch = (year === cardYear);
+                const monthMatch = (month === 'ALL' || month === cardMonth);
+
+                if (yearMatch && monthMatch) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATCH ANALYSIS | SEE VAR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ledger-bg: #0d0e10;
+            --ledger-surface: #16181c;
+            --ledger-border: #2d3139;
+            --accent-var: #00ff41;
+            --accent-respect: #3b82f6;
+            --text-muted: #8b949e;
+        }
+
+        body {
+            background-color: var(--ledger-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+
+        .ledger-surface {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .btn-structural {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--ledger-border);
+        }
+
+        .btn-structural:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-color: #fff;
+        }
+
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        .star-rating input { display: none; }
+        .star-rating label {
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            background: #2d3139;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            transition: background 0.2s;
+        }
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            background: var(--accent-var);
+        }
+
+        /* Tab Styles */
+        .tab-btn {
+            padding: 1rem 2rem;
+            font-size: 0.75rem;
+            font-weight: 900;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: 'JetBrains+Mono', monospace;
+        }
+        .tab-btn.active {
+            color: white;
+            border-bottom-color: var(--accent-var);
+            background: rgba(0, 255, 65, 0.05);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .ai-scanline {
+            width: 100%;
+            height: 2px;
+            background: var(--accent-var);
+            opacity: 0.3;
+            position: absolute;
+            animation: scan 3s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="grain-overlay"></div>
+
+    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 mb-12 border-b border-[#2d3139] pb-6">
+        <div class="flex items-center gap-4">
+            <a href="index.html" class="text-3xl font-black tracking-tighter leading-none italic">
+                SEE <span class="text-[var(--accent-var)]">VAR</span>
+            </a>
+            <div class="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
+        </div>
+
+        <div class="relative flex-1 w-full max-w-md">
+            <input type="text" placeholder="SEARCH MATCH, PLAYER, DATA..." 
+                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
+            <span class="absolute right-3 top-2.5 opacity-30">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </span>
+        </div>
+
+        <div class="flex items-center gap-8 text-xs font-bold tracking-widest mono ml-auto">
+            <a href="about.html" class="text-[var(--text-muted)] hover:text-white">ABOUT</a>
+            <a href="matches.html" class="text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
+            <a href="referee_list.html" class="text-[var(--text-muted)] hover:text-white">REFEREES</a>
+            <a href="teams.html" class="text-[var(--text-muted)] hover:text-white">TEAMS</a>
+            <a href="supporters.html" class="menu-link text-[var(--text-muted)] hover:text-white">SUPPORTERS</a>
+            
+            <!-- USER PROFILE -->
+            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800">
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
+                    <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
+                </div>
+                <div class="relative">
+                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <div class="w-full h-full flex flex-col">
+                            <div class="flex-1 bg-blue-700"></div>
+                            <div class="flex-1 bg-black"></div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto">
+        <header class="mb-8 flex justify-between items-end">
+            <div>
+                <h2 class="text-4xl font-black italic tracking-tighter mb-1 uppercase">Ulsan HD vs Gangwon</h2>
+                <div class="flex items-center gap-2 mono text-xs text-[var(--text-muted)]">
+                    <span class="bg-zinc-800 text-white px-2 py-0.5 font-bold">MATCH FINISHED</span>
+                    <span class="opacity-50 underline">2026/03/01 REGULAR SEASON</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="ledger-surface mb-8 p-8 relative overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 items-center gap-12">
+                <div class="flex flex-col items-center gap-6">
+                    <div class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative">
+                        <div class="w-20 h-20 bg-blue-700 rounded-full"></div>
+                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic">ULSAN HD</div>
+                    </div>
+                </div>
+
+                <div class="text-center flex flex-col items-center">
+                    <div class="mono text-zinc-500 text-sm mb-2 uppercase font-bold tracking-widest">Full Time</div>
+                    <div class="text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-6">
+                        <span>2</span>
+                        <span class="text-zinc-800 text-4xl">:</span>
+                        <span>1</span>
+                    </div>
+                    <div class="w-full h-[1px] bg-zinc-800 mb-6"></div>
+                    <div class="mono text-[10px] text-zinc-500">ULSAN MUNSU STADIUM</div>
+                </div>
+
+                <div class="flex flex-col items-center gap-6">
+                    <div class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative">
+                        <div class="w-20 h-20 bg-green-700 rounded-lg rotate-45"></div>
+                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic">GANGWON FC</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ANALYSIS TABS -->
+        <div class="mb-8 border border-[#2d3139] bg-[#16181c]/50">
+            <div class="flex items-stretch border-b border-[#2d3139]">
+                <button class="tab-btn active" onclick="switchTab('referee-rating')">Referee Rating</button>
+                <button class="tab-btn" onclick="switchTab('sentiment')">Sentiment Analysis</button>
+                <button class="tab-btn" onclick="switchTab('ai-review')">AI Review</button>
+            </div>
+
+            <!-- Tab 1: Referee Rating (NOW FIRST) -->
+            <div id="referee-rating" class="tab-content active p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="mono text-xs font-black tracking-widest text-[var(--accent-var)] uppercase">Referee Performance Rating</h3>
+                    <p class="mono text-[9px] text-zinc-500 italic">* 모든 심판진의 판정 정확도와 경기 운영을 평가해주세요.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
+                    <!-- Referee 1: Main -->
+                    <div class="flex flex-col gap-3">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[var(--text-muted)] text-[9px] uppercase mono">Main Referee</p>
+                                <p class="font-bold text-sm">KO HYUNG-JIN</p>
+                            </div>
+                            <span class="mono text-[10px] text-zinc-500">AVG: 4.2</span>
+                        </div>
+                        <div class="star-rating">
+                            <input type="radio" id="r1-5" name="ref1" value="5"><label for="r1-5"></label>
+                            <input type="radio" id="r1-4" name="ref1" value="4"><label for="r1-4"></label>
+                            <input type="radio" id="r1-3" name="ref1" value="3"><label for="r1-3"></label>
+                            <input type="radio" id="r1-2" name="ref1" value="2"><label for="r1-2"></label>
+                            <input type="radio" id="r1-1" name="ref1" value="1"><label for="r1-1"></label>
+                        </div>
+                        <input type="text" placeholder="한줄평을 입력하세요..." class="mt-2 bg-zinc-900 border border-zinc-800 px-3 py-2 text-[10px] mono focus:outline-none focus:border-zinc-600">
+                    </div>
+
+                    <!-- Referee 2: Asst 1 -->
+                    <div class="flex flex-col gap-3">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[var(--text-muted)] text-[9px] uppercase mono">Assistant 1</p>
+                                <p class="font-bold text-sm">PARK SANG-JUN</p>
+                            </div>
+                            <span class="mono text-[10px] text-zinc-500">AVG: 4.5</span>
+                        </div>
+                        <div class="star-rating">
+                            <input type="radio" id="r2-5" name="ref2" value="5"><label for="r2-5"></label>
+                            <input type="radio" id="r2-4" name="ref2" value="4"><label for="r2-4"></label>
+                            <input type="radio" id="r2-3" name="ref2" value="3"><label for="r2-3"></label>
+                            <input type="radio" id="r2-2" name="ref2" value="2"><label for="r2-2"></label>
+                            <input type="radio" id="r2-1" name="ref2" value="1"><label for="r2-1"></label>
+                        </div>
+                        <input type="text" placeholder="한줄평을 입력하세요..." class="mt-2 bg-zinc-900 border border-zinc-800 px-3 py-2 text-[10px] mono focus:outline-none focus:border-zinc-600">
+                    </div>
+
+                    <!-- Referee 3: Asst 2 -->
+                    <div class="flex flex-col gap-3">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[var(--text-muted)] text-[9px] uppercase mono">Assistant 2</p>
+                                <p class="font-bold text-sm">KWAK SEUNG-SOON</p>
+                            </div>
+                            <span class="mono text-[10px] text-zinc-500">AVG: 4.4</span>
+                        </div>
+                        <div class="star-rating">
+                            <input type="radio" id="r3-5" name="ref3" value="5"><label for="r3-5"></label>
+                            <input type="radio" id="r3-4" name="ref3" value="4"><label for="r3-4"></label>
+                            <input type="radio" id="r3-3" name="ref3" value="3"><label for="r3-3"></label>
+                            <input type="radio" id="r3-2" name="ref3" value="2"><label for="r3-2"></label>
+                            <input type="radio" id="r3-1" name="ref3" value="1"><label for="r3-1"></label>
+                        </div>
+                        <input type="text" placeholder="한줄평을 입력하세요..." class="mt-2 bg-zinc-900 border border-zinc-800 px-3 py-2 text-[10px] mono focus:outline-none focus:border-zinc-600">
+                    </div>
+
+                    <!-- Referee 4: 4th -->
+                    <div class="flex flex-col gap-3">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[var(--text-muted)] text-[9px] uppercase mono">4th Official</p>
+                                <p class="font-bold text-sm">KIM HEE-GON</p>
+                            </div>
+                            <span class="mono text-[10px] text-zinc-500">AVG: 3.8</span>
+                        </div>
+                        <div class="star-rating">
+                            <input type="radio" id="r4-5" name="ref4" value="5"><label for="r4-5"></label>
+                            <input type="radio" id="r4-4" name="ref4" value="4"><label for="r4-4"></label>
+                            <input type="radio" id="r4-3" name="ref4" value="3"><label for="r4-3"></label>
+                            <input type="radio" id="r4-2" name="ref4" value="2"><label for="r4-2"></label>
+                            <input type="radio" id="r4-1" name="ref4" value="1"><label for="r4-1"></label>
+                        </div>
+                        <input type="text" placeholder="한줄평을 입력하세요..." class="mt-2 bg-zinc-900 border border-zinc-800 px-3 py-2 text-[10px] mono focus:outline-none focus:border-zinc-600">
+                    </div>
+
+                    <!-- Referee 5: VAR -->
+                    <div class="flex flex-col gap-3">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[var(--text-muted)] text-[9px] uppercase mono">VAR Referee</p>
+                                <p class="font-bold text-sm">CHOI HYUN-JAI</p>
+                            </div>
+                            <span class="mono text-[10px] text-zinc-500">AVG: 3.5</span>
+                        </div>
+                        <div class="star-rating">
+                            <input type="radio" id="r5-5" name="ref5" value="5"><label for="r5-5"></label>
+                            <input type="radio" id="r5-4" name="ref5" value="4"><label for="r5-4"></label>
+                            <input type="radio" id="r5-3" name="ref5" value="3"><label for="r5-3"></label>
+                            <input type="radio" id="r5-2" name="ref5" value="2"><label for="r5-2"></label>
+                            <input type="radio" id="r5-1" name="ref5" value="1"><label for="r5-1"></label>
+                        </div>
+                        <input type="text" placeholder="한줄평을 입력하세요..." class="mt-2 bg-zinc-900 border border-zinc-800 px-3 py-2 text-[10px] mono focus:outline-none focus:border-zinc-600">
+                    </div>
+
+                    <!-- Referee 6: AVAR -->
+                    <div class="flex flex-col gap-3">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[var(--text-muted)] text-[9px] uppercase mono">AVAR Referee</p>
+                                <p class="font-bold text-sm">KANG DONG-HO</p>
+                            </div>
+                            <span class="mono text-[10px] text-zinc-500">AVG: 4.0</span>
+                        </div>
+                        <div class="star-rating">
+                            <input type="radio" id="r6-5" name="ref6" value="5"><label for="r6-5"></label>
+                            <input type="radio" id="r6-4" name="ref6" value="4"><label for="r6-4"></label>
+                            <input type="radio" id="r6-3" name="ref6" value="3"><label for="r6-3"></label>
+                            <input type="radio" id="r6-2" name="ref6" value="2"><label for="r6-2"></label>
+                            <input type="radio" id="r6-1" name="ref6" value="1"><label for="r6-1"></label>
+                        </div>
+                        <input type="text" placeholder="한줄평을 입력하세요..." class="mt-2 bg-zinc-900 border border-zinc-800 px-3 py-2 text-[10px] mono focus:outline-none focus:border-zinc-600">
+                    </div>
+                </div>
+
+                <div class="mt-12 flex justify-center">
+                    <button class="btn-structural bg-white text-black font-black px-12 py-4 text-sm tracking-tighter italic hover:bg-[var(--accent-var)] transition-colors">SUBMIT ALL RATINGS</button>
+                </div>
+            </div>
+
+            <!-- Tab 2: Sentiment Analysis -->
+            <div id="sentiment" class="tab-content p-6">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="mono text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">SENTIMENT & PRESSURE TIMELINE (FINAL)</h3>
+                    <div class="flex gap-4 mono text-[10px]">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-[var(--accent-var)]"></span> SEE VAR</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-[var(--accent-respect)]"></span> RESPECT</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <div class="flex-1 relative group">
+                        <svg class="w-full h-[300px]" viewBox="0 0 1200 300" preserveAspectRatio="none" id="sentimentGraph">
+                            <line x1="0" y1="75" x2="1200" y2="75" stroke="#2d3139" stroke-width="1" />
+                            <line x1="0" y1="150" x2="1200" y2="150" stroke="#2d3139" stroke-width="1" />
+                            <line x1="0" y1="225" x2="1200" y2="225" stroke="#2d3139" stroke-width="1" />
+                            
+                            <!-- Interactive Zones (Invisible Rects) -->
+                            <rect x="0" y="0" width="200" height="300" fill="transparent" class="cursor-pointer hover:fill-white/5" onmouseover="showTimelineData(0)" />
+                            <rect x="200" y="0" width="200" height="300" fill="transparent" class="cursor-pointer hover:fill-white/5" onmouseover="showTimelineData(15)" />
+                            <rect x="400" y="0" width="200" height="300" fill="transparent" class="cursor-pointer hover:fill-white/5" onmouseover="showTimelineData(30)" />
+                            <rect x="600" y="0" width="200" height="300" fill="transparent" class="cursor-pointer hover:fill-white/5" onmouseover="showTimelineData(45)" />
+                            <rect x="800" y="0" width="200" height="300" fill="transparent" class="cursor-pointer hover:fill-white/5" onmouseover="showTimelineData(60)" />
+                            <rect x="1000" y="0" width="200" height="300" fill="transparent" class="cursor-pointer hover:fill-white/5" onmouseover="showTimelineData(75)" />
+
+                            <path class="graph-line" d="M0,225 L150,210 L300,120 L450,165 L600,45 L750,90 L900,15 L1050,75 L1200,30" fill="none" stroke="var(--accent-var)" stroke-width="3" />
+                            <path class="graph-line" d="M0,270 L150,255 L300,225 L450,210 L600,180 L750,195 L900,165 L1050,135 L1200,150" fill="none" stroke="var(--accent-respect)" stroke-dasharray="5,5" stroke-width="2" />
+                        </svg>
+                        <div class="flex justify-between mono text-[10px] text-zinc-600 mt-4">
+                            <span>0’</span><span>15’</span><span>30’</span><span>45’</span><span>60’</span><span>75’</span><span>90’</span>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Detail Sidebar (NEW) -->
+                    <div class="lg:w-80 bg-zinc-900/50 border border-zinc-800 p-4 flex flex-col">
+                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-zinc-800">
+                            <span class="mono text-[10px] font-black text-[var(--accent-var)]" id="timelineTime">TIME: 00’ - 15’</span>
+                            <span class="mono text-[8px] text-zinc-500">LIVE LOGS</span>
+                        </div>
+                        <div id="timelineLogs" class="space-y-3 overflow-y-auto max-h-[220px] custom-scrollbar pr-2">
+                            <div class="text-[9px] mono leading-tight">
+                                <span class="text-zinc-500">[02:14]</span> <span class="text-red-500">SEOUL_FAN:</span> THAT'S A CLEAR FOUL!
+                            </div>
+                            <div class="text-[9px] mono leading-tight">
+                                <span class="text-zinc-500">[05:30]</span> <span class="text-[var(--accent-var)]">VAR_BOT:</span> CHECKING POSSIBLE HANDBALL...
+                            </div>
+                            <div class="text-[9px] mono leading-tight">
+                                <span class="text-zinc-500">[12:45]</span> <span class="text-blue-500">ULSAN_LOVER:</span> NO WAY, HE TOUCHED THE BALL FIRST.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: AI Review -->
+            <div id="ai-review" class="tab-content p-8 relative overflow-hidden">
+                <div class="ai-scanline"></div>
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="w-16 h-16 bg-[var(--accent-var)]/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-var)" stroke-width="1.5">
+                            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-black italic tracking-tighter mb-2 uppercase">AI Review Generating...</h3>
+                    <p class="mono text-sm text-[var(--accent-var)] mb-8">IFAB 규정 기반 판정 분석 엔진 가동 중</p>
+                    
+                    <div class="max-w-md w-full bg-zinc-900/50 border border-zinc-800 p-6 mb-8">
+                        <div class="flex justify-between mono text-[10px] mb-2">
+                            <span class="text-zinc-500 uppercase">Submission Deadline</span>
+                            <span class="text-white font-black">02:45:12 REMAINING</span>
+                        </div>
+                        <div class="w-full h-1 bg-zinc-800">
+                            <div class="h-full bg-[var(--accent-var)]" style="width: 65%"></div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-zinc-400 max-w-lg leading-relaxed mb-8">
+                        현재 AI가 경기 데이터를 분석하고 있습니다. 유저분들이 제보해주시는 **다양한 각도의 사진이나 영상**이 많을수록 분석의 정확도가 올라갑니다. 논란이 된 판정 장면을 제보해주세요.
+                    </p>
+
+                    <button class="btn-structural bg-white text-black px-8 py-3 font-black italic mono text-xs">UPLOAD MEDIA FOR ANALYSIS</button>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function showTimelineData(minute) {
+            const timeEl = document.getElementById('timelineTime');
+            const logsEl = document.getElementById('timelineLogs');
+            
+            timeEl.innerText = `TIME: ${minute}’ - ${minute + 15}’`;
+            
+            // Mock data for different segments
+            const logs = {
+                0: [
+                    { time: '02:14', user: 'SEOUL_FAN', msg: "THAT'S A CLEAR FOUL!", color: 'text-red-500' },
+                    { time: '05:30', user: 'VAR_BOT', msg: "CHECKING POSSIBLE HANDBALL...", color: 'text-[var(--accent-var)]' },
+                    { time: '12:45', user: 'ULSAN_LOVER', msg: "NO WAY, HE TOUCHED THE BALL FIRST.", color: 'text-blue-500' }
+                ],
+                15: [
+                    { time: '18:20', user: 'K-FAN', msg: "Referee is letting the game flow well.", color: 'text-zinc-400' },
+                    { time: '24:55', user: 'DATA_BOT', msg: "Possession: Ulsan 58% - Seoul 42%", color: 'text-zinc-500' }
+                ],
+                30: [
+                    { time: '32:10', user: 'USER_882', msg: "SEE VAR!! That was offside!", color: 'text-[var(--accent-var)]' },
+                    { time: '44:00', user: 'RESPECT_MAN', msg: "Good decision by the assistant.", color: 'text-blue-400' }
+                ],
+                45: [
+                    { time: '48:15', user: 'COACH_K', msg: "Tactical change needed for Seoul.", color: 'text-red-400' },
+                    { time: '55:30', user: 'VAR_GPT', msg: "Analyzing penalty area incident...", color: 'text-[var(--accent-var)]' }
+                ],
+                60: [
+                    { time: '62:40', user: 'ULSAN_POWER', msg: "GOAAAAAL!!", color: 'text-blue-600' },
+                    { time: '74:10', user: 'ANGRY_FAN', msg: "How is that not a yellow card?", color: 'text-zinc-300' }
+                ],
+                75: [
+                    { time: '82:15', user: 'STADIUM_GHOST', msg: "Atmosphere is electric right now.", color: 'text-zinc-500' },
+                    { time: '89:50', user: 'DATA_CENTER', msg: "Match reaching final intensity peak.", color: 'text-[var(--accent-var)]' }
+                ]
+            };
+
+            const currentLogs = logs[minute] || [];
+            logsEl.innerHTML = currentLogs.map(log => `
+                <div class="text-[9px] mono leading-tight">
+                    <span class="text-zinc-500">[${log.time}]</span> <span class="${log.color}">${log.user}:</span> ${log.msg}
+                </div>
+            `).join('');
+        }
+    </script>
+    </main>
+
+    <footer class="max-w-7xl mx-auto mt-12 pb-12 border-t border-zinc-900 pt-8 opacity-20 mono text-[10px] flex justify-between">
+        <div>© 2024 K LEAGUE DATA PORTAL. ALL RIGHTS RESERVED.</div>
+        <div>SEE VAR SYSTEM V1.0.4</div>
+    </footer>
+</body>
+</html>

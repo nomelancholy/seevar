@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATCHES | SEE VAR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ledger-bg: #0d0e10;
+            --ledger-surface: #16181c;
+            --ledger-border: #2d3139;
+            --accent-var: #00ff41;
+            --accent-respect: #3b82f6;
+            --text-muted: #8b949e;
+        }
+
+        body {
+            background-color: var(--ledger-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+
+        .ledger-surface {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .match-row {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--ledger-border);
+        }
+        .match-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--accent-var);
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="grain-overlay"></div>
+
+    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 mb-12 border-b border-[#2d3139] pb-6">
+        <div class="flex items-center gap-4">
+            <a href="index.html" class="text-2xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity">
+                SEE <span class="text-[var(--accent-var)]">VAR</span>
+            </a>
+            <div class="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
+        </div>
+
+        <div class="relative flex-1 w-full max-w-md">
+            <input type="text" placeholder="SEARCH MATCH, PLAYER, DATA..." 
+                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
+            <span class="absolute right-3 top-2.5 opacity-30">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </span>
+        </div>
+
+        <div class="flex items-center gap-8 text-xs font-bold tracking-widest mono ml-auto">
+            <a href="about.html" class="menu-link text-[var(--text-muted)] hover:text-white">ABOUT</a>
+            <a href="matches.html" class="text-white border-b border-[var(--accent-var)] pb-1">ARCHIVE</a>
+            <a href="referee_list.html" class="menu-link text-[var(--text-muted)] hover:text-white">REFEREES</a>
+            <a href="teams.html" class="menu-link text-[var(--text-muted)] hover:text-white">TEAMS</a>
+            <a href="supporters.html" class="menu-link text-[var(--text-muted)] hover:text-white">SUPPORTERS</a>
+
+            <!-- USER PROFILE -->
+            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800">
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
+                    <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
+                </div>
+                <div class="relative">
+                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <div class="w-full h-full flex flex-col">
+                            <div class="flex-1 bg-blue-700"></div>
+                            <div class="flex-1 bg-black"></div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto">
+        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <h1 class="text-6xl font-black italic tracking-tighter uppercase mb-4">MATCH CENTER</h1>
+                <p class="mono text-sm text-[var(--text-muted)]">시즌별, 라운드별 경기 일정 및 VAR 판정 데이터를 확인하세요.</p>
+            </div>
+            
+            <!-- FILTERS -->
+            <div class="flex gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="mono text-[10px] text-zinc-500 uppercase">Season</label>
+                    <select class="bg-[#1c1f24] border border-[#2d3139] px-4 py-2 pr-10 text-xs mono focus:outline-none focus:border-[var(--accent-var)]">
+                        <option>2024 SEASON</option>
+                        <option>2023 SEASON</option>
+                        <option>2022 SEASON</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="mono text-[10px] text-zinc-500 uppercase">League</label>
+                    <select class="bg-[#1c1f24] border border-[#2d3139] px-4 py-2 pr-10 text-xs mono focus:outline-none focus:border-[var(--accent-var)]">
+                        <option>K LEAGUE 1</option>
+                        <option>K LEAGUE 2</option>
+                        <option>FA CUP</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="mono text-[10px] text-zinc-500 uppercase">Round</label>
+                    <select class="bg-[#1c1f24] border border-[#2d3139] px-4 py-2 pr-10 text-xs mono focus:outline-none focus:border-[var(--accent-var)]">
+                        <option>ROUND 1</option>
+                        <option>ROUND 2</option>
+                        <option>ROUND 3</option>
+                        <option>ROUND 4</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <!-- ROUND HIGHLIGHTS (NEW) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <!-- Best Referee Card -->
+            <div class="ledger-surface p-6 border-l-4 border-[var(--accent-var)]">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="mono text-[10px] font-black tracking-widest text-[var(--accent-var)] uppercase mb-1">Round Best Referee</h3>
+                        <p class="text-2xl font-black italic uppercase leading-none">KO HYUNG-JIN</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="bg-[var(--accent-var)] text-black px-2 py-0.5 text-[8px] font-black uppercase">Top Rated</span>
+                        <p class="mono text-[10px] text-zinc-500 mt-1">AVG: 4.2 / 5.0</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <p class="mono text-[8px] text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">Top Fan Feedbacks (ULSAN vs GANGWON)</p>
+                    <!-- Team A Top Comment -->
+                    <div class="bg-zinc-900/50 p-3 border border-zinc-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="team-tag bg-blue-700 text-white text-[8px] px-2 py-0.5 font-black italic">ULSAN HD</span>
+                            <div class="flex items-center gap-1 text-[var(--accent-respect)]">
+                                <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <span class="mono text-[8px] font-black">842</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-zinc-300 italic leading-relaxed">"판정 기준이 경기 내내 일정해서 좋았습니다. 특히 페널티 박스 안에서의 냉정한 판단이 돋보였네요."</p>
+                    </div>
+                    <!-- Team B Top Comment -->
+                    <div class="bg-zinc-900/50 p-3 border border-zinc-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="team-tag bg-orange-600 text-white text-[8px] px-2 py-0.5 font-black italic">GANGWON FC</span>
+                            <div class="flex items-center gap-1 text-[var(--accent-respect)]">
+                                <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <span class="mono text-[8px] font-black">520</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-zinc-300 italic leading-relaxed">"비록 졌지만 심판 탓을 할 수 없는 경기였습니다. VAR 소통도 빠르고 정확했습니다."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Worst Referee Card -->
+            <div class="ledger-surface p-6 border-l-4 border-red-600">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="mono text-[10px] font-black tracking-widest text-red-500 uppercase mb-1">Round Worst Referee</h3>
+                        <p class="text-2xl font-black italic uppercase leading-none">KIM JONG-HYEOK</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="bg-red-600 text-white px-2 py-0.5 text-[8px] font-black uppercase">Low Rated</span>
+                        <p class="mono text-[10px] text-zinc-500 mt-1">AVG: 2.1 / 5.0</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <p class="mono text-[8px] text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">Top Fan Feedbacks (JEONBUK vs ANYANG)</p>
+                    <!-- Team A Top Comment -->
+                    <div class="bg-zinc-900/50 p-3 border border-zinc-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="team-tag bg-green-800 text-white text-[8px] px-2 py-0.5 font-black italic">JEONBUK</span>
+                            <div class="flex items-center gap-1 text-[var(--accent-respect)]">
+                                <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <span class="mono text-[8px] font-black">1.1k</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-zinc-300 italic leading-relaxed">"핸드볼 파울 기준이 너무 주관적입니다. 지난 경기랑 똑같은 상황인데 왜 이번엔 안 부나요?"</p>
+                    </div>
+                    <!-- Team B Top Comment -->
+                    <div class="bg-zinc-900/50 p-3 border border-zinc-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="team-tag bg-purple-900 text-white text-[8px] px-2 py-0.5 font-black italic">FC ANYANG</span>
+                            <div class="flex items-center gap-1 text-[var(--accent-respect)]">
+                                <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <span class="mono text-[8px] font-black">980</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-zinc-300 italic leading-relaxed">"경기의 주인공이 되려고 하지 마세요. 흐름을 너무 자주 끊어서 경기가 루즈해졌습니다."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MATCH LIST TABLE -->
+        <div class="ledger-surface overflow-hidden">
+            <!-- Table Header -->
+            <div class="grid grid-cols-12 bg-zinc-900/50 p-4 border-b border-[#2d3139] mono text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                <div class="col-span-2">Date / Time</div>
+                <div class="col-span-1 text-center">League</div>
+                <div class="col-span-5 text-center">Matchup</div>
+                <div class="col-span-2 text-center">Referee</div>
+                <div class="col-span-2 text-right">Status</div>
+            </div>
+
+            <!-- Match Rows -->
+            <div class="divide-y divide-zinc-800">
+                <!-- Match 1 -->
+                <a href="index.html" class="grid grid-cols-12 p-6 items-center match-row group">
+                    <div class="col-span-2">
+                        <p class="mono text-xs font-bold">2024/03/01</p>
+                        <p class="mono text-[10px] text-zinc-500">14:00 KST</p>
+                    </div>
+                    <div class="col-span-1 text-center">
+                        <span class="bg-white text-black px-2 py-0.5 text-[9px] font-black italic">K1</span>
+                    </div>
+                    <div class="col-span-5 flex items-center justify-center gap-8">
+                        <div class="flex items-center gap-3 flex-1 justify-end">
+                            <span class="font-black italic text-lg uppercase">FC Seoul</span>
+                            <div class="w-8 h-8 bg-red-600 rounded-sm"></div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-2xl font-black italic tracking-tighter">1 : 0</span>
+                            <span class="mono text-[8px] text-[var(--accent-var)] font-bold">LIVE</span>
+                        </div>
+                        <div class="flex items-center gap-3 flex-1 justify-start">
+                            <div class="w-8 h-8 bg-blue-700 rounded-full"></div>
+                            <span class="font-black italic text-lg uppercase">Ulsan HD</span>
+                        </div>
+                    </div>
+                    <div class="col-span-2 text-center">
+                        <p class="mono text-xs font-bold hover:text-[var(--accent-var)] transition-colors">KIM HEE-GON</p>
+                        <p class="mono text-[9px] text-zinc-500">FIFA INT'L</p>
+                    </div>
+                    <div class="col-span-2 text-right">
+                        <span class="btn-structural bg-[#1c1f24] px-4 py-2 text-[10px] font-bold mono group-hover:bg-white group-hover:text-black transition-all">VIEW DATA</span>
+                    </div>
+                </a>
+
+                <!-- Match 2 -->
+                <a href="match_finished.html" class="grid grid-cols-12 p-6 items-center match-row group">
+                    <div class="col-span-2">
+                        <p class="mono text-xs font-bold">2024/03/01</p>
+                        <p class="mono text-[10px] text-zinc-500">14:00 KST</p>
+                    </div>
+                    <div class="col-span-1 text-center">
+                        <span class="bg-white text-black px-2 py-0.5 text-[9px] font-black italic">K1</span>
+                    </div>
+                    <div class="col-span-5 flex items-center justify-center gap-8">
+                        <div class="flex items-center gap-3 flex-1 justify-end">
+                            <span class="font-black italic text-lg uppercase">Ulsan HD</span>
+                            <div class="w-8 h-8 bg-blue-700 rounded-full"></div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-2xl font-black italic tracking-tighter">2 : 1</span>
+                            <span class="mono text-[8px] text-zinc-500 font-bold uppercase">Finished</span>
+                        </div>
+                        <div class="flex items-center gap-3 flex-1 justify-start">
+                            <div class="w-8 h-8 bg-green-700 rounded-sm"></div>
+                            <span class="font-black italic text-lg uppercase">Gangwon</span>
+                        </div>
+                    </div>
+                    <div class="col-span-2 text-center">
+                        <p class="mono text-xs font-bold hover:text-[var(--accent-var)] transition-colors">KO HYUNG-JIN</p>
+                        <p class="mono text-[9px] text-zinc-500">FIFA INT'L</p>
+                    </div>
+                    <div class="col-span-2 text-right">
+                        <span class="btn-structural bg-[#1c1f24] px-4 py-2 text-[10px] font-bold mono group-hover:bg-white group-hover:text-black transition-all">VIEW DATA</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="max-w-7xl mx-auto mt-12 pb-12 border-t border-zinc-900 pt-8 opacity-20 mono text-[10px] flex justify-between">
+        <div>© 2024 K LEAGUE DATA PORTAL. ALL RIGHTS RESERVED.</div>
+        <div>SEE VAR SYSTEM V1.0.4</div>
+    </footer>
+</body>
+</html>
