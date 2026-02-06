@@ -73,10 +73,9 @@
             <a href="matches.html" class="text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
             <a href="referee_list.html" class="text-white border-b border-[var(--accent-var)] pb-1">REFEREES</a>
             <a href="teams.html" class="text-[var(--text-muted)] hover:text-white">TEAMS</a>
-            <a href="supporters.html" class="menu-link text-[var(--text-muted)] hover:text-white">SUPPORTERS</a>
 
             <!-- USER PROFILE (REPLACED LOGIN) -->
-            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800">
+            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
                     <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
@@ -90,9 +89,70 @@
                     </div>
                     <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
                 </div>
+                <!-- User Profile Image -->
+                <div class="w-10 h-10 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
             </div>
         </div>
     </nav>
+
+    <!-- USER DRAWER -->
+    <div id="user-drawer-overlay" class="fixed inset-0 z-[4000] hidden" onclick="if(event.target === this) toggleUserDrawer()">
+        <div id="user-drawer" class="absolute top-0 right-0 w-80 h-full bg-[var(--ledger-surface)] border-l border-[var(--ledger-border)] shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-12">
+                    <h2 class="text-2xl font-black italic tracking-tighter uppercase">MY PAGE</h2>
+                    <button onclick="toggleUserDrawer()" class="text-zinc-500 hover:text-white">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 mb-4 p-4 bg-zinc-900/50 border border-zinc-800">
+                    <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-lg font-black italic">USER_7721</p>
+                        <div class="whistle-badge mt-1" style="background: #ffd700; color: black; padding: 2px 6px; border-radius: 99px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
+                            1,240 호각
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUPPORTING TEAM INFO -->
+                <div class="flex items-center justify-between mb-12 px-4 py-3 border-l-2 border-blue-700 bg-blue-900/10">
+                    <div class="flex flex-col">
+                        <span class="text-[8px] mono text-zinc-500 uppercase tracking-widest">Supporting Team</span>
+                        <span class="text-xs font-black italic text-white">INCHEON UNITED</span>
+                    </div>
+                    <div class="w-8 h-8 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <div class="w-full h-full flex flex-col">
+                            <div class="flex-1 bg-blue-700"></div>
+                            <div class="flex-1 bg-black"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="flex flex-col gap-2">
+                    <a href="my_information.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">My Information</span>
+                    </a>
+                    <a href="my_var_moments.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">My VAR Moments</span>
+                    </a>
+                    <a href="whistle_recharge.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">Whistle Recharge</span>
+                    </a>
+                    <div class="h-[1px] bg-zinc-800 my-4"></div>
+                    <a href="#" class="flex items-center gap-4 p-4 hover:bg-red-600 hover:text-white transition-all group text-zinc-500">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">Logout</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </div>
 
     <main class="max-w-7xl mx-auto">
         <header class="mb-12">
@@ -208,5 +268,54 @@
         <div>© 2024 K LEAGUE DATA PORTAL. ALL RIGHTS RESERVED.</div>
         <div>SEE VAR SYSTEM V1.0.4</div>
     </footer>
+    <script>
+        function closeCustomAlert() {
+            document.getElementById('custom-alert-overlay').style.display = 'none';
+        }
+      </script>
+
+    <!-- DARK MODE TOGGLE -->
+    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000]" title="Toggle Dark Mode">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <script>
+        function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            
+            if (body.style.backgroundColor === 'white') {
+                body.style.backgroundColor = 'var(--ledger-bg)';
+                body.style.color = 'white';
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+            } else {
+                body.style.backgroundColor = 'white';
+                body.style.color = 'black';
+                icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+            }
+        }
+
+        function toggleUserDrawer() {
+            const overlay = document.getElementById('user-drawer-overlay');
+            const drawer = document.getElementById('user-drawer');
+            const isHidden = overlay.classList.contains('hidden');
+            
+            if (isHidden) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    drawer.classList.remove('translate-x-full');
+                }, 10);
+                document.body.style.overflow = 'hidden';
+            } else {
+                drawer.classList.add('translate-x-full');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+                document.body.style.overflow = 'auto';
+            }
+        }
+    </script>
 </body>
 </html>

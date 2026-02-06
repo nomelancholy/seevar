@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MY INFORMATION | SEE VAR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ledger-bg: #0d0e10;
+            --ledger-surface: #16181c;
+            --ledger-border: #2d3139;
+            --accent-var: #00ff41;
+            --accent-respect: #3b82f6;
+            --text-muted: #8b949e;
+        }
+        body {
+            background-color: var(--ledger-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+        .ledger-surface {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+        }
+        .btn-structural {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--ledger-border);
+        }
+        .btn-structural:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-color: #fff;
+        }
+        .input-field {
+            background: #1c1f24;
+            border: 1px solid var(--ledger-border);
+            color: white;
+            padding: 0.75rem;
+            width: 100%;
+            font-family: 'JetBrains+Mono', monospace;
+            font-size: 0.875rem;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-var);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <main class="max-w-2xl mx-auto">
+        <div class="mb-12">
+            <button onclick="window.history.back()" class="flex items-center gap-2 text-xs font-bold mono text-[var(--text-muted)] hover:text-white transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                BACK
+            </button>
+        </div>
+
+        <header class="mb-12">
+            <h1 class="text-5xl font-black italic tracking-tighter uppercase mb-4">MY INFORMATION</h1>
+            <p class="mono text-sm text-[var(--text-muted)]">회원 정보 및 프로필 설정을 관리하세요.</p>
+        </header>
+
+        <section class="ledger-surface p-8 space-y-8">
+            <!-- Profile Image Section -->
+            <div class="flex items-center gap-8">
+                <div class="w-24 h-24 rounded-full border-2 border-zinc-800 bg-zinc-900 flex items-center justify-center relative group cursor-pointer">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-700"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="text-[8px] font-black mono uppercase">Change</span>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Nickname</label>
+                    <input type="text" value="USER_7721" class="input-field">
+                </div>
+            </div>
+
+            <!-- Basic Info Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Email Address</label>
+                    <input type="email" value="user7721@example.com" class="input-field" disabled>
+                    <p class="text-[8px] mono text-zinc-600 mt-1">* Email cannot be changed.</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Supporting Team</label>
+                    <select class="input-field">
+                        <option selected>INCHEON UNITED</option>
+                        <option>FC SEOUL</option>
+                        <option>ULSAN HD</option>
+                        <option>JEONBUK HYUNDAI</option>
+                        <!-- ... other teams ... -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Password Section -->
+            <div class="pt-8 border-t border-zinc-800">
+                <h3 class="text-sm font-black italic uppercase mb-6">Security</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Current Password</label>
+                        <input type="password" placeholder="••••••••" class="input-field">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">New Password</label>
+                            <input type="password" class="input-field">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Confirm New Password</label>
+                            <input type="password" class="input-field">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-8 flex justify-end gap-4">
+                <button class="px-8 py-3 text-xs font-black italic mono text-zinc-500 hover:text-white transition-colors">CANCEL</button>
+                <button class="btn-structural bg-[var(--accent-var)] text-black px-12 py-3 text-xs font-black italic tracking-tighter uppercase">SAVE CHANGES</button>
+            </div>
+        </section>
+
+        <!-- Danger Zone -->
+        <section class="mt-12 p-8 border border-red-900/30 bg-red-900/5">
+            <h3 class="text-sm font-black italic text-red-500 uppercase mb-2">Danger Zone</h3>
+            <p class="text-xs text-zinc-500 mb-6">Once you delete your account, there is no going back. Please be certain.</p>
+            <button class="border border-red-900 text-red-500 px-6 py-2 text-[10px] font-black italic mono hover:bg-red-900 hover:text-white transition-all">DELETE ACCOUNT</button>
+        </section>
+    </main>
+</body>
+</html>

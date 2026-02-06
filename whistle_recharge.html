@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WHISTLE RECHARGE | SEE VAR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ledger-bg: #0d0e10;
+            --ledger-surface: #16181c;
+            --ledger-border: #2d3139;
+            --accent-var: #00ff41;
+            --accent-respect: #3b82f6;
+            --text-muted: #8b949e;
+        }
+        body {
+            background-color: var(--ledger-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+        .ledger-surface {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+        }
+        .btn-structural {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--ledger-border);
+        }
+        .btn-structural:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-color: #fff;
+        }
+        .whistle-card {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            padding: 2rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .whistle-card:hover {
+            border-color: var(--accent-var);
+            background: rgba(0, 255, 65, 0.02);
+        }
+        .whistle-card.popular::after {
+            content: "POPULAR";
+            position: absolute;
+            top: 12px;
+            right: -25px;
+            background: var(--accent-var);
+            color: black;
+            font-size: 8px;
+            font-weight: 900;
+            padding: 2px 30px;
+            transform: rotate(45deg);
+        }
+        .whistle-badge {
+            background: #ffd700;
+            color: black;
+            padding: 2px 6px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <main class="max-w-4xl mx-auto">
+        <div class="mb-12">
+            <button onclick="window.history.back()" class="flex items-center gap-2 text-xs font-bold mono text-[var(--text-muted)] hover:text-white transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                BACK
+            </button>
+        </div>
+
+        <header class="mb-12 flex justify-between items-end">
+            <div>
+                <h1 class="text-5xl font-black italic tracking-tighter uppercase mb-4">WHISTLE RECHARGE</h1>
+                <p class="mono text-sm text-[var(--text-muted)]">호각을 충전하여 AI 판정 등 프리미엄 기능을 이용하세요.</p>
+            </div>
+            <div class="bg-zinc-900 border border-zinc-800 p-4 text-right">
+                <span class="text-[10px] mono text-zinc-500 uppercase">Current Balance</span>
+                <p class="text-2xl font-black italic mono">1,240 <span class="text-[10px] text-zinc-500 not-italic">호각</span></p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <!-- Pack 1 -->
+            <div class="whistle-card">
+                <div class="whistle-badge mb-4">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
+                    100 호각
+                </div>
+                <div class="text-3xl font-black italic mono mb-2">₩ 1,100</div>
+                <p class="text-[10px] mono text-zinc-500 mb-8">AI 판정 요청 2회 가능</p>
+                <button class="w-full btn-structural py-3 text-[10px] font-black italic mono hover:bg-white hover:text-black transition-all">SELECT PACK</button>
+            </div>
+
+            <!-- Pack 2 -->
+            <div class="whistle-card popular border-[var(--accent-var)]">
+                <div class="whistle-badge mb-4">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
+                    550 호각
+                </div>
+                <div class="text-3xl font-black italic mono mb-2">₩ 5,500</div>
+                <p class="text-[10px] mono text-zinc-500 mb-8">50 호각 추가 증정 (10%)</p>
+                <button class="w-full btn-structural bg-[var(--accent-var)] text-black py-3 text-[10px] font-black italic mono">SELECT PACK</button>
+            </div>
+
+            <!-- Pack 3 -->
+            <div class="whistle-card">
+                <div class="whistle-badge mb-4">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
+                    1,200 호각
+                </div>
+                <div class="text-3xl font-black italic mono mb-2">₩ 11,000</div>
+                <p class="text-[10px] mono text-zinc-500 mb-8">200 호각 추가 증정 (20%)</p>
+                <button class="w-full btn-structural py-3 text-[10px] font-black italic mono hover:bg-white hover:text-black transition-all">SELECT PACK</button>
+            </div>
+        </div>
+
+        <!-- RECHARGE INFO -->
+        <section class="ledger-surface p-8">
+            <h3 class="text-sm font-black italic uppercase mb-6">Payment Methods</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button class="border border-zinc-800 p-4 flex flex-col items-center gap-2 hover:border-zinc-600 transition-colors">
+                    <div class="w-8 h-8 bg-yellow-400 rounded-lg"></div>
+                    <span class="text-[9px] mono font-bold">KAKAO PAY</span>
+                </button>
+                <button class="border border-zinc-800 p-4 flex flex-col items-center gap-2 hover:border-zinc-600 transition-colors">
+                    <div class="w-8 h-8 bg-blue-500 rounded-lg"></div>
+                    <span class="text-[9px] mono font-bold">TOSS PAY</span>
+                </button>
+                <button class="border border-zinc-800 p-4 flex flex-col items-center gap-2 hover:border-zinc-600 transition-colors">
+                    <div class="w-8 h-8 bg-zinc-700 rounded-lg"></div>
+                    <span class="text-[9px] mono font-bold">CREDIT CARD</span>
+                </button>
+                <button class="border border-zinc-800 p-4 flex flex-col items-center gap-2 hover:border-zinc-600 transition-colors">
+                    <div class="w-8 h-8 bg-zinc-700 rounded-lg"></div>
+                    <span class="text-[9px] mono font-bold">MOBILE PAY</span>
+                </button>
+            </div>
+        </section>
+
+        <p class="mt-8 text-center mono text-[9px] text-zinc-600 italic">
+            * 모든 충전 금액에는 부가세가 포함되어 있습니다. 충전 후 7일 이내 미사용 시 환불 가능합니다.
+        </p>
+    </main>
+</body>
+</html>

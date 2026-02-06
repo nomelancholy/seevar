@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATCH ANALYSIS | SEE VAR</title>
+    <title>MATCH LIVE | SEE VAR</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -53,35 +53,14 @@
             border-color: #fff;
         }
 
-        .star-rating {
-            display: flex;
-            flex-direction: row-reverse;
-            justify-content: flex-end;
-            gap: 0.5rem;
+        .var-pulse {
+            animation: pulse 2s infinite;
         }
-        .star-rating input { display: none; }
-        .star-rating label {
-            cursor: pointer;
-            width: 24px;
-            height: 24px;
-            background: #2d3139;
-            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-            transition: background 0.2s;
-        }
-        .star-rating.small label {
-            width: 12px;
-            height: 12px;
-        }
-        .star-rating input:checked ~ label,
-        .star-rating label:hover,
-        .star-rating label:hover ~ label {
-            background: var(--accent-var);
-        }
-        .star-rating.readonly label {
-            cursor: default;
-        }
-        .star-rating.readonly label.active {
-            background: var(--accent-var);
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
         }
 
         /* Tab Styles */
@@ -106,50 +85,6 @@
         }
         .tab-content.active {
             display: block;
-        }
-
-        .feedback-item {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--ledger-border);
-            transition: background 0.2s;
-        }
-        .feedback-item.best {
-            background: rgba(0, 255, 65, 0.03);
-            border-left: 2px solid var(--accent-var);
-        }
-        .feedback-item.my-review {
-            background: rgba(59, 130, 246, 0.05);
-            border-left: 2px solid var(--accent-respect);
-        }
-
-        /* Referee Selector Styles */
-        .referee-selector-item {
-            padding: 1rem;
-            border: 1px solid var(--ledger-border);
-            background: rgba(255,255,255,0.02);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .referee-selector-item:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: var(--text-muted);
-        }
-        .referee-selector-item.active {
-            background: rgba(0, 255, 65, 0.05);
-            border-color: var(--accent-var);
-        }
-
-        .ai-scanline {
-            width: 100%;
-            height: 2px;
-            background: var(--accent-var);
-            opacity: 0.3;
-            position: absolute;
-            animation: scan 3s linear infinite;
-        }
-        @keyframes scan {
-            0% { top: 0; }
-            100% { top: 100%; }
         }
 
         /* Hot Moment Card Styles */
@@ -481,7 +416,7 @@
             <a href="matches.html" class="text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
             <a href="referee_list.html" class="text-[var(--text-muted)] hover:text-white">REFEREES</a>
             <a href="teams.html" class="text-[var(--text-muted)] hover:text-white">TEAMS</a>
-            
+
             <!-- USER PROFILE -->
             <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
@@ -574,7 +509,7 @@
             <div>
                 <h2 class="text-4xl font-black italic tracking-tighter mb-1 uppercase">Ulsan HD vs Gangwon</h2>
                 <div class="flex items-center gap-2 mono text-xs text-[var(--text-muted)]">
-                    <span class="bg-zinc-800 text-white px-2 py-0.5 font-bold">MATCH FINISHED</span>
+                    <span class="bg-red-600 text-white px-2 py-0.5 font-bold uppercase var-pulse">● LIVE 12'</span>
                     <span class="opacity-50 underline">2026/03/01 REGULAR SEASON</span>
                 </div>
             </div>
@@ -583,18 +518,18 @@
         <section class="ledger-surface mb-8 p-8 relative overflow-hidden">
             <div class="grid grid-cols-1 lg:grid-cols-3 items-center gap-12">
                 <div class="flex flex-col items-center gap-6">
-                    <div class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative">
+                    <a href="teams.html" class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative hover:border-[var(--accent-var)] transition-colors group">
                         <div class="w-20 h-20 bg-blue-700 rounded-full"></div>
-                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic">ULSAN HD</div>
-                    </div>
+                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic group-hover:bg-[var(--accent-var)] transition-colors">ULSAN HD</div>
+                    </a>
                 </div>
 
                 <div class="text-center flex flex-col items-center">
-                    <div class="mono text-zinc-500 text-sm mb-2 uppercase font-bold tracking-widest">Full Time</div>
+                    <div class="mono text-[var(--accent-var)] text-sm mb-2 uppercase font-bold tracking-widest var-pulse">● LIVE NOW</div>
                     <div class="text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-6">
-                        <span>2</span>
-                        <span class="text-zinc-800 text-4xl">:</span>
                         <span>1</span>
+                        <span class="text-zinc-800 text-4xl">:</span>
+                        <span>0</span>
                     </div>
                     <div class="w-full h-[1px] bg-zinc-800 mb-6"></div>
                     
@@ -607,26 +542,11 @@
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
                             </a>
                         </div>
-                        <div>
-                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Asst 1</p>
-                            <p class="font-bold">PARK SANG-JUN</p>
-                        </div>
-                        <div>
-                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Asst 2</p>
-                            <p class="font-bold">KWAK SEUNG-SOON</p>
-                        </div>
-                        <div>
-                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">4th Official</p>
-                            <p class="font-bold">KIM HEE-GON</p>
-                        </div>
-                        <div>
-                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">VAR</p>
-                            <p class="font-bold text-[var(--accent-var)]">CHOI HYUN-JAI</p>
-                        </div>
-                        <div>
-                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">AVAR</p>
-                            <p class="font-bold">KANG DONG-HO</p>
-                        </div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Asst 1</p><p class="font-bold">PARK SANG-JUN</p></div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Asst 2</p><p class="font-bold">KWAK SEUNG-SOON</p></div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">4th Official</p><p class="font-bold">KIM HEE-GON</p></div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">VAR</p><p class="font-bold text-[var(--accent-var)]">CHOI HYUN-JAI</p></div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">AVAR</p><p class="font-bold">KANG DONG-HO</p></div>
                     </div>
 
                     <!-- SEE VAR BUTTON -->
@@ -636,10 +556,10 @@
                 </div>
 
                 <div class="flex flex-col items-center gap-6">
-                    <div class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative">
+                    <a href="teams.html" class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative hover:border-[var(--accent-var)] transition-colors group">
                         <div class="w-20 h-20 bg-green-700 rounded-lg rotate-45"></div>
-                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic">GANGWON FC</div>
-                    </div>
+                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic group-hover:bg-[var(--accent-var)] transition-colors">GANGWON FC</div>
+                    </a>
                 </div>
             </div>
         </section>
@@ -647,281 +567,30 @@
         <!-- MATCH HOT MOMENTS -->
         <section class="mb-12">
             <div class="flex justify-between items-end mb-6">
-                <h2 class="text-2xl font-black italic tracking-tighter uppercase">MATCH HOT MOMENTS</h2>
+                <h2 class="text-2xl font-black italic tracking-tighter uppercase">LIVE HOT MOMENTS</h2>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: 'GOAL MOMENT', time: '52\' ~ 54\'', description: '골 장면 오프사이드 여부 확인이 필요합니다.', media: 'goal_clip.mp4'})">
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: 'VAR CHECK', time: '10\' ~ 12\'', description: '현재 진행 중인 VAR 체크 상황입니다.', media: ''})">
                     <div class="rank-badge">1</div>
-                    <div class="font-black italic text-sm mb-1">GOAL MOMENT</div>
-                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">52' ~ 54'</div>
+                    <div class="font-black italic text-sm mb-1">LIVE VAR</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">10' ~ 12'</div>
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] mono text-zinc-500">SEE VAR 840</span>
-                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
-                    </div>
-                </div>
-                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: 'VAR CHECK', time: '24\' ~ 27\'', description: '페널티 박스 안에서의 파울 여부를 다시 봐야 합니다.', media: 'foul_clip.mp4'})">
-                    <div class="rank-badge">2</div>
-                    <div class="font-black italic text-sm mb-1">VAR CHECK</div>
-                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">24' ~ 27'</div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] mono text-zinc-500">SEE VAR 620</span>
-                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 420</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)] var-pulse"></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ANALYSIS TABS -->
+        <!-- ANALYSIS TABS (PARTIALLY DISABLED) -->
         <div class="mb-8 border border-[#2d3139] bg-[#16181c]/50">
             <div class="flex items-stretch border-b border-[#2d3139]">
-                <button class="tab-btn active" onclick="switchTab('referee-rating')">Referee Rating</button>
+                <button class="tab-btn active opacity-50 pointer-events-none">Referee Rating (Locked)</button>
             </div>
-
-            <!-- Tab 1: Referee Rating (NOW FIRST) -->
-            <div id="referee-rating" class="tab-content active p-8">
-                <div class="flex justify-between items-center mb-8">
-                    <h3 class="mono text-xs font-black tracking-widest text-[var(--accent-var)] uppercase">Referee Performance Rating</h3>
-                    <p class="mono text-[9px] text-zinc-500 italic">* 각 심판별로 팬들의 평가와 한줄평을 확인하세요.</p>
-                </div>
-
-                <!-- REFEREE SELECTOR TABS -->
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 mb-8">
-                    <div class="referee-selector-item active" onclick="switchReferee(this, 'main')">
-                        <p class="text-[8px] mono text-zinc-500 uppercase">Main</p>
-                        <p class="text-[10px] font-bold truncate">KO HYUNG-JIN</p>
-                    </div>
-                    <div class="referee-selector-item" onclick="switchReferee(this, 'asst1')">
-                        <p class="text-[8px] mono text-zinc-500 uppercase">Asst 1</p>
-                        <p class="text-[10px] font-bold truncate">PARK SANG-JUN</p>
-                    </div>
-                    <div class="referee-selector-item" onclick="switchReferee(this, 'asst2')">
-                        <p class="text-[8px] mono text-zinc-500 uppercase">Asst 2</p>
-                        <p class="text-[10px] font-bold truncate">KWAK SEUNG-SOON</p>
-                    </div>
-                    <div class="referee-selector-item" onclick="switchReferee(this, 'fourth')">
-                        <p class="text-[8px] mono text-zinc-500 uppercase">4th</p>
-                        <p class="text-[10px] font-bold truncate">KIM HEE-GON</p>
-                    </div>
-                    <div class="referee-selector-item" onclick="switchReferee(this, 'var')">
-                        <p class="text-[8px] mono text-zinc-500 uppercase">VAR</p>
-                        <p class="text-[10px] font-bold truncate">CHOI HYUN-JAI</p>
-                    </div>
-                    <div class="referee-selector-item" onclick="switchReferee(this, 'avar')">
-                        <p class="text-[8px] mono text-zinc-500 uppercase">AVAR</p>
-                        <p class="text-[10px] font-bold truncate">KANG DONG-HO</p>
-                    </div>
-                </div>
-
-                <!-- COMMUNITY FEEDBACK LIST -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-12" id="referee-detail-content">
-                    <!-- Content will be dynamically updated by switchReferee -->
-                    <!-- Initial content for Main Referee -->
-                    <div class="lg:col-span-1 border-r border-zinc-800 pr-12">
-                        <div class="bg-zinc-900/50 p-6 border border-zinc-800 mb-8">
-                            <div class="flex justify-between items-center mb-4">
-                                <span class="text-[10px] font-black mono text-[var(--accent-respect)] uppercase">My Rating</span>
-                                <span class="bg-zinc-800 text-zinc-400 px-2 py-0.5 text-[8px] mono">SUBMITTED</span>
-                            </div>
-                            <div class="space-y-4">
-                                <div>
-                                    <p class="text-[9px] text-zinc-500 uppercase mono mb-1" id="detail-ref-name">Main Referee: KO HYUNG-JIN</p>
-                                    <div class="star-rating small readonly">
-                                        <label class="active"></label><label class="active"></label><label class="active"></label><label class="active"></label><label></label>
-                                    </div>
-                                </div>
-                                <p class="text-xs text-zinc-300 italic">"판정 기준이 명확해서 좋았습니다. 다만 추가시간 관리가 조금 아쉬웠네요."</p>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-6">
-                            <h4 class="text-[10px] font-black mono text-zinc-500 uppercase tracking-widest">Community Summary</h4>
-                            <div class="flex items-end gap-4">
-                                <span class="text-5xl font-black italic tracking-tighter" id="detail-avg-score">4.2</span>
-                                <div class="flex flex-col mb-1">
-                                    <div class="star-rating small readonly">
-                                        <label class="active"></label><label class="active"></label><label class="active"></label><label class="active"></label><label></label>
-                                    </div>
-                                    <span class="text-[8px] mono text-zinc-600" id="detail-total-ratings">BASED ON 1,240 RATINGS</span>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex justify-between items-center text-[9px] mono">
-                                    <span class="text-zinc-500">FAIRNESS</span>
-                                    <div class="flex-1 mx-4 h-1 bg-zinc-800"><div class="w-[85%] h-full bg-[var(--accent-var)]"></div></div>
-                                    <span>4.5</span>
-                                </div>
-                                <div class="flex justify-between items-center text-[9px] mono">
-                                    <span class="text-zinc-500">CONTROL</span>
-                                    <div class="flex-1 mx-4 h-1 bg-zinc-800"><div class="w-[70%] h-full bg-[var(--accent-var)]"></div></div>
-                                    <span>3.8</span>
-                                </div>
-                                <div class="flex justify-between items-center text-[9px] mono">
-                                    <span class="text-zinc-500">CONSISTENCY</span>
-                                    <div class="flex-1 mx-4 h-1 bg-zinc-800"><div class="w-[90%] h-full bg-[var(--accent-var)]"></div></div>
-                                    <span>4.8</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-2">
-                        <div class="flex justify-between items-center mb-6">
-                            <h4 class="text-[10px] font-black mono text-zinc-500 uppercase tracking-widest">Community Feedbacks</h4>
-                            <div class="flex gap-2">
-                                <button class="text-[8px] mono font-bold text-white border-b border-[var(--accent-var)] pb-0.5">LATEST</button>
-                                <button class="text-[8px] mono font-bold text-zinc-600 hover:text-white transition-colors">TOP RATED</button>
-                            </div>
-                        </div>
-
-                        <div class="space-y-0 border border-zinc-800 bg-black/20 custom-scrollbar max-h-[600px] overflow-y-auto" id="referee-feedback-container">
-                            <!-- Feedbacks will be injected here -->
-                        </div>
-                    </div>
-                </div>
+            <div class="p-8 text-center mono text-xs text-zinc-500">
+                심판 평가는 경기 종료 후 활성화됩니다.
             </div>
         </div>
-
-    <script>
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        function openVarModal() {
-            document.getElementById('var-modal-overlay').style.display = 'flex';
-        }
-
-        function closeVarModal() {
-            document.getElementById('var-modal-overlay').style.display = 'none';
-            document.getElementById('file-preview-name').classList.add('hidden');
-        }
-
-        function handleFileSelect(input, type) {
-            const preview = document.getElementById('file-preview-name');
-            if (input.files && input.files[0]) {
-                preview.innerText = `ATTACHED ${type.toUpperCase()}: ${input.files[0].name}`;
-                preview.classList.remove('hidden');
-                document.getElementById('var-media').value = input.files[0].name;
-            }
-        }
-
-        function handleVarSubmit(event) {
-            event.preventDefault();
-            const start = document.getElementById('start-time').value;
-            const end = document.getElementById('end-time').value;
-            const desc = document.getElementById('var-description').value;
-            const media = document.getElementById('var-media').value;
-
-            const momentsGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-5');
-            if (momentsGrid) {
-                const newCard = document.createElement('div');
-                newCard.className = 'hot-moment-card border-[var(--accent-var)]';
-                const nextRank = momentsGrid.children.length + 1;
-                
-                newCard.onclick = () => toggleMomentDetail(newCard, {
-                    title: 'USER MOMENT',
-                    time: `${start}' ~ ${end}'`,
-                    description: desc,
-                    media: media
-                });
-
-                newCard.innerHTML = `
-                    <div class="rank-badge">${nextRank}</div>
-                    <div class="font-black italic text-sm mb-1">USER MOMENT</div>
-                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">${start}' ~ ${end}'</div>
-                    <div class="flex flex-col gap-2">
-                        <p class="text-[10px] text-zinc-400 italic">"${desc.substring(0, 30)}${desc.length > 30 ? '...' : ''}"</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-[10px] mono text-zinc-500">SEE VAR 1</span>
-                            <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)] var-pulse"></div>
-                        </div>
-                    </div>
-                `;
-                momentsGrid.appendChild(newCard);
-            }
-            closeVarModal();
-            document.getElementById('var-creation-form').reset();
-        }
-
-        function toggleMomentDetail(cardElement, data) {
-            const grid = cardElement.parentElement;
-            let detailArea = grid.nextElementSibling;
-            
-            if (!detailArea || !detailArea.classList.contains('moment-detail-area')) {
-                document.querySelectorAll('.moment-detail-area').forEach(el => {
-                    el.classList.remove('open');
-                    setTimeout(() => el.remove(), 500);
-                });
-                
-                detailArea = document.createElement('div');
-                detailArea.className = 'moment-detail-area w-full col-span-full';
-                grid.after(detailArea);
-            }
-
-            const isOpening = !cardElement.classList.contains('active');
-            document.querySelectorAll('.hot-moment-card').forEach(c => c.classList.remove('active'));
-
-            if (isOpening) {
-                cardElement.classList.add('active');
-                detailArea.innerHTML = `
-                    <div class="flex flex-col md:flex-row gap-8">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-4 mb-4">
-                                <h4 class="text-xl font-black italic tracking-tighter uppercase">${data.title}</h4>
-                                <span class="bg-[var(--accent-var)] text-black px-3 py-1 text-xs font-bold mono italic">${data.time}</span>
-                            </div>
-                            <div class="space-y-6">
-                                <div class="bg-zinc-900/50 p-4 border-l-2 border-[var(--accent-var)]">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="w-5 h-5 bg-zinc-800 rounded-full"></div>
-                                        <span class="text-[10px] font-bold mono text-[var(--accent-var)]">ORIGINAL_POSTER</span>
-                                    </div>
-                                    <p class="text-sm text-zinc-300 mb-4 leading-relaxed">${data.description}</p>
-                                    ${data.media ? `<div class="bg-black aspect-video flex items-center justify-center border border-zinc-800 text-zinc-700 mono text-xs mb-4">MEDIA: ${data.media}</div>` : ''}
-                                    <div class="flex gap-4">
-                                        <button class="flex items-center gap-2 text-[10px] mono font-bold hover:text-[var(--accent-var)] transition-colors">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                                            AGREE (124)
-                                        </button>
-                                        <button class="flex items-center gap-2 text-[10px] mono font-bold hover:text-red-500 transition-colors">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
-                                            DISAGREE (12)
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex gap-2 pt-4">
-                                    <input type="text" placeholder="ADD YOUR CONTENT..." class="flex-1 bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs mono focus:border-[var(--accent-var)] outline-none">
-                                    <button class="bg-white text-black px-4 py-2 font-black italic mono text-[10px] hover:bg-[var(--accent-var)] transition-colors">SUBMIT</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="w-full md:w-48 flex flex-col gap-4">
-                            <button class="btn-structural bg-[var(--accent-var)] text-black font-black py-4 text-xs tracking-tighter italic flex flex-col items-center justify-center gap-1">
-                                <span class="text-[10px] opacity-70">RE-REQUEST</span>
-                                SEE VAR
-                            </button>
-                        </div>
-                    </div>
-                `;
-                detailArea.classList.add('open');
-                detailArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } else {
-                detailArea.classList.remove('open');
-                setTimeout(() => {
-                    if (!detailArea.classList.contains('open')) {
-                        detailArea.innerHTML = '';
-                        detailArea.remove();
-                    }
-                }, 500);
-            }
-        }
-    </script>
     </main>
 
     <footer class="max-w-7xl mx-auto mt-12 pb-12 border-t border-zinc-900 pt-8 opacity-20 mono text-[10px] flex justify-between">
@@ -988,125 +657,6 @@
     </div>
 
     <script>
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        function switchReferee(element, refType) {
-            // Update UI state
-            document.querySelectorAll('.referee-selector-item').forEach(item => item.classList.remove('active'));
-            element.classList.add('active');
-
-            const feedbackContainer = document.getElementById('referee-feedback-container');
-            const refNameDisplay = document.getElementById('detail-ref-name');
-            const avgScoreDisplay = document.getElementById('detail-avg-score');
-            
-            // Mock data for different referees
-            const refData = {
-                main: { name: 'Main Referee: KO HYUNG-JIN', score: '4.2', ratings: '1,240' },
-                asst1: { name: 'Assistant 1: PARK SANG-JUN', score: '4.5', ratings: '850' },
-                asst2: { name: 'Assistant 2: KWAK SEUNG-SOON', score: '4.4', ratings: '820' },
-                fourth: { name: '4th Official: KIM HEE-GON', score: '3.8', ratings: '410' },
-                var: { name: 'VAR Referee: CHOI HYUN-JAI', score: '3.5', ratings: '960' },
-                avar: { name: 'AVAR Referee: KANG DONG-HO', score: '4.0', ratings: '320' }
-            };
-
-            const data = refData[refType];
-            refNameDisplay.innerText = data.name;
-            avgScoreDisplay.innerText = data.score;
-            document.getElementById('detail-total-ratings').innerText = `BASED ON ${data.ratings} RATINGS`;
-
-            // Update feedback feed with mock content
-            feedbackContainer.innerHTML = `
-                <div class="feedback-item best">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center gap-3">
-                            <div class="relative">
-                                <div class="w-8 h-8 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px] mono overflow-hidden">
-                                    <div class="w-full h-full bg-blue-700"></div>
-                                </div>
-                                <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border border-[var(--ledger-bg)] bg-blue-600 text-[6px] flex items-center justify-center font-bold text-white">U</div>
-                            </div>
-                            <div class="flex flex-col">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-bold text-zinc-400">ULSAN_FAN</span>
-                                    <span class="bg-red-600 text-white text-[7px] px-1 font-black italic">BEST</span>
-                                </div>
-                                <span class="text-[8px] text-zinc-600 mono">1H AGO | ULSAN HD SUPPORTING</span>
-                            </div>
-                        </div>
-                        <div class="star-rating small readonly">
-                            <label class="active"></label><label class="active"></label><label class="active"></label><label class="active"></label><label class="active"></label>
-                        </div>
-                    </div>
-                    <p class="text-xs text-zinc-300 leading-relaxed mb-4">"${data.name.split(': ')[1]} 심판님 오늘 정말 고생하셨습니다. 판정이 일관성 있어서 보기 좋았네요."</p>
-                    <div class="flex gap-4 opacity-60">
-                        <button class="flex items-center gap-1 text-[9px] mono font-bold hover:text-[var(--accent-var)]">AGREE (156)</button>
-                        <button class="flex items-center gap-1 text-[9px] mono font-bold hover:text-red-500">DISAGREE</button>
-                    </div>
-                </div>
-                <div class="feedback-item best">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center gap-3">
-                            <div class="relative">
-                                <div class="w-8 h-8 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px] mono overflow-hidden">
-                                    <div class="w-full h-full bg-green-700"></div>
-                                </div>
-                                <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border border-[var(--ledger-bg)] bg-green-600 text-[6px] flex items-center justify-center font-bold text-white">G</div>
-                            </div>
-                            <div class="flex flex-col">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-bold text-zinc-400">GANGWON_POWER</span>
-                                    <span class="bg-red-600 text-white text-[7px] px-1 font-black italic">BEST</span>
-                                </div>
-                                <span class="text-[8px] text-zinc-600 mono">30M AGO | GANGWON FC SUPPORTING</span>
-                            </div>
-                        </div>
-                        <div class="star-rating small readonly">
-                            <label class="active"></label><label class="active"></label><label class="active"></label><label class="active"></label><label></label>
-                        </div>
-                    </div>
-                    <p class="text-xs text-zinc-300 leading-relaxed mb-4">"상대 팀 입장에서도 수긍할 수 있는 판정이었습니다. 특히 ${refType === 'var' ? '비디오 판독 과정이 신속해서' : '라인 컨트롤이 정확해서'} 좋았습니다."</p>
-                    <div class="flex gap-4 opacity-60">
-                        <button class="flex items-center gap-1 text-[9px] mono font-bold hover:text-[var(--accent-var)]">AGREE (98)</button>
-                        <button class="flex items-center gap-1 text-[9px] mono font-bold hover:text-red-500">DISAGREE</button>
-                    </div>
-                </div>
-                <div class="feedback-item">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px] mono">K</div>
-                            <div class="flex flex-col">
-                                <span class="text-[10px] font-bold text-zinc-400">K-FAN_99</span>
-                                <span class="text-[8px] text-zinc-600 mono">5M AGO | K LEAGUE SUPPORTING</span>
-                            </div>
-                        </div>
-                        <div class="star-rating small readonly">
-                            <label class="active"></label><label class="active"></label><label class="active"></label><label class="active"></label><label></label>
-                        </div>
-                    </div>
-                    <p class="text-xs text-zinc-300 leading-relaxed mb-4">"무난한 경기 운영이었습니다."</p>
-                    <div class="flex gap-4 opacity-60">
-                        <button class="flex items-center gap-1 text-[9px] mono font-bold hover:text-[var(--accent-var)]">AGREE (5)</button>
-                        <button class="flex items-center gap-1 text-[9px] mono font-bold hover:text-red-500">DISAGREE</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Initialize with main referee data
-        window.onload = () => {
-            const mainRefBtn = document.querySelector('.referee-selector-item');
-            if(mainRefBtn) switchReferee(mainRefBtn, 'main');
-        };
-
         function openVarModal() {
             document.getElementById('var-modal-overlay').style.display = 'flex';
         }

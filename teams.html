@@ -51,6 +51,46 @@
         .team-btn.active {
             border-color: var(--accent-var);
         }
+
+        /* MODAL STYLES */
+        #referee-data-modal-overlay {
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+        }
+        .referee-data-modal-container {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            width: 90%;
+            max-width: 1000px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .modal-tab-btn {
+            padding: 1rem 2rem;
+            font-family: 'JetBrains+Mono', monospace;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .modal-tab-btn.active {
+            color: white;
+            border-bottom-color: var(--accent-var);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--accent-var);
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -77,10 +117,9 @@
             <a href="matches.html" class="text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
             <a href="referee_list.html" class="text-[var(--text-muted)] hover:text-white">REFEREES</a>
             <a href="teams.html" class="text-white border-b border-[var(--accent-var)] pb-1">TEAMS</a>
-            <a href="supporters.html" class="menu-link text-[var(--text-muted)] hover:text-white">SUPPORTERS</a>
 
             <!-- USER PROFILE -->
-            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800">
+            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
                     <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
@@ -94,9 +133,70 @@
                     </div>
                     <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
                 </div>
+                <!-- User Profile Image -->
+                <div class="w-10 h-10 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
             </div>
         </div>
     </nav>
+
+    <!-- USER DRAWER -->
+    <div id="user-drawer-overlay" class="fixed inset-0 z-[4000] hidden" onclick="if(event.target === this) toggleUserDrawer()">
+        <div id="user-drawer" class="absolute top-0 right-0 w-80 h-full bg-[var(--ledger-surface)] border-l border-[var(--ledger-border)] shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-12">
+                    <h2 class="text-2xl font-black italic tracking-tighter uppercase">MY PAGE</h2>
+                    <button onclick="toggleUserDrawer()" class="text-zinc-500 hover:text-white">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 mb-4 p-4 bg-zinc-900/50 border border-zinc-800">
+                    <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-lg font-black italic">USER_7721</p>
+                        <div class="whistle-badge mt-1" style="background: #ffd700; color: black; padding: 2px 6px; border-radius: 99px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
+                            1,240 호각
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUPPORTING TEAM INFO -->
+                <div class="flex items-center justify-between mb-12 px-4 py-3 border-l-2 border-blue-700 bg-blue-900/10">
+                    <div class="flex flex-col">
+                        <span class="text-[8px] mono text-zinc-500 uppercase tracking-widest">Supporting Team</span>
+                        <span class="text-xs font-black italic text-white">INCHEON UNITED</span>
+                    </div>
+                    <div class="w-8 h-8 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <div class="w-full h-full flex flex-col">
+                            <div class="flex-1 bg-blue-700"></div>
+                            <div class="flex-1 bg-black"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="flex flex-col gap-2">
+                    <a href="my_information.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">My Information</span>
+                    </a>
+                    <a href="my_var_moments.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">My VAR Moments</span>
+                    </a>
+                    <a href="whistle_recharge.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">Whistle Recharge</span>
+                    </a>
+                    <div class="h-[1px] bg-zinc-800 my-4"></div>
+                    <a href="#" class="flex items-center gap-4 p-4 hover:bg-red-600 hover:text-white transition-all group text-zinc-500">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">Logout</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </div>
 
     <main class="max-w-7xl mx-auto">
         <header class="mb-12">
@@ -198,10 +298,14 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- LEFT: REFEREE COMPATIBILITY -->
+            <!-- LEFT: REFEREE COMPATIBILITY & FREQUENCY -->
             <div class="lg:col-span-4 space-y-8">
+                <!-- Compatibility -->
                 <div class="ledger-surface p-6">
-                    <h3 class="mono text-[10px] font-black tracking-widest text-[var(--accent-var)] mb-8 uppercase italic">Referee Compatibility</h3>
+                    <div class="flex justify-between items-start mb-8">
+                        <h3 class="mono text-[10px] font-black tracking-widest text-[var(--accent-var)] uppercase italic">Referee Compatibility</h3>
+                        <button onclick="openRefereeDataModal('ratings')" class="mono text-[8px] font-bold text-zinc-500 hover:text-white transition-colors underline underline-offset-4">VIEW ALL</button>
+                    </div>
                     
                     <!-- Best Match -->
                     <div class="mb-8">
@@ -241,6 +345,43 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Frequency TOP 5 -->
+                <div class="ledger-surface p-6">
+                    <div class="flex justify-between items-start mb-8">
+                        <h3 class="mono text-[10px] font-black tracking-widest text-[var(--accent-var)] uppercase italic">Frequent Assignments (TOP 5)</h3>
+                        <button onclick="openRefereeDataModal('assignments')" class="mono text-[8px] font-bold text-zinc-500 hover:text-white transition-colors underline underline-offset-4">VIEW ALL</button>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- Main Ref TOP 5 -->
+                        <div>
+                            <p class="mono text-[8px] text-zinc-500 uppercase mb-3">Main Referee / VAR</p>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-[var(--accent-var)]">
+                                    <span class="text-[10px] font-bold italic uppercase">1. KO HYUNG-JIN</span>
+                                    <span class="mono text-[9px] text-zinc-500">12 Matches</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-zinc-700">
+                                    <span class="text-[10px] font-bold italic uppercase">2. KIM HEE-GON</span>
+                                    <span class="mono text-[9px] text-zinc-500">9 Matches</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-zinc-700">
+                                    <span class="text-[10px] font-bold italic uppercase">3. CHOI HYUN-JAI</span>
+                                    <span class="mono text-[9px] text-zinc-500">8 Matches</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-zinc-700">
+                                    <span class="text-[10px] font-bold italic uppercase">4. LEE DONG-JUN</span>
+                                    <span class="mono text-[9px] text-zinc-500">6 Matches</span>
+                                </div>
+                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-zinc-700">
+                                    <span class="text-[10px] font-bold italic uppercase">5. PARK BYUNG-JIN</span>
+                                    <span class="mono text-[9px] text-zinc-500">5 Matches</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- RIGHT: TEAM MATCH HISTORY -->
@@ -248,39 +389,88 @@
                 <h3 class="mono text-xs font-black tracking-widest text-[var(--text-muted)] mb-8 uppercase">Incheon Utd Match History</h3>
                 <div class="space-y-4">
                     <!-- Match 1 -->
-                    <div class="flex items-center justify-between p-4 border border-zinc-800 hover:border-zinc-600 transition-colors group">
-                        <div class="flex items-center gap-8">
-                            <div class="mono text-[10px] text-zinc-500">2024/03/01</div>
-                            <div class="flex items-center gap-4">
-                                <span class="font-bold">INCHEON</span>
-                                <span class="text-2xl font-black italic tracking-tighter">0 : 0</span>
-                                <span class="font-bold text-zinc-500">GANGWON</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-6">
-                            <div class="text-right">
-                                <p class="mono text-[8px] text-zinc-500 uppercase">Referee</p>
-                                <p class="mono text-[10px] font-bold">KO HYUNG-JIN</p>
+                    <div class="flex flex-col p-6 border border-zinc-800 hover:border-zinc-600 transition-colors group">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-8">
+                                <div class="mono text-xs text-zinc-500">2024/03/01</div>
+                                <div class="flex items-center gap-6">
+                                    <span class="font-black italic text-lg uppercase">INCHEON</span>
+                                    <span class="text-3xl font-black italic tracking-tighter">0 : 0</span>
+                                    <span class="font-black italic text-lg uppercase text-zinc-500">GANGWON</span>
+                                </div>
                             </div>
                             <span class="text-[var(--accent-var)] mono text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">VIEW DATA →</span>
+                        </div>
+                        
+                        <!-- Full Referee Crew -->
+                        <div class="grid grid-cols-2 md:grid-cols-6 gap-4 pt-4 border-t border-zinc-900">
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Main</span>
+                                <span class="mono text-[10px] font-bold">KO HYUNG-JIN</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Asst 1</span>
+                                <span class="mono text-[10px] font-bold">PARK SANG-JUN</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Asst 2</span>
+                                <span class="mono text-[10px] font-bold">KWAK SEUNG-SOON</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">VAR</span>
+                                <span class="mono text-[10px] font-bold">KIM HEE-GON</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">AVAR</span>
+                                <span class="mono text-[10px] font-bold">LEE SEUL-GI</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">4th</span>
+                                <span class="mono text-[10px] font-bold">CHOI HYUN-JAI</span>
+                            </div>
                         </div>
                     </div>
+
                     <!-- Match 2 -->
-                    <div class="flex items-center justify-between p-4 border border-zinc-800 hover:border-zinc-600 transition-colors group">
-                        <div class="flex items-center gap-8">
-                            <div class="mono text-[10px] text-zinc-500">2023/11/24</div>
-                            <div class="flex items-center gap-4">
-                                <span class="font-bold">INCHEON</span>
-                                <span class="text-2xl font-black italic tracking-tighter">2 : 1</span>
-                                <span class="font-bold text-zinc-500">ULSAN</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-6">
-                            <div class="text-right">
-                                <p class="mono text-[8px] text-zinc-500 uppercase">Referee</p>
-                                <p class="mono text-[10px] font-bold">KIM HEE-GON</p>
+                    <div class="flex flex-col p-6 border border-zinc-800 hover:border-zinc-600 transition-colors group">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-8">
+                                <div class="mono text-xs text-zinc-500">2023/11/24</div>
+                                <div class="flex items-center gap-6">
+                                    <span class="font-black italic text-lg uppercase">INCHEON</span>
+                                    <span class="text-3xl font-black italic tracking-tighter">2 : 1</span>
+                                    <span class="font-black italic text-lg uppercase text-zinc-500">ULSAN</span>
+                                </div>
                             </div>
                             <span class="text-[var(--accent-var)] mono text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">VIEW DATA →</span>
+                        </div>
+                        
+                        <!-- Full Referee Crew -->
+                        <div class="grid grid-cols-2 md:grid-cols-6 gap-4 pt-4 border-t border-zinc-900">
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Main</span>
+                                <span class="mono text-[10px] font-bold">KIM HEE-GON</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Asst 1</span>
+                                <span class="mono text-[10px] font-bold">LEE JUNG-MIN</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Asst 2</span>
+                                <span class="mono text-[10px] font-bold">KIM KYE-YONG</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">VAR</span>
+                                <span class="mono text-[10px] font-bold">KO HYUNG-JIN</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">AVAR</span>
+                                <span class="mono text-[10px] font-bold">SONG BONG-GEUN</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">4th</span>
+                                <span class="mono text-[10px] font-bold">LEE DONG-JUN</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -292,5 +482,161 @@
         <div>© 2024 K LEAGUE DATA PORTAL. ALL RIGHTS RESERVED.</div>
         <div>SEE VAR SYSTEM V1.0.4</div>
     </footer>
+
+    <!-- REFEREE DATA MODAL -->
+    <div id="referee-data-modal-overlay" class="fixed inset-0 z-[5000] hidden flex items-center justify-center" onclick="if(event.target === this) closeRefereeDataModal()">
+        <div class="referee-data-modal-container">
+            <button class="absolute top-4 right-4 text-zinc-500 hover:text-white z-10" onclick="closeRefereeDataModal()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+
+            <div class="flex border-b border-zinc-800">
+                <button id="tab-ratings" onclick="switchModalTab('ratings')" class="modal-tab-btn active">FAN RATINGS</button>
+                <button id="tab-assignments" onclick="switchModalTab('assignments')" class="modal-tab-btn">ASSIGNMENT STATS</button>
+            </div>
+
+            <div class="p-8 overflow-y-auto custom-scrollbar flex-1" id="modal-content-area">
+                <!-- Dynamic content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            
+            if (body.style.backgroundColor === 'white') {
+                body.style.backgroundColor = 'var(--ledger-bg)';
+                body.style.color = 'white';
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+            } else {
+                body.style.backgroundColor = 'white';
+                body.style.color = 'black';
+                icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+            }
+        }
+
+        function toggleUserDrawer() {
+            const overlay = document.getElementById('user-drawer-overlay');
+            const drawer = document.getElementById('user-drawer');
+            const isHidden = overlay.classList.contains('hidden');
+            
+            if (isHidden) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    drawer.classList.remove('translate-x-full');
+                }, 10);
+                document.body.style.overflow = 'hidden';
+            } else {
+                drawer.classList.add('translate-x-full');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // REFEREE DATA MODAL LOGIC
+        const mockRefereeData = [
+            { name: 'KO HYUNG-JIN', rating: 4.4, main: 8, asst: 0, var: 4, avar: 0, fourth: 0 },
+            { name: 'KIM HEE-GON', rating: 1.8, main: 5, asst: 0, var: 4, avar: 0, fourth: 0 },
+            { name: 'CHOI HYUN-JAI', rating: 3.2, main: 4, asst: 0, var: 2, avar: 0, fourth: 2 },
+            { name: 'LEE DONG-JUN', rating: 2.5, main: 3, asst: 0, var: 1, avar: 0, fourth: 2 },
+            { name: 'PARK BYUNG-JIN', rating: 3.8, main: 2, asst: 0, var: 3, avar: 0, fourth: 0 },
+            { name: 'PARK SANG-JUN', rating: 4.1, main: 0, asst: 10, var: 0, avar: 0, fourth: 0 },
+            { name: 'KWAK SEUNG-SOON', rating: 3.9, main: 0, asst: 8, var: 0, avar: 0, fourth: 0 },
+            { name: 'LEE SEUL-GI', rating: 3.5, main: 0, asst: 0, var: 0, avar: 7, fourth: 0 },
+            { name: 'SONG BONG-GEUN', rating: 3.0, main: 0, asst: 0, var: 0, avar: 5, fourth: 0 },
+            { name: 'KIM KYE-YONG', rating: 3.7, main: 0, asst: 6, var: 0, avar: 0, fourth: 0 }
+        ];
+
+        function openRefereeDataModal(tab) {
+            document.getElementById('referee-data-modal-overlay').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            switchModalTab(tab);
+        }
+
+        function closeRefereeDataModal() {
+            document.getElementById('referee-data-modal-overlay').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function switchModalTab(tab) {
+            const ratingsTab = document.getElementById('tab-ratings');
+            const assignmentsTab = document.getElementById('tab-assignments');
+            const contentArea = document.getElementById('modal-content-area');
+
+            if (tab === 'ratings') {
+                ratingsTab.classList.add('active');
+                assignmentsTab.classList.remove('active');
+                
+                let html = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${mockRefereeData.sort((a,b) => b.rating - a.rating).map(ref => `
+                            <div class="bg-zinc-900/50 border border-zinc-800 p-4 flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 bg-zinc-800 flex items-center justify-center">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-600"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-black italic uppercase leading-none mb-1">${ref.name}</p>
+                                        <p class="mono text-[8px] text-zinc-500 uppercase">Average Rating</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center gap-2 justify-end mb-1">
+                                        <div class="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                                            <div class="h-full ${ref.rating >= 3.5 ? 'bg-[var(--accent-var)]' : ref.rating >= 2.5 ? 'bg-yellow-500' : 'bg-red-600'}" style="width: ${ref.rating * 20}%"></div>
+                                        </div>
+                                        <span class="mono text-[10px] font-bold ${ref.rating >= 3.5 ? 'text-[var(--accent-var)]' : ref.rating >= 2.5 ? 'text-yellow-500' : 'text-red-500'}">${ref.rating.toFixed(1)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                contentArea.innerHTML = html;
+            } else {
+                assignmentsTab.classList.add('active');
+                ratingsTab.classList.remove('active');
+
+                let html = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left mono text-[10px]">
+                            <thead>
+                                <tr class="border-b border-zinc-800 text-zinc-500 uppercase tracking-widest">
+                                    <th class="py-4 font-black">Referee Name</th>
+                                    <th class="py-4 font-black text-center">Main</th>
+                                    <th class="py-4 font-black text-center">Asst</th>
+                                    <th class="py-4 font-black text-center">VAR</th>
+                                    <th class="py-4 font-black text-center">AVAR</th>
+                                    <th class="py-4 font-black text-center">4th</th>
+                                    <th class="py-4 font-black text-center bg-zinc-900/50">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-900">
+                                ${mockRefereeData.sort((a,b) => (b.main+b.asst+b.var+b.avar+b.fourth) - (a.main+a.asst+a.var+a.avar+a.fourth)).map(ref => {
+                                    const total = ref.main + ref.asst + ref.var + ref.avar + ref.fourth;
+                                    return `
+                                        <tr class="hover:bg-white/5 transition-colors">
+                                            <td class="py-4 font-bold italic uppercase">${ref.name}</td>
+                                            <td class="py-4 text-center ${ref.main > 0 ? 'text-white' : 'text-zinc-700'}">${ref.main}</td>
+                                            <td class="py-4 text-center ${ref.asst > 0 ? 'text-white' : 'text-zinc-700'}">${ref.asst}</td>
+                                            <td class="py-4 text-center ${ref.var > 0 ? 'text-white' : 'text-zinc-700'}">${ref.var}</td>
+                                            <td class="py-4 text-center ${ref.avar > 0 ? 'text-white' : 'text-zinc-700'}">${ref.avar}</td>
+                                            <td class="py-4 text-center ${ref.fourth > 0 ? 'text-white' : 'text-zinc-700'}">${ref.fourth}</td>
+                                            <td class="py-4 text-center font-black bg-zinc-900/30 text-[var(--accent-var)]">${total}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                contentArea.innerHTML = html;
+            }
+        }
+    </script>
 </body>
 </html>

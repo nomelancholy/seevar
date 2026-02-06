@@ -56,6 +56,234 @@
             background-position: right 0.5rem center;
             background-size: 1rem;
         }
+
+        /* Hot Moment Card Styles */
+        .hot-moment-card {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            padding: 1rem;
+            transition: all 0.3s;
+            position: relative;
+            cursor: pointer;
+        }
+        .hot-moment-card:hover {
+            border-color: var(--accent-var);
+            transform: translateY(-2px);
+        }
+        .hot-moment-card.active {
+            border-color: var(--accent-var);
+            background: rgba(0, 255, 65, 0.05);
+        }
+        /* Instagram-style Moment Modal */
+        #moment-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .moment-modal-container {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            width: 100%;
+            max-width: 700px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        .moment-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--ledger-border);
+            background: var(--ledger-surface);
+            z-index: 10;
+        }
+        .moment-modal-content {
+            flex: 1;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.2);
+        }
+        .user-post-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--ledger-border);
+            transition: background 0.2s;
+        }
+        .user-post-item.expandable {
+            cursor: pointer;
+        }
+        .user-post-item.expandable:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        .post-text {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #ccc;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .user-post-item.expanded .post-text {
+            -webkit-line-clamp: unset;
+            color: #fff;
+        }
+        .post-thumbnail {
+            width: 60px;
+            height: 60px;
+            background: #000;
+            border: 1px solid var(--ledger-border);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .post-full-media {
+            display: none;
+            margin-top: 1rem;
+            width: 100%;
+            aspect-video: 16/9;
+            background: #000;
+            border: 1px solid var(--ledger-border);
+        }
+        .user-post-item.expanded .post-full-media {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .user-post-item.expanded .post-thumbnail {
+            display: none;
+        }
+        .moment-modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--ledger-border);
+            background: var(--ledger-surface);
+        }
+        .close-moment-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: none;
+            border: none;
+            z-index: 20;
+        }
+        .close-moment-modal:hover {
+            color: white;
+        }
+        .rank-badge {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background: var(--accent-var);
+            color: black;
+            font-weight: 900;
+            font-style: italic;
+            padding: 2px 8px;
+            font-size: 0.875rem;
+            z-index: 10;
+        }
+        .user-post-item.ai-judgment {
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            position: relative;
+        }
+        .ai-tag {
+            background: var(--accent-var);
+            color: black;
+            font-size: 8px;
+            font-weight: 900;
+            padding: 2px 6px;
+            font-style: italic;
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+        .ai-request-btn {
+            background: linear-gradient(45deg, #00ff41, #0080ff);
+            color: black;
+            font-weight: 900;
+            font-style: italic;
+            transition: all 0.3s;
+        }
+        .ai-request-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+        }
+        
+        /* AI Request Modal */
+        #ai-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+        .whistle-badge {
+            background: #ffd700;
+            color: black;
+            padding: 2px 6px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Custom Alert Modal */
+        #custom-alert-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+        }
+        .alert-surface {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            width: 100%;
+            max-width: 350px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        
+        /* VAR Modal Styles (Added for consistency) */
+        .modal-surface {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            box-shadow: 20px 20px 0px rgba(0,0,0,0.5);
+        }
+        .modal-input {
+            background: #1c1f24;
+            border: 1px solid var(--ledger-border);
+            color: white;
+            padding: 0.75rem;
+            width: 100%;
+            font-family: 'JetBrains+Mono', monospace;
+            font-size: 0.875rem;
+        }
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--accent-var);
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -82,10 +310,9 @@
             <a href="matches.html" class="text-white border-b border-[var(--accent-var)] pb-1">ARCHIVE</a>
             <a href="referee_list.html" class="menu-link text-[var(--text-muted)] hover:text-white">REFEREES</a>
             <a href="teams.html" class="menu-link text-[var(--text-muted)] hover:text-white">TEAMS</a>
-            <a href="supporters.html" class="menu-link text-[var(--text-muted)] hover:text-white">SUPPORTERS</a>
 
             <!-- USER PROFILE -->
-            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800">
+            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
                     <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
@@ -99,9 +326,70 @@
                     </div>
                     <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
                 </div>
+                <!-- User Profile Image -->
+                <div class="w-10 h-10 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
             </div>
         </div>
     </nav>
+
+    <!-- USER DRAWER -->
+    <div id="user-drawer-overlay" class="fixed inset-0 z-[4000] hidden" onclick="if(event.target === this) toggleUserDrawer()">
+        <div id="user-drawer" class="absolute top-0 right-0 w-80 h-full bg-[var(--ledger-surface)] border-l border-[var(--ledger-border)] shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-12">
+                    <h2 class="text-2xl font-black italic tracking-tighter uppercase">MY PAGE</h2>
+                    <button onclick="toggleUserDrawer()" class="text-zinc-500 hover:text-white">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 mb-4 p-4 bg-zinc-900/50 border border-zinc-800">
+                    <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-lg font-black italic">USER_7721</p>
+                        <div class="whistle-badge mt-1">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
+                            1,240 호각
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUPPORTING TEAM INFO -->
+                <div class="flex items-center justify-between mb-12 px-4 py-3 border-l-2 border-blue-700 bg-blue-900/10">
+                    <div class="flex flex-col">
+                        <span class="text-[8px] mono text-zinc-500 uppercase tracking-widest">Supporting Team</span>
+                        <span class="text-xs font-black italic text-white">INCHEON UNITED</span>
+                    </div>
+                    <div class="w-8 h-8 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <div class="w-full h-full flex flex-col">
+                            <div class="flex-1 bg-blue-700"></div>
+                            <div class="flex-1 bg-black"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="flex flex-col gap-2">
+                    <a href="my_information.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">My Information</span>
+                    </a>
+                    <a href="my_var_moments.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">My VAR Moments</span>
+                    </a>
+                    <a href="whistle_recharge.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">Whistle Recharge</span>
+                    </a>
+                    <div class="h-[1px] bg-zinc-800 my-4"></div>
+                    <a href="#" class="flex items-center gap-4 p-4 hover:bg-red-600 hover:text-white transition-all group text-zinc-500">
+                        <span class="mono text-[10px] font-black tracking-widest uppercase">Logout</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </div>
 
     <main class="max-w-7xl mx-auto">
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -223,6 +511,116 @@
             </div>
         </div>
 
+        <!-- ROUND CONTROVERSIAL MOMENTS (TOP 10) -->
+        <section class="mb-12">
+            <div class="flex justify-between items-end mb-6">
+                <h2 class="text-2xl font-black italic tracking-tighter uppercase">HOT MOMENTS OF THIS ROUND</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <!-- Rank 1-10 Cards -->
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '서울 vs 울산', time: '52\' ~ 54\'', description: '서울 울산 경기 오프사이드 논란 장면입니다.', media: ''})">
+                    <div class="rank-badge">1</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 1</div>
+                    <div class="font-black italic text-sm mb-1">서울 vs 울산</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">52' ~ 54'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 1,240</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)] var-pulse"></div>
+                    </div>
+                </div>
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '인천 vs 부천', time: '24\' ~ 26\'', description: '인천 부천 경기 페널티킥 판정 논란입니다.', media: ''})">
+                    <div class="rank-badge">2</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 1</div>
+                    <div class="font-black italic text-sm mb-1">인천 vs 부천</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">24' ~ 26'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 980</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                    </div>
+                </div>
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '전북 vs 광주', time: '15\' ~ 18\'', description: '전북 광주 경기 핸드볼 파울 여부입니다.', media: ''})">
+                    <div class="rank-badge">3</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 1</div>
+                    <div class="font-black italic text-sm mb-1">전북 vs 광주</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">15' ~ 18'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 850</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                    </div>
+                </div>
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '안양 vs 부산', time: '82\' ~ 85\'', description: '안양 부산 경기 퇴장 판정 논란입니다.', media: ''})">
+                    <div class="rank-badge">4</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 2</div>
+                    <div class="font-black italic text-sm mb-1">안양 vs 부산</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">82' ~ 85'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 720</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                    </div>
+                </div>
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '포항 vs 제주', time: '40\' ~ 42\'', description: '포항 제주 경기 골 취소 판정입니다.', media: ''})">
+                    <div class="rank-badge">5</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 1</div>
+                    <div class="font-black italic text-sm mb-1">포항 vs 제주</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">40' ~ 42'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 640</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                    </div>
+                </div>
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '대구 vs 수원', time: '10\' ~ 12\'', description: '대구 수원 경기 경고 누적 상황입니다.', media: ''})">
+                    <div class="rank-badge">6</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 1</div>
+                    <div class="font-black italic text-sm mb-1">대구 vs 수원</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">10' ~ 12'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 520</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                    </div>
+                </div>
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '성남 vs 전남', time: '33\' ~ 35\'', description: '성남 전남 경기 거친 파울 장면입니다.', media: ''})">
+                    <div class="rank-badge">7</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 2</div>
+                    <div class="font-black italic text-sm mb-1">성남 vs 전남</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">33' ~ 35'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 480</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                    </div>
+                </div>
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '대전 vs 김천', time: '67\' ~ 69\'', description: '대전 김천 경기 오프사이드 판정입니다.', media: ''})">
+                    <div class="rank-badge">8</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 1</div>
+                    <div class="font-black italic text-sm mb-1">대전 vs 김천</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">67' ~ 69'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 410</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                    </div>
+                </div>
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '강원 vs 광주', time: '88\' ~ 90\'', description: '강원 광주 경기 추가시간 판정 논란입니다.', media: ''})">
+                    <div class="rank-badge">9</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 1</div>
+                    <div class="font-black italic text-sm mb-1">강원 vs 광주</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">88' ~ 90'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 350</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                    </div>
+                </div>
+                <div class="hot-moment-card" onclick="toggleMomentDetail(this, {title: '충남아산 vs 경남', time: '45\' ~ 47\'', description: '충남아산 경남 경기 전반 종료 직전 상황입니다.', media: ''})">
+                    <div class="rank-badge">10</div>
+                    <div class="text-[10px] text-[var(--text-muted)] mono mb-2">K LEAGUE 2</div>
+                    <div class="font-black italic text-sm mb-1">충남아산 vs 경남</div>
+                    <div class="text-[var(--accent-var)] font-bold mono text-xs mb-3">45' ~ 47'</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] mono text-zinc-500">SEE VAR 290</span>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent-var)]"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- MATCH LIST TABLE -->
         <div class="ledger-surface overflow-hidden">
             <!-- Table Header -->
@@ -237,7 +635,7 @@
             <!-- Match Rows -->
             <div class="divide-y divide-zinc-800">
                 <!-- Match 1 -->
-                <a href="index.html" class="grid grid-cols-12 p-6 items-center match-row group">
+                <a href="match_live.html" class="grid grid-cols-12 p-6 items-center match-row group">
                     <div class="col-span-2">
                         <p class="mono text-xs font-bold">2024/03/01</p>
                         <p class="mono text-[10px] text-zinc-500">14:00 KST</p>
@@ -275,6 +673,38 @@
                         <p class="mono text-[10px] text-zinc-500">14:00 KST</p>
                     </div>
                     <div class="col-span-1 text-center">
+                        <span class="bg-zinc-800 text-[var(--accent-var)] px-2 py-0.5 text-[9px] font-black italic">K2</span>
+                    </div>
+                    <div class="col-span-5 flex items-center justify-center gap-8">
+                        <div class="flex items-center gap-3 flex-1 justify-end">
+                            <span class="font-black italic text-lg uppercase">Seongnam FC</span>
+                            <div class="w-8 h-8 bg-black border border-zinc-700 rounded-sm"></div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-2xl font-black italic tracking-tighter">0 : 0</span>
+                            <span class="mono text-[8px] text-zinc-500 font-bold uppercase">Finished</span>
+                        </div>
+                        <div class="flex items-center gap-3 flex-1 justify-start">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-sm"></div>
+                            <span class="font-black italic text-lg uppercase">Jeonnam</span>
+                        </div>
+                    </div>
+                    <div class="col-span-2 text-center">
+                        <p class="mono text-xs font-bold hover:text-[var(--accent-var)] transition-colors">CHOI HYUN-JAI</p>
+                        <p class="mono text-[9px] text-zinc-500">K LEAGUE PRO</p>
+                    </div>
+                    <div class="col-span-2 text-right">
+                        <span class="btn-structural bg-[#1c1f24] px-4 py-2 text-[10px] font-bold mono group-hover:bg-white group-hover:text-black transition-all">VIEW FEEDBACK</span>
+                    </div>
+                </a>
+
+                <!-- Match 3 -->
+                <a href="match_finished.html" class="grid grid-cols-12 p-6 items-center match-row group">
+                    <div class="col-span-2">
+                        <p class="mono text-xs font-bold">2024/03/01</p>
+                        <p class="mono text-[10px] text-zinc-500">14:00 KST</p>
+                    </div>
+                    <div class="col-span-1 text-center">
                         <span class="bg-white text-black px-2 py-0.5 text-[9px] font-black italic">K1</span>
                     </div>
                     <div class="col-span-5 flex items-center justify-center gap-8">
@@ -303,9 +733,297 @@
         </div>
     </main>
 
+    <!-- CUSTOM ALERT MODAL -->
+    <div id="custom-alert-overlay">
+        <div class="alert-surface">
+            <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
+            </div>
+            <h3 class="text-lg font-black italic tracking-tighter uppercase mb-2">호각이 부족합니다</h3>
+            <p class="text-xs mono text-zinc-500 mb-8 leading-relaxed">AI 판정 요청을 위해 50 호각이 필요합니다.<br>충전 페이지로 이동하시겠습니까?</p>
+            <div class="flex flex-col gap-2">
+                <button onclick="closeCustomAlert()" class="w-full btn-structural bg-white text-black font-black py-3 text-xs tracking-tighter italic uppercase">호각 충전하러 가기</button>
+                <button onclick="closeCustomAlert()" class="w-full text-zinc-600 hover:text-white text-[10px] mono font-bold py-2 transition-colors uppercase underline">나중에 하기</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="max-w-7xl mx-auto mt-12 pb-12 border-t border-zinc-900 pt-8 opacity-20 mono text-[10px] flex justify-between">
         <div>© 2024 K LEAGUE DATA PORTAL. ALL RIGHTS RESERVED.</div>
         <div>SEE VAR SYSTEM V1.0.4</div>
     </footer>
+
+    <!-- MOMENT DETAIL MODAL (Instagram Style) -->
+    <div id="moment-modal-overlay" onclick="if(event.target === this) closeMomentModal()">
+        <div class="moment-modal-container">
+            <button class="close-moment-modal" onclick="closeMomentModal()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+            
+            <div class="moment-modal-header">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex flex-col gap-1">
+                        <h4 class="text-2xl font-black italic tracking-tighter uppercase" id="modal-title"></h4>
+                        <div class="flex items-center gap-2 text-[10px] mono text-[var(--text-muted)]">
+                            <span id="modal-match-info">K LEAGUE 1 | ROUND 5</span>
+                            <span class="bg-zinc-800 px-2 py-0.5" id="modal-time"></span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-[10px] mono text-[var(--accent-var)] font-bold">CURRENT SEE VAR</span>
+                        <span class="text-2xl font-black italic mono" id="modal-total-seevar">1,240</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="moment-modal-content custom-scrollbar" id="modal-posts-container">
+                <!-- User posts list injected here -->
+            </div>
+            
+            <div class="moment-modal-footer">
+                <div class="flex flex-col gap-3">
+                    <div class="flex gap-2">
+                        <div class="relative flex-1 flex gap-2">
+                            <input type="text" placeholder="QUICK COMMENT..." class="flex-1 bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs mono focus:border-[var(--accent-var)] outline-none">
+                            <div class="flex gap-1">
+                                <button type="button" onclick="document.getElementById('file-input-image-moment').click()" class="w-9 h-9 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 transition-colors text-zinc-500" title="Attach Image">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                </button>
+                                <button type="button" onclick="document.getElementById('file-input-video-moment').click()" class="w-9 h-9 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 transition-colors text-zinc-500" title="Attach Video">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                                </button>
+                            </div>
+                            <input type="file" id="file-input-image-moment" accept="image/*" class="hidden">
+                            <input type="file" id="file-input-video-moment" accept="video/*" class="hidden">
+                        </div>
+                        <button class="bg-white text-black px-4 py-2 font-black italic mono text-[10px] hover:bg-[var(--accent-var)] transition-colors">POST</button>
+                        <button class="bg-[var(--accent-var)] text-black px-6 py-2 font-black italic mono text-xs hover:scale-105 transition-transform flex items-center gap-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                            SEE VAR
+                        </button>
+                    </div>
+                    <button onclick="openAiModal()" class="w-full ai-request-btn py-2 text-[10px] flex items-center justify-center gap-2">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/></svg>
+                        REQUEST AI JUDGMENT (50 호각)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAiModal() {
+            document.getElementById('custom-alert-overlay').style.display = 'flex';
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('custom-alert-overlay').style.display = 'none';
+        }
+      </script>
+
+    <!-- DARK MODE TOGGLE -->
+    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000]" title="Toggle Dark Mode">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <script>
+        function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            
+            if (body.style.backgroundColor === 'white') {
+                body.style.backgroundColor = 'var(--ledger-bg)';
+                body.style.color = 'white';
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+            } else {
+                body.style.backgroundColor = 'white';
+                body.style.color = 'black';
+                icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+            }
+        }
+
+        function toggleUserDrawer() {
+            const overlay = document.getElementById('user-drawer-overlay');
+            const drawer = document.getElementById('user-drawer');
+            const isHidden = overlay.classList.contains('hidden');
+            
+            if (isHidden) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    drawer.classList.remove('translate-x-full');
+                }, 10);
+                document.body.style.overflow = 'hidden';
+            } else {
+                drawer.classList.add('translate-x-full');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function toggleMomentDetail(cardElement, data) {
+            const overlay = document.getElementById('moment-modal-overlay');
+            const postsContainer = document.getElementById('modal-posts-container');
+            
+            document.getElementById('modal-title').innerText = data.title;
+            document.getElementById('modal-time').innerText = data.time;
+            
+            // Extract team names from title (e.g., "성남 vs 전남")
+            const teams = data.title.split(' vs ');
+            const teamA = teams[0] || 'HOME';
+            const teamB = teams[1] || 'AWAY';
+
+            // Mock posts data with team affiliation and likes
+            const mockPosts = [
+                {
+                    user: 'AI_JUDGE_VAR',
+                    team: 'AI',
+                    time: 'JUST NOW',
+                    text: '분석 결과: 해당 장면은 공격수의 발이 수비수의 최종 라인보다 12cm 앞서 있었습니다. 규정 제11조(오프사이드)에 의거하여 오심일 확률이 94.2%입니다.',
+                    media: '',
+                    agrees: 1240,
+                    isAi: true
+                },
+                {
+                    user: 'ORIGINAL_POSTER',
+                    team: 'INCHEON',
+                    time: '2H AGO',
+                    text: data.description || '이 장면 VAR 판정이 필요해 보입니다. 명백한 오심 가능성이 있습니다.',
+                    media: data.media || '',
+                    agrees: 124,
+                    isOriginal: true
+                },
+                {
+                    user: 'SEONGNAM_FAN_1',
+                    team: teamA,
+                    time: '1H AGO',
+                    text: '우리 팀 입장에서 이건 무조건 파울입니다. 심판 위치가 너무 멀었어요. 베스트 댓글로 올려주세요!',
+                    media: 'foul_view.jpg',
+                    agrees: 450,
+                    isBest: true
+                },
+                {
+                    user: 'SEONGNAM_FAN_2',
+                    team: teamA,
+                    time: '1H AGO',
+                    text: '지난 경기에서도 비슷한 상황 있었는데 그때는 불어주더니 이번엔 왜 안 부나요? 일관성이 없네요.',
+                    media: '',
+                    agrees: 320,
+                    isBest: true
+                },
+                {
+                    user: 'JEONNAM_KING',
+                    team: teamB,
+                    time: '45M AGO',
+                    text: '전남 팬으로서 객관적으로 봐도 이건 정당한 어깨 싸움이었습니다. 공 먼저 건드렸어요.',
+                    media: 'clean_tackle.png',
+                    agrees: 280,
+                    isBest: true
+                },
+                {
+                    user: 'DRAGON_POWER',
+                    team: teamB,
+                    time: '30M AGO',
+                    text: '넘어지는 동작이 너무 컸습니다. 시뮬레이션 가능성도 봐야 해요. VAR 봐도 결과 안 바뀔 겁니다.',
+                    media: '',
+                    agrees: 210,
+                    isBest: true
+                },
+                {
+                    user: 'K-FAN_99',
+                    team: 'SEOUL',
+                    time: '15M AGO',
+                    text: '제3자 입장에서 보면 애매하긴 하네요. 근데 온필드 리뷰는 한 번 했어야 함.',
+                    media: '',
+                    agrees: 45
+                },
+                {
+                    user: 'VAR_MASTER',
+                    team: 'ULSAN',
+                    time: '10M AGO',
+                    text: '규정상 이 상황은 주심의 재량권이 인정되는 범위 내에 있습니다. 하지만 팬들의 감정을 고려하면 온필드 리뷰 한 번쯤은 했어야 했다고 봅니다.',
+                    media: '',
+                    agrees: 12
+                }
+            ];
+
+            // Sort logic: Original first, then Best posts, then by time (mocked by array order)
+            const sortedPosts = [
+                ...mockPosts.filter(p => p.isOriginal),
+                ...mockPosts.filter(p => p.isAi),
+                ...mockPosts.filter(p => p.isBest),
+                ...mockPosts.filter(p => !p.isOriginal && !p.isBest && !p.isAi)
+            ];
+
+            postsContainer.innerHTML = sortedPosts.map((post, index) => `
+                <div class="user-post-item expandable ${post.isBest ? 'bg-zinc-900/30' : ''} ${post.isAi ? 'ai-judgment' : ''}" onclick="this.classList.toggle('expanded')">
+                    ${post.isAi ? '<div class="ai-tag">AI 판정</div>' : ''}
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <div class="w-8 h-8 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[8px] mono overflow-hidden">
+                                    ${post.isAi ? '<div class="w-full h-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center font-black">AI</div>' :
+                                      post.team === 'INCHEON' ? '<div class="w-full h-full flex flex-col"><div class="flex-1 bg-blue-700"></div><div class="flex-1 bg-black"></div></div>' : 
+                                      post.team === '성남' ? '<div class="w-full h-full bg-black"></div>' :
+                                      post.team === '전남' ? '<div class="w-full h-full bg-yellow-500"></div>' :
+                                      post.user[0]}
+                                </div>
+                                ${!post.isAi ? `
+                                <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border border-[var(--ledger-bg)] bg-zinc-500 text-[6px] flex items-center justify-center font-bold text-white">
+                                    ${post.team[0]}
+                                </div>
+                                ` : ''}
+                            </div>
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold ${post.isOriginal ? 'text-[var(--accent-var)]' : post.isAi ? 'text-blue-400' : 'text-zinc-400'}">${post.user}</span>
+                                    ${post.isBest ? '<span class="bg-red-600 text-white text-[7px] px-1 font-black italic">BEST</span>' : ''}
+                                </div>
+                                <span class="text-[8px] text-zinc-600 mono">${post.time} | ${post.isAi ? 'SYSTEM ANALYSIS' : post.team + ' SUPPORTING'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        ${post.media ? `
+                            <div class="post-thumbnail">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                            </div>
+                        ` : ''}
+                        <p class="post-text">${post.text}</p>
+                    </div>
+
+                    ${post.media ? `
+                        <div class="post-full-media">
+                            <div class="text-zinc-500 mono text-[10px] flex flex-col items-center gap-2">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                FULL MEDIA: ${post.media}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="flex gap-4 mt-4 opacity-60">
+                        <button class="flex items-center gap-1 text-[9px] mono font-bold hover:text-[var(--accent-var)]">
+                            AGREE (${post.agrees})
+                        </button>
+                        <button class="flex items-center gap-1 text-[9px] mono font-bold hover:text-red-500">
+                            DISAGREE
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMomentModal() {
+            document.getElementById('moment-modal-overlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    </script>
 </body>
 </html>

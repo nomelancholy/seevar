@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MY VAR MOMENTS | SEE VAR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ledger-bg: #0d0e10;
+            --ledger-surface: #16181c;
+            --ledger-border: #2d3139;
+            --accent-var: #00ff41;
+            --accent-respect: #3b82f6;
+            --text-muted: #8b949e;
+        }
+        body {
+            background-color: var(--ledger-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+        .ledger-surface {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+        }
+        .moment-card {
+            background: var(--ledger-surface);
+            border: 1px solid var(--ledger-border);
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+        .moment-card:hover {
+            border-color: var(--accent-var);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <main class="max-w-5xl mx-auto">
+        <div class="mb-12">
+            <button onclick="window.history.back()" class="flex items-center gap-2 text-xs font-bold mono text-[var(--text-muted)] hover:text-white transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                BACK
+            </button>
+        </div>
+
+        <header class="mb-12 flex justify-between items-end">
+            <div>
+                <h1 class="text-5xl font-black italic tracking-tighter uppercase mb-4">MY VAR MOMENTS</h1>
+                <p class="mono text-sm text-[var(--text-muted)]">내가 생성하거나 참여한 논란의 순간들을 확인하세요.</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] mono text-zinc-500 uppercase">Total Created</span>
+                <p class="text-3xl font-black italic mono text-[var(--accent-var)]">12</p>
+            </div>
+        </header>
+
+        <!-- TABS -->
+        <div class="flex gap-8 border-b border-zinc-800 mb-8">
+            <button class="pb-4 text-xs font-black italic mono border-b-2 border-[var(--accent-var)] text-white">CREATED BY ME</button>
+            <button class="pb-4 text-xs font-black italic mono text-zinc-500 hover:text-white transition-colors">PARTICIPATED</button>
+            <button class="pb-4 text-xs font-black italic mono text-zinc-500 hover:text-white transition-colors">SAVED</button>
+        </div>
+
+        <!-- MOMENTS GRID -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Moment 1 -->
+            <div class="moment-card">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="bg-zinc-800 text-zinc-400 px-2 py-0.5 text-[8px] mono">2024/03/01</span>
+                    <span class="text-[8px] mono text-[var(--accent-var)] font-bold">ACTIVE</span>
+                </div>
+                <h3 class="text-lg font-black italic uppercase mb-1">서울 vs 울산</h3>
+                <p class="text-[10px] mono text-zinc-500 mb-4">K LEAGUE 1 | ROUND 1</p>
+                <div class="bg-zinc-900/50 p-3 border border-zinc-800 mb-4">
+                    <p class="text-xs text-zinc-400 italic line-clamp-2">"해당 장면 오프사이드 판정 다시 확인 부탁드립니다. 수비수 발보다 공격수 어깨가..."</p>
+                </div>
+                <div class="flex justify-between items-center text-[10px] mono">
+                    <div class="flex gap-4">
+                        <span class="text-zinc-500">SEE VAR <span class="text-white font-bold">1,240</span></span>
+                        <span class="text-zinc-500">COMMENTS <span class="text-white font-bold">42</span></span>
+                    </div>
+                    <a href="index.html" class="text-[var(--accent-var)] font-black italic">DETAILS →</a>
+                </div>
+            </div>
+
+            <!-- Moment 2 -->
+            <div class="moment-card">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="bg-zinc-800 text-zinc-400 px-2 py-0.5 text-[8px] mono">2023/11/25</span>
+                    <span class="text-[8px] mono text-zinc-600 font-bold">ARCHIVED</span>
+                </div>
+                <h3 class="text-lg font-black italic uppercase mb-1">포항 vs 전북</h3>
+                <p class="text-[10px] mono text-zinc-500 mb-4">FA CUP FINAL</p>
+                <div class="bg-zinc-900/50 p-3 border border-zinc-800 mb-4">
+                    <p class="text-xs text-zinc-400 italic line-clamp-2">"핸드볼 파울 선언이 너무 늦었습니다. 주심의 위치가..."</p>
+                </div>
+                <div class="flex justify-between items-center text-[10px] mono">
+                    <div class="flex gap-4">
+                        <span class="text-zinc-500">SEE VAR <span class="text-white font-bold">850</span></span>
+                        <span class="text-zinc-500">COMMENTS <span class="text-white font-bold">18</span></span>
+                    </div>
+                    <a href="#" class="text-[var(--accent-var)] font-black italic">DETAILS →</a>
+                </div>
+            </div>
+            
+            <!-- Placeholder for more -->
+            <div class="border border-dashed border-zinc-800 flex flex-col items-center justify-center p-8 opacity-50">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-4"><path d="M12 5v14M5 12h14"/></svg>
+                <span class="text-[10px] font-black mono uppercase">Create New Moment</span>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ABOUT | SEE VAR</title>
+    <title>MATCH UPCOMING | SEE VAR</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -40,9 +40,35 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        .manifesto-text {
-            line-height: 1.8;
-            letter-spacing: -0.01em;
+        .btn-structural {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--ledger-border);
+        }
+
+        /* Tab Styles */
+        .tab-btn {
+            padding: 1rem 2rem;
+            font-size: 0.75rem;
+            font-weight: 900;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: 'JetBrains+Mono', monospace;
+        }
+        .tab-btn.active {
+            color: white;
+            border-bottom-color: var(--accent-var);
+            background: rgba(0, 255, 65, 0.05);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
     </style>
 </head>
@@ -51,7 +77,7 @@
 
     <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 mb-12 border-b border-[#2d3139] pb-6">
         <div class="flex items-center gap-4">
-            <a href="index.html" class="text-2xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity">
+            <a href="index.html" class="text-3xl font-black tracking-tighter leading-none italic">
                 SEE <span class="text-[var(--accent-var)]">VAR</span>
             </a>
             <div class="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
@@ -66,11 +92,11 @@
         </div>
 
         <div class="flex items-center gap-8 text-xs font-bold tracking-widest mono ml-auto">
-            <a href="about.html" class="text-white border-b border-[var(--accent-var)] pb-1">ABOUT</a>
-            <a href="matches.html" class="menu-link text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
-            <a href="referee_list.html" class="menu-link text-[var(--text-muted)] hover:text-white">REFEREES</a>
+            <a href="about.html" class="text-[var(--text-muted)] hover:text-white">ABOUT</a>
+            <a href="matches.html" class="text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
+            <a href="referee_list.html" class="text-[var(--text-muted)] hover:text-white">REFEREES</a>
             <a href="teams.html" class="menu-link text-[var(--text-muted)] hover:text-white">TEAMS</a>
-
+            
             <!-- USER PROFILE -->
             <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
@@ -151,53 +177,80 @@
         </div>
     </div>
 
-    <main class="max-w-4xl mx-auto py-12">
-        <header class="mb-16">
-            <h1 class="text-7xl font-black italic tracking-tighter uppercase mb-6">OUR MISSION</h1>
-            <p class="mono text-lg text-[var(--accent-var)] font-bold">BETTER JUDGEMENT, BETTER LEAGUE.</p>
+    <main class="max-w-7xl mx-auto">
+        <!-- BACK BUTTON -->
+        <div class="mb-6">
+            <button onclick="window.history.back()" class="flex items-center gap-2 text-xs font-bold mono text-[var(--text-muted)] hover:text-white transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                BACK TO LIST
+            </button>
+        </div>
+        <header class="mb-8 flex justify-between items-end">
+            <div>
+                <h2 class="text-4xl font-black italic tracking-tighter mb-1 uppercase">Incheon Utd vs FC Seoul</h2>
+                <div class="flex items-center gap-2 mono text-xs text-[var(--text-muted)]">
+                    <span class="bg-zinc-800 text-white px-2 py-0.5 font-bold uppercase">Match Upcoming</span>
+                    <span class="opacity-50 underline">2026/02/28 REGULAR SEASON</span>
+                </div>
+            </div>
         </header>
 
-        <section class="ledger-surface p-12 manifesto-text">
-            <div class="space-y-8 text-zinc-300">
-                <p class="text-xl text-white font-bold italic">
-                    "SEE VAR은 특정 심판을 비방하거나 공격하기 위해 만들어진 공간이 아닙니다."
-                </p>
-                
-                <p>
-                    축구 경기에서 판정은 경기의 흐름을 결정짓는 가장 중요한 요소 중 하나입니다. 
-                    우리는 때로 판정에 환호하고, 때로는 실망하지만 이 모든 과정이 결국 리그의 발전으로 이어져야 한다고 믿습니다.
-                </p>
+        <section class="ledger-surface mb-8 p-8 relative overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 items-center gap-12">
+                <div class="flex flex-col items-center gap-6">
+                    <a href="teams.html" class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative hover:border-[var(--accent-var)] transition-colors group">
+                        <div class="w-20 h-20 bg-blue-700 rounded-lg"></div>
+                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic group-hover:bg-[var(--accent-var)] transition-colors">INCHEON UTD</div>
+                    </a>
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 py-8 border-y border-zinc-800 my-8">
-                    <div>
-                        <h3 class="mono text-[10px] font-black text-[var(--accent-var)] uppercase mb-4">Objective Data</h3>
-                        <p class="text-sm leading-relaxed">
-                            팬들의 주관적인 감정을 실시간 데이터로 시각화하여, 판정에 대한 대중의 반응을 투명하게 기록합니다. 
-                            이는 단순한 불만이 아닌, 개선을 위한 소중한 피드백이 될 것입니다.
-                        </p>
+                <div class="text-center flex flex-col items-center">
+                    <div class="mono text-zinc-500 text-sm mb-2 uppercase font-bold tracking-widest">Kick Off 14:00</div>
+                    <div class="text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-6">
+                        <span>VS</span>
                     </div>
-                    <div>
-                        <h3 class="mono text-[10px] font-black text-[var(--accent-respect)] uppercase mb-4">Constructive Respect</h3>
-                        <p class="text-sm leading-relaxed">
-                            심판 또한 경기의 일부이며 존중받아야 할 전문가입니다. 
-                            우리는 비난보다는 건설적인 비판과 데이터에 기반한 평가를 통해 더 나은 판정 환경을 지향합니다.
-                        </p>
+                    <div class="w-full h-[1px] bg-zinc-800 mb-6"></div>
+                    
+                    <!-- OFFICIALS GRID -->
+                    <div class="grid grid-cols-3 gap-y-4 gap-x-8 mono text-[10px] text-left mb-8">
+                        <div>
+                            <p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Referee</p>
+                            <a href="referee.html" class="font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                KIM HEE-GON
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                            </a>
+                        </div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Asst 1</p><p class="font-bold">PARK SANG-JUN</p></div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">Asst 2</p><p class="font-bold">KWAK SEUNG-SOON</p></div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">4th Official</p><p class="font-bold">KO HYUNG-JIN</p></div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">VAR</p><p class="font-bold">CHOI HYUN-JAI</p></div>
+                        <div><p class="text-[var(--text-muted)] mb-1 uppercase tracking-tighter">AVAR</p><p class="font-bold">KANG DONG-HO</p></div>
+                    </div>
+
+                    <!-- STATUS MESSAGE -->
+                    <div class="bg-zinc-900 border border-zinc-800 px-8 py-4 mono text-xs text-zinc-500 italic">
+                        경기 시작 전입니다.
                     </div>
                 </div>
 
-                <p>
-                    SEE VAR의 목표는 명확합니다. 
-                    팬들의 목소리가 데이터가 되고, 그 데이터가 리그의 판정 퀄리티를 높이는 선순환 구조를 만드는 것입니다. 
-                    우리는 K리그가 세계에서 가장 공정하고 수준 높은 판정이 이루어지는 리그가 되기를 진심으로 바랍니다.
-                </p>
-
-                <div class="pt-8 opacity-50 mono text-[10px] border-t border-zinc-800">
-                    CONTACT: <a href="mailto:support@seevar.com" class="underline hover:text-white">support@seevar.com</a><br>
-                    PROJECT_CODE: SEE_VAR_MANIFESTO<br>
-                    LAST_UPDATED: 2026.02.04
+                <div class="flex flex-col items-center gap-6">
+                    <a href="teams.html" class="w-32 h-32 rounded-full border-4 border-zinc-800 flex items-center justify-center bg-zinc-900 relative hover:border-[var(--accent-var)] transition-colors group">
+                        <div class="w-20 h-20 bg-red-600 rounded-lg rotate-45"></div>
+                        <div class="absolute -bottom-2 bg-white text-black px-3 py-1 text-[10px] font-black italic group-hover:bg-[var(--accent-var)] transition-colors">FC SEOUL</div>
+                    </a>
                 </div>
             </div>
         </section>
+
+        <!-- ANALYSIS TABS (DISABLED) -->
+        <div class="mb-8 border border-[#2d3139] bg-[#16181c]/50 opacity-50 pointer-events-none">
+            <div class="flex items-stretch border-b border-[#2d3139]">
+                <button class="tab-btn active">Referee Rating</button>
+            </div>
+            <div class="p-8 text-center mono text-xs text-zinc-500">
+                경기 종료 후 활성화됩니다.
+            </div>
+        </div>
     </main>
 
     <footer class="max-w-7xl mx-auto mt-12 pb-12 border-t border-zinc-900 pt-8 opacity-20 mono text-[10px] flex justify-between">
