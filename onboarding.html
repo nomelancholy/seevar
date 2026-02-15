@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ONBOARDING | SEE VAR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ledger-bg: #0d0e10;
+        --ledger-surface: #16181c;
+        --ledger-border: #2d3139;
+        --accent-var: #00ff41;
+        --text-muted: #8b949e;
+      }
+      body {
+        background-color: var(--ledger-bg);
+        color: #ffffff;
+        font-family: "Inter", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+      .mono {
+        font-family: "JetBrains+Mono", monospace;
+      }
+      .onboarding-card {
+        background: var(--ledger-surface);
+        border: 1px solid var(--ledger-border);
+        padding: 3rem;
+        width: 90%;
+        max-width: 800px;
+        box-shadow: 20px 20px 0px rgba(0, 0, 0, 0.5);
+      }
+      .input-field {
+        background: #1c1f24;
+        border: 1px solid var(--ledger-border);
+        color: white;
+        padding: 1rem;
+        width: 100%;
+        font-family: "JetBrains+Mono", monospace;
+        font-size: 0.875rem;
+        transition: border-color 0.3s;
+      }
+      .input-field:focus {
+        outline: none;
+        border-color: var(--accent-var);
+      }
+      .team-grid {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 4px;
+        width: 100%;
+      }
+      .team-grid::-webkit-scrollbar {
+        width: 4px;
+      }
+      .team-grid::-webkit-scrollbar-thumb {
+        background: var(--ledger-border);
+      }
+      .team-option {
+        background: #1c1f24;
+        border: 1px solid var(--ledger-border);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .team-option:hover {
+        border-color: #555;
+      }
+      .team-option.selected {
+        border-color: var(--accent-var);
+        background: rgba(0, 255, 65, 0.05);
+      }
+      .team-option img {
+        width: 32px;
+        height: 32px;
+      }
+      .team-option span {
+        font-size: 10px;
+        font-weight: 900;
+        text-align: center;
+        font-family: "JetBrains+Mono", monospace;
+      }
+      .btn-submit {
+        background: var(--accent-var);
+        color: black;
+        width: 100%;
+        padding: 1rem;
+        font-weight: 900;
+        font-size: 0.875rem;
+        italic: true;
+        font-style: italic;
+        transition: all 0.3s;
+        margin-top: 2rem;
+      }
+      .btn-submit:hover {
+        transform: scale(1.02);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="onboarding-card">
+      <header class="mb-10 text-center">
+        <h1 class="text-3xl font-black italic tracking-tighter uppercase mb-2">
+          Almost There
+        </h1>
+        <p class="mono text-[10px] text-[var(--text-muted)]">
+          프로필 정보를 완성하고 시작하세요.
+        </p>
+      </header>
+
+      <form
+        onsubmit="
+          event.preventDefault();
+          location.href = 'index.html';
+        "
+        class="space-y-8"
+      >
+        <div>
+          <label
+            class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest"
+            >Your Nickname</label
+          >
+          <input
+            type="text"
+            placeholder="e.g. VAR_MASTER"
+            class="input-field"
+            required
+          />
+        </div>
+
+        <div>
+          <label
+            class="block text-[10px] mono text-zinc-500 mb-4 uppercase tracking-widest"
+            >Select Supporting Team</label
+          >
+          <div class="team-grid grid grid-cols-3 gap-3" id="teamGrid">
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/gangwon_fc.svg"
+                alt="강원 FC"
+              />
+              <span>강원 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/gyeongnam_fc.svg"
+                alt="경남 FC"
+              />
+              <span>경남 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/gwangju_fc.svg"
+                alt="광주 FC"
+              />
+              <span>광주 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/gimhae_fc_2008.svg"
+                alt="김해 FC 2008"
+              />
+              <span>김해 FC 2008</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/gimpo_fc.svg"
+                alt="김포 FC"
+              />
+              <span>김포 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/gimcheon_sangmu_fc.svg"
+                alt="김천 상무 FC"
+              />
+              <span>김천 상무 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/daegu_fc.svg"
+                alt="대구 FC"
+              />
+              <span>대구 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/daejeon_hana_citizen.svg"
+                alt="대전 하나 시티즌"
+              />
+              <span>대전 하나 시티즌</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/busan_ipark.svg"
+                alt="부산 아이파크"
+              />
+              <span>부산 아이파크</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/bucheon_fc_1995.svg"
+                alt="부천 FC 1995"
+              />
+              <span>부천 FC 1995</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/seoul_e_land_fc.svg"
+                alt="서울 이랜드 FC"
+              />
+              <span>서울 이랜드 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/seongname_fc.svg"
+                alt="성남 FC"
+              />
+              <span>성남 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/suwon_fc.svg"
+                alt="수원 FC"
+              />
+              <span>수원 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/suwon_samsung_bluewings.svg"
+                alt="수원 삼성 블루윙즈"
+              />
+              <span>수원 삼성 블루윙즈</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/ansan_greeners_fc.svg"
+                alt="안산 그리너스 FC"
+              />
+              <span>안산 그리너스 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/yongin_fc.svg"
+                alt="용인 FC"
+              />
+              <span>용인 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg"
+                alt="울산 HD FC"
+              />
+              <span>울산 HD FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/incheon_united_fc.svg"
+                alt="인천 유나이티드"
+              />
+              <span>인천 유나이티드</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/jeonbuk_hyundai_motors.svg"
+                alt="전북 현대 모터스"
+              />
+              <span>전북 현대 모터스</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/jeonnam_dragons.svg"
+                alt="전남 드래곤즈"
+              />
+              <span>전남 드래곤즈</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/jeju_sk_fc.svg"
+                alt="제주 SK FC"
+              />
+              <span>제주 SK FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/cheonan_city_fc.svg"
+                alt="천안 시티 FC"
+              />
+              <span>천안 시티 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/cheongju_fc.svg"
+                alt="충북 청주 FC"
+              />
+              <span>충북 청주 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/chungnam_asan_fc.svg"
+                alt="충남 아산 FC"
+              />
+              <span>충남 아산 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/paju_frontier_fc.svg"
+                alt="파주 프런티어 FC"
+              />
+              <span>파주 프런티어 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/pohang_steelers.svg"
+                alt="포항 스틸러스"
+              />
+              <span>포항 스틸러스</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague2/hwaseong_fc.svg"
+                alt="화성 FC"
+              />
+              <span>화성 FC</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/fc_seoul.svg"
+                alt="FC 서울"
+              />
+              <span>FC 서울</span>
+            </div>
+            <div class="team-option" onclick="selectTeam(this)">
+              <img
+                src="assets/emblem/2026/kleague1/fc_anyang.svg"
+                alt="FC 안양"
+              />
+              <span>FC 안양</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="btn-submit uppercase italic tracking-tighter"
+        >
+          Complete Registration
+        </button>
+      </form>
+    </div>
+
+    <script>
+      function selectTeam(el) {
+        document
+          .querySelectorAll(".team-option")
+          .forEach((opt) => opt.classList.remove("selected"));
+        el.classList.add("selected");
+      }
+    </script>
+  </body>
+</html>

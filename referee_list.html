@@ -78,14 +78,11 @@
             <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
-                    <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
+                    <span class="text-[10px] text-white leading-none font-black italic">인천 유나이티드</span>
                 </div>
                 <div class="relative">
                     <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-1 bg-blue-700"></div>
-                            <div class="flex-1 bg-black"></div>
-                        </div>
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
                     </div>
                     <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
                 </div>
@@ -125,13 +122,10 @@
                 <div class="flex items-center justify-between mb-12 px-4 py-3 border-l-2 border-blue-700 bg-blue-900/10">
                     <div class="flex flex-col">
                         <span class="text-[8px] mono text-zinc-500 uppercase tracking-widest">Supporting Team</span>
-                        <span class="text-xs font-black italic text-white">INCHEON UNITED</span>
+                        <span class="text-xs font-black italic text-white">인천 유나이티드</span>
                     </div>
-                    <div class="w-8 h-8 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-1 bg-blue-700"></div>
-                            <div class="flex-1 bg-black"></div>
-                        </div>
+                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
                     </div>
                 </div>
 
@@ -165,99 +159,1481 @@
         <!-- FILTER BAR -->
         <div class="flex flex-wrap gap-4 mb-8">
             <button class="bg-white text-black px-6 py-2 text-xs font-black italic mono">ALL REFEREES</button>
-            <button class="border border-[#2d3139] text-[var(--text-muted)] px-6 py-2 text-xs font-black italic mono hover:text-white hover:border-white transition-all">FIFA INT'L</button>
             <button class="border border-[#2d3139] text-[var(--text-muted)] px-6 py-2 text-xs font-black italic mono hover:text-white hover:border-white transition-all">K LEAGUE 1</button>
             <button class="border border-[#2d3139] text-[var(--text-muted)] px-6 py-2 text-xs font-black italic mono hover:text-white hover:border-white transition-all">K LEAGUE 2</button>
         </div>
 
         <!-- REFEREE GRID -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Referee 1 -->
+            <!-- 고형진 -->
             <a href="referee.html" class="ledger-surface p-6 referee-card flex flex-col gap-6">
                 <div class="flex justify-between items-start">
-                    <div class="w-20 h-20 bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-700">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">고형진</h2>
+                        <p class="mono text-[10px] text-[var(--accent-var)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
                         <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-[var(--accent-var)]">3.8</div>
+                        <div class="text-2xl font-black italic text-[var(--accent-var)]">4.2</div>
                     </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">KIM HEE-GON</h2>
-                    <p class="mono text-[10px] text-[var(--accent-var)] font-bold mb-4">FIFA INTERNATIONAL</p>
-                    <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
-                        <div>
-                            <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                            <p class="mono text-xs font-bold">142</p>
-                        </div>
-                        <div>
-                            <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                            <p class="mono text-xs font-bold">12,402</p>
-                        </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">186</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">15,820</p>
                     </div>
                 </div>
             </a>
 
-            <!-- Referee 2 -->
+            <!-- 김대용 -->
             <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
-                    <div class="w-20 h-20 bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-700">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김대용</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
                         <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-[var(--accent-respect)]">4.2</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.5</div>
                     </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">KO HYUNG-JIN</h2>
-                    <p class="mono text-[10px] text-[var(--accent-respect)] font-bold mb-4">FIFA INTERNATIONAL</p>
-                    <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
-                        <div>
-                            <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                            <p class="mono text-xs font-bold">186</p>
-                        </div>
-                        <div>
-                            <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                            <p class="mono text-xs font-bold">15,820</p>
-                        </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">124</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">9,120</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Referee 3 -->
+            <!-- 김우성 -->
             <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
-                    <div class="w-20 h-20 bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-700">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김우성</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">98</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">7,450</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 김종혁 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김종혁</h2>
+                        <p class="mono text-[10px] text-red-500 font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
                         <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
                         <div class="text-2xl font-black italic text-red-500">2.1</div>
                     </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">KIM JONG-HYEOK</h2>
-                    <p class="mono text-[10px] text-red-500 font-bold mb-4">FIFA INTERNATIONAL</p>
-                    <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
-                        <div>
-                            <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                            <p class="mono text-xs font-bold">115</p>
-                        </div>
-                        <div>
-                            <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                            <p class="mono text-xs font-bold">8,940</p>
-                        </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">115</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">8,940</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 박병진 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박병진</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.8</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">132</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">10,240</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설태환 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">설태환</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.4</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">86</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">5,120</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 송민석 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">송민석</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.6</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">74</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">4,820</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 신용준 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">신용준</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">112</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">7,920</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 이동준 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">이동준</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.5</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">145</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">11,200</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 채상협 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">채상협</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.7</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">128</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">9,840</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 최철준 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">최철준</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.3</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">92</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">6,120</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 최현재 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">최현재</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">104</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">7,820</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- K LEAGUE 1 ASSISTANT REFEREES -->
+            <!-- 곽승순 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">곽승순</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.5</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">156</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">4,210</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 구은석 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">구은석</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.4</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">142</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">3,850</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 김계용 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김계용</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.6</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">168</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">5,120</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 김지욱 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김지욱</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.3</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">94</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">2,450</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 김태형 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김태형</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.5</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">112</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">3,120</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 박균용 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박균용</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.7</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">158</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">4,820</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 박상준 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박상준</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.4</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">124</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">3,240</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 방기열 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">방기열</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.6</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">136</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">3,980</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 송봉근 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">송봉근</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.3</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">108</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">2,840</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 윤재열 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">윤재열</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.8</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">184</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">6,120</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 이영운 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">이영운</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.4</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">128</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">3,450</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 장종필 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">장종필</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 ASST. REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.5</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">145</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">4,120</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- K LEAGUE 2 REFEREES -->
+            <!-- 고민국 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">고민국</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.0</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">42</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">1,240</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 김용우 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김용우</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">38</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">980</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 김재홍 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김재홍</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">45</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">1,120</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 김희곤 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김희곤</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.8</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">142</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">12,402</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 박세진 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박세진</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.3</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">28</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">640</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 박정호 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박정호</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.4</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">35</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">820</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 박종명 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박종명</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">31</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">750</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 박진호 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박진호</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.5</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">48</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">1,420</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 서동환 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">서동환</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">26</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">580</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 안재훈 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">안재훈</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.3</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">39</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">920</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 오현정 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">오현정</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.6</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">52</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">1,850</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 오현진 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">오현진</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.4</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">41</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">1,150</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 원명희 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">원명희</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">29</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">680</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 유효영 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">유효영</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.3</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">33</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">720</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 정동식 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">정동식</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.7</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">62</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">2,140</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 정회수 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">정회수</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">24</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">490</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 조지음 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">조지음</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">27</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">520</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 최광호 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">최광호</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.0</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">22</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">410</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 최규현 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">최규현</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">25</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">460</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- K LEAGUE 2 ASSISTANT REFEREES -->
+            <!-- 김수현 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김수현</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.0</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">18</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">320</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 김유영 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김유영</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">22</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">410</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 김종희 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김종희</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">25</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">480</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 김태원 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김태원</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.0</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">15</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">290</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 김현진 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김현진</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">28</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">510</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 류시홍 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">류시홍</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">32</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">640</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 박규삼 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박규삼</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.3</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">35</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">720</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 박남수 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박남수</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">26</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">540</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 백승민 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">백승민</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">30</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">610</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 설귀선 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">설귀선</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.4</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">42</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">920</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 성주경 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">성주경</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">24</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">480</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 이상길 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">이상길</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.3</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">38</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">810</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 이현모 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">이현모</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">29</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">620</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 이화평 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">이화평</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">21</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">440</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 장민호 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">장민호</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">34</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">710</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 주현민 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">주현민</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.0</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">19</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">380</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 천진희 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">천진희</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.4</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">45</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">1,120</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 홍석찬 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">홍석찬</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">23</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">460</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 황보진현 -->
+            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+                <div class="flex justify-between items-start">
+                    <div class="text-left">
+                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">황보진현</h2>
+                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 2 REFEREE</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-xs font-bold">27</p>
+                    </div>
+                    <div>
+                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-xs font-bold">530</p>
                     </div>
                 </div>
             </div>

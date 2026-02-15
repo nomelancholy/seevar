@@ -122,14 +122,11 @@
             <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
-                    <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
+                    <span class="text-[10px] text-white leading-none font-black italic">인천 유나이티드</span>
                 </div>
                 <div class="relative">
                     <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-1 bg-blue-700"></div>
-                            <div class="flex-1 bg-black"></div>
-                        </div>
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
                     </div>
                     <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
                 </div>
@@ -169,13 +166,10 @@
                 <div class="flex items-center justify-between mb-12 px-4 py-3 border-l-2 border-blue-700 bg-blue-900/10">
                     <div class="flex flex-col">
                         <span class="text-[8px] mono text-zinc-500 uppercase tracking-widest">Supporting Team</span>
-                        <span class="text-xs font-black italic text-white">INCHEON UNITED</span>
+                        <span class="text-xs font-black italic text-white">인천 유나이티드</span>
                     </div>
-                    <div class="w-8 h-8 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-1 bg-blue-700"></div>
-                            <div class="flex-1 bg-black"></div>
-                        </div>
+                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
                     </div>
                 </div>
 
@@ -207,92 +201,181 @@
         <!-- TEAM SELECTOR GRID -->
         <div class="ledger-surface p-8 mb-12">
             <h3 class="mono text-xs font-black tracking-widest text-[var(--text-muted)] uppercase mb-8">Select Team</h3>
-            <div class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-4">
-                <!-- Incheon (Active) -->
+            <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- 가나다 순 정렬 -->
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/gangwon_fc.svg" alt="강원 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">강원 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/gyeongnam_fc.svg" alt="경남 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">경남 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/gwangju_fc.svg" alt="광주 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">광주 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/gimhae_fc_2008.svg" alt="김해 FC 2008" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">김해 FC 2008</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/gimpo_fc.svg" alt="김포 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">김포 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/gimcheon_sangmu_fc.svg" alt="김천 상무 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">김천 상무 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/daegu_fc.svg" alt="대구 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">대구 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/daejeon_hana_citizen.svg" alt="대전 하나 시티즌" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">대전 하나 시티즌</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/busan_ipark.svg" alt="부산 아이파크" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">부산 아이파크</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/bucheon_fc_1995.svg" alt="부천 FC 1995" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">부천 FC 1995</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/seoul_e_land_fc.svg" alt="서울 이랜드 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">서울 이랜드 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/seongname_fc.svg" alt="성남 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">성남 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/suwon_fc.svg" alt="수원 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">수원 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/suwon_samsung_bluewings.svg" alt="수원 삼성 블루윙즈" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">수원 삼성 블루윙즈</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/ansan_greeners_fc.svg" alt="안산 그리너스 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">안산 그리너스 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/yongin_fc.svg" alt="용인 FC" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">용인 FC</span>
+                </button>
                 <button class="team-btn active flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-1 bg-blue-700"></div>
-                            <div class="flex-1 bg-black"></div>
-                        </div>
+                        <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" alt="울산 HD FC" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">INCHEON</span>
+                    <span class="mono text-[10px] font-bold">울산 HD FC</span>
                 </button>
-                <!-- Seoul -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-6 h-6 bg-red-600 rounded-sm rotate-45"></div>
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">SEOUL</span>
+                    <span class="mono text-[10px] font-bold">인천 유나이티드</span>
                 </button>
-                <!-- Ulsan -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-8 h-8 bg-blue-800 rounded-full"></div>
+                        <img src="assets/emblem/2026/kleague1/jeonbuk_hyundai_motors.svg" alt="전북 현대 모터스" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">ULSAN</span>
+                    <span class="mono text-[10px] font-bold">전북 현대 모터스</span>
                 </button>
-                <!-- Jeonbuk -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-8 h-8 bg-green-800 rounded-lg"></div>
+                        <img src="assets/emblem/2026/kleague2/jeonnam_dragons.svg" alt="전남 드래곤즈" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">JEONBUK</span>
+                    <span class="mono text-[10px] font-bold">전남 드래곤즈</span>
                 </button>
-                <!-- Pohang -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-1 bg-red-900"></div>
-                            <div class="flex-1 bg-black"></div>
-                        </div>
+                        <img src="assets/emblem/2026/kleague1/jeju_sk_fc.svg" alt="제주 SK FC" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">POHANG</span>
+                    <span class="mono text-[10px] font-bold">제주 SK FC</span>
                 </button>
-                <!-- Gangwon -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-8 h-8 bg-orange-600 rounded-full"></div>
+                        <img src="assets/emblem/2026/kleague2/cheonan_city_fc.svg" alt="천안 시티 FC" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">GANGWON</span>
+                    <span class="mono text-[10px] font-bold">천안 시티 FC</span>
                 </button>
-                <!-- Suwon FC -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-1 bg-red-800"></div>
-                            <div class="flex-1 bg-blue-900"></div>
-                        </div>
+                        <img src="assets/emblem/2026/kleague2/cheongju_fc.svg" alt="충북 청주 FC" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">SUWON FC</span>
+                    <span class="mono text-[10px] font-bold">충북 청주 FC</span>
                 </button>
-                <!-- Jeju -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-8 h-8 bg-orange-700 rounded-sm"></div>
+                        <img src="assets/emblem/2026/kleague2/chungnam_asan_fc.svg" alt="충남 아산 FC" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">JEJU</span>
+                    <span class="mono text-[10px] font-bold">충남 아산 FC</span>
                 </button>
-                <!-- Gwangju -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-8 h-8 bg-yellow-600 rounded-full"></div>
+                        <img src="assets/emblem/2026/kleague2/paju_frontier_fc.svg" alt="파주 프런티어 FC" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">GWANGJU</span>
+                    <span class="mono text-[10px] font-bold">파주 프런티어 FC</span>
                 </button>
-                <!-- Daejeon -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-8 h-8 bg-red-950 rounded-full"></div>
+                        <img src="assets/emblem/2026/kleague1/pohang_steelers.svg" alt="포항 스틸러스" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">DAEJEON</span>
+                    <span class="mono text-[10px] font-bold">포항 스틸러스</span>
                 </button>
-                <!-- Daegu -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <div class="w-8 h-8 bg-sky-500 rounded-full"></div>
+                        <img src="assets/emblem/2026/kleague2/hwaseong_fc.svg" alt="화성 FC" class="w-8 h-8">
                     </div>
-                    <span class="mono text-[8px] font-bold">DAEGU</span>
+                    <span class="mono text-[10px] font-bold">화성 FC</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/fc_seoul.svg" alt="FC 서울" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">FC 서울</span>
+                </button>
+                <button class="team-btn flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/fc_anyang.svg" alt="FC 안양" class="w-8 h-8">
+                    </div>
+                    <span class="mono text-[10px] font-bold">FC 안양</span>
                 </button>
             </div>
         </div>

@@ -51,6 +51,48 @@
             outline: none;
             border-color: var(--accent-var);
         }
+        .team-grid {
+            display: grid;
+            grid-template-cols: repeat(4, 1fr);
+            gap: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        .team-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+        .team-grid::-webkit-scrollbar-thumb {
+            background: var(--ledger-border);
+        }
+        .team-option {
+            background: #1c1f24;
+            border: 1px solid var(--ledger-border);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .team-option:hover {
+            border-color: #555;
+        }
+        .team-option.selected {
+            border-color: var(--accent-var);
+            background: rgba(0, 255, 65, 0.05);
+        }
+        .team-option img {
+            width: 32px;
+            height: 32px;
+        }
+        .team-option span {
+            font-size: 8px;
+            font-weight: 900;
+            text-align: center;
+            font-family: 'JetBrains+Mono', monospace;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -64,10 +106,26 @@
 
         <header class="mb-12">
             <h1 class="text-5xl font-black italic tracking-tighter uppercase mb-4">MY INFORMATION</h1>
-            <p class="mono text-sm text-[var(--text-muted)]">회원 정보 및 프로필 설정을 관리하세요.</p>
+            <p class="mono text-sm text-[var(--text-muted)]">내 프로필 정보를 관리하세요.</p>
         </header>
 
-        <section class="ledger-surface p-8 space-y-8">
+        <section class="ledger-surface p-8 space-y-10">
+            <!-- Social Info -->
+            <div class="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-[#03C75A] rounded-full flex items-center justify-center">
+                        <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+                            <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] mono text-zinc-500 uppercase tracking-widest">Linked Account</p>
+                        <p class="text-sm font-bold">NAVER SOCIAL LOGIN</p>
+                    </div>
+                </div>
+                <span class="text-[8px] mono text-zinc-600">ID: user_7721_naver</span>
+            </div>
+
             <!-- Profile Image Section -->
             <div class="flex items-center gap-8">
                 <div class="w-24 h-24 rounded-full border-2 border-zinc-800 bg-zinc-900 flex items-center justify-center relative group cursor-pointer">
@@ -82,42 +140,127 @@
                 </div>
             </div>
 
-            <!-- Basic Info Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Email Address</label>
-                    <input type="email" value="user7721@example.com" class="input-field" disabled>
-                    <p class="text-[8px] mono text-zinc-600 mt-1">* Email cannot be changed.</p>
-                </div>
-                <div>
-                    <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Supporting Team</label>
-                    <select class="input-field">
-                        <option selected>INCHEON UNITED</option>
-                        <option>FC SEOUL</option>
-                        <option>ULSAN HD</option>
-                        <option>JEONBUK HYUNDAI</option>
-                        <!-- ... other teams ... -->
-                    </select>
-                </div>
-            </div>
-
-            <!-- Password Section -->
-            <div class="pt-8 border-t border-zinc-800">
-                <h3 class="text-sm font-black italic uppercase mb-6">Security</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Current Password</label>
-                        <input type="password" placeholder="••••••••" class="input-field">
+            <!-- Supporting Team Section -->
+            <div>
+                <label class="block text-[10px] mono text-zinc-500 mb-4 uppercase tracking-widest">Supporting Team</label>
+                <div class="team-grid">
+                    <!-- K League 1 -->
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" alt="울산 HD FC">
+                        <span>울산 HD FC</span>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">New Password</label>
-                            <input type="password" class="input-field">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Confirm New Password</label>
-                            <input type="password" class="input-field">
-                        </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/gangwon_fc.svg" alt="강원 FC">
+                        <span>강원 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/seoul_fc.svg" alt="FC 서울">
+                        <span>FC 서울</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/pohang_steelers.svg" alt="포항 스틸러스">
+                        <span>포항 스틸러스</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/jeonbuk_hyundai_motors.svg" alt="전북 현대 모터스">
+                        <span>전북 현대 모터스</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/daejeon_hana_citizen.svg" alt="대전 하나 시티즌">
+                        <span>대전 하나 시티즌</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/gimcheon_sangmu_fc.svg" alt="김천 상무 FC">
+                        <span>김천 상무 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/jeju_sk_fc.svg" alt="제주 SK FC">
+                        <span>제주 SK FC</span>
+                    </div>
+                    <div class="team-option selected" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드">
+                        <span>인천 유나이티드</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/gwangju_fc.svg" alt="광주 FC">
+                        <span>광주 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/fc_anyang.svg" alt="FC 안양">
+                        <span>FC 안양</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague1/bucheon_fc_1995.svg" alt="부천 FC 1995">
+                        <span>부천 FC 1995</span>
+                    </div>
+                    <!-- K League 2 -->
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/suwon_samsung_bluewings.svg" alt="수원 삼성 블루윙즈">
+                        <span>수원 삼성 블루윙즈</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/daegu_fc.svg" alt="대구 FC">
+                        <span>대구 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/suwon_fc.svg" alt="수원 FC">
+                        <span>수원 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/seoul_e_land_fc.svg" alt="서울 이랜드 FC">
+                        <span>서울 이랜드 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/seongname_fc.svg" alt="성남 FC">
+                        <span>성남 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/jeonnam_dragons.svg" alt="전남 드래곤즈">
+                        <span>전남 드래곤즈</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/gimpo_fc.svg" alt="김포 FC">
+                        <span>김포 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/busan_ipark.svg" alt="부산 아이파크">
+                        <span>부산 아이파크</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/chungnam_asan_fc.svg" alt="충남 아산 FC">
+                        <span>충남 아산 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/hwaseong_fc.svg" alt="화성 FC">
+                        <span>화성 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/gyeongnam_fc.svg" alt="경남 FC">
+                        <span>경남 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/cheongju_fc.svg" alt="충북 청주 FC">
+                        <span>충북 청주 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/cheonan_city_fc.svg" alt="천안 시티 FC">
+                        <span>천안 시티 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/ansan_greeners_fc.svg" alt="안산 그리너스 FC">
+                        <span>안산 그리너스 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/gimhae_fc_2008.svg" alt="김해 FC 2008">
+                        <span>김해 FC 2008</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/paju_frontier_fc.svg" alt="파주 프런티어 FC">
+                        <span>파주 프런티어 FC</span>
+                    </div>
+                    <div class="team-option" onclick="selectTeam(this)">
+                        <img src="assets/emblem/2026/kleague2/yongin_fc.svg" alt="용인 FC">
+                        <span>용인 FC</span>
                     </div>
                 </div>
             </div>
@@ -132,9 +275,16 @@
         <!-- Danger Zone -->
         <section class="mt-12 p-8 border border-red-900/30 bg-red-900/5">
             <h3 class="text-sm font-black italic text-red-500 uppercase mb-2">Danger Zone</h3>
-            <p class="text-xs text-zinc-500 mb-6">Once you delete your account, there is no going back. Please be certain.</p>
+            <p class="text-xs text-zinc-500 mb-6">계정을 삭제하면 모든 데이터가 소멸되며 복구할 수 없습니다.</p>
             <button class="border border-red-900 text-red-500 px-6 py-2 text-[10px] font-black italic mono hover:bg-red-900 hover:text-white transition-all">DELETE ACCOUNT</button>
         </section>
     </main>
+
+    <script>
+        function selectTeam(el) {
+            document.querySelectorAll('.team-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+    </script>
 </body>
 </html>

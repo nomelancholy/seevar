@@ -486,14 +486,11 @@
             <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
-                    <span class="text-[10px] text-white leading-none font-black italic">INCHEON UTD</span>
+                    <span class="text-[10px] text-white leading-none font-black italic">인천 유나이티드</span>
                 </div>
                 <div class="relative">
                     <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-1 bg-blue-700"></div>
-                            <div class="flex-1 bg-black"></div>
-                        </div>
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
                     </div>
                     <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
                 </div>
@@ -533,13 +530,10 @@
                 <div class="flex items-center justify-between mb-12 px-4 py-3 border-l-2 border-blue-700 bg-blue-900/10">
                     <div class="flex flex-col">
                         <span class="text-[8px] mono text-zinc-500 uppercase tracking-widest">Supporting Team</span>
-                        <span class="text-xs font-black italic text-white">INCHEON UNITED</span>
+                        <span class="text-xs font-black italic text-white">인천 유나이티드</span>
                     </div>
-                    <div class="w-8 h-8 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <div class="w-full h-full flex flex-col">
-                            <div class="flex-1 bg-blue-700"></div>
-                            <div class="flex-1 bg-black"></div>
-                        </div>
+                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
                     </div>
                 </div>
 
@@ -717,19 +711,29 @@
                     <!-- Content will be dynamically updated by switchReferee -->
                     <!-- Initial content for Main Referee -->
                     <div class="lg:col-span-1 border-r border-zinc-800 pr-12">
-                        <div class="bg-zinc-900/50 p-6 border border-zinc-800 mb-8">
+                        <div class="bg-zinc-900/50 p-6 border border-zinc-800 mb-8" id="my-rating-section">
                             <div class="flex justify-between items-center mb-4">
-                                <span class="text-[10px] font-black mono text-[var(--accent-respect)] uppercase">My Rating</span>
-                                <span class="bg-zinc-800 text-zinc-400 px-2 py-0.5 text-[8px] mono">SUBMITTED</span>
+                                <span class="text-[10px] font-black mono text-[var(--accent-var)] uppercase">Rate this Referee</span>
+                                <span class="bg-zinc-800 text-[var(--accent-var)] px-2 py-0.5 text-[8px] mono">PENDING</span>
                             </div>
-                            <div class="space-y-4">
+                            <div class="space-y-6">
                                 <div>
-                                    <p class="text-[9px] text-zinc-500 uppercase mono mb-1" id="detail-ref-name">Main Referee: KO HYUNG-JIN</p>
-                                    <div class="star-rating small readonly">
-                                        <label class="active"></label><label class="active"></label><label class="active"></label><label class="active"></label><label></label>
+                                    <p class="text-[9px] text-zinc-500 uppercase mono mb-2" id="detail-ref-name">Main Referee: KO HYUNG-JIN</p>
+                                    <div class="star-rating">
+                                        <input type="radio" name="ref-rating" id="star5" value="5"><label for="star5"></label>
+                                        <input type="radio" name="ref-rating" id="star4" value="4"><label for="star4"></label>
+                                        <input type="radio" name="ref-rating" id="star3" value="3"><label for="star3"></label>
+                                        <input type="radio" name="ref-rating" id="star2" value="2"><label for="star2"></label>
+                                        <input type="radio" name="ref-rating" id="star1" value="1"><label for="star1"></label>
                                     </div>
                                 </div>
-                                <p class="text-xs text-zinc-300 italic">"판정 기준이 명확해서 좋았습니다. 다만 추가시간 관리가 조금 아쉬웠네요."</p>
+                                <div>
+                                    <label class="block text-[9px] text-zinc-500 uppercase mono mb-2">Short Review</label>
+                                    <textarea id="ref-review" rows="3" placeholder="한줄평을 입력해주세요 (예: 판정이 공정했습니다)" class="w-full bg-zinc-900 border border-zinc-800 p-3 text-xs mono focus:border-[var(--accent-var)] outline-none"></textarea>
+                                </div>
+                                <button onclick="submitRefereeRating()" class="w-full btn-structural bg-[var(--accent-var)] text-black font-black py-3 text-[10px] tracking-tighter italic uppercase">
+                                    SUBMIT RATING
+                                </button>
                             </div>
                         </div>
                         
@@ -999,6 +1003,36 @@
             event.currentTarget.classList.add('active');
         }
 
+        function submitRefereeRating() {
+            const rating = document.querySelector('input[name="ref-rating"]:checked');
+            const review = document.getElementById('ref-review').value;
+            
+            if (!rating) {
+                alert('평점을 선택해주세요.');
+                return;
+            }
+
+            const section = document.getElementById('my-rating-section');
+            const refName = document.getElementById('detail-ref-name').innerText;
+            const stars = parseInt(rating.value);
+            
+            section.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-[10px] font-black mono text-[var(--accent-respect)] uppercase">My Rating</span>
+                    <span class="bg-zinc-800 text-zinc-400 px-2 py-0.5 text-[8px] mono">SUBMITTED</span>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-[9px] text-zinc-500 uppercase mono mb-1">${refName}</p>
+                        <div class="star-rating small readonly">
+                            ${Array(5).fill(0).map((_, i) => `<label class="${i < stars ? 'active' : ''}"></label>`).join('')}
+                        </div>
+                    </div>
+                    <p class="text-xs text-zinc-300 italic">"${review || '평가 내용이 없습니다.'}"</p>
+                </div>
+            `;
+        }
+
         function switchReferee(element, refType) {
             // Update UI state
             document.querySelectorAll('.referee-selector-item').forEach(item => item.classList.remove('active'));
@@ -1007,6 +1041,9 @@
             const feedbackContainer = document.getElementById('referee-feedback-container');
             const refNameDisplay = document.getElementById('detail-ref-name');
             const avgScoreDisplay = document.getElementById('detail-avg-score');
+            
+            // Reset rating section to input mode when switching referee
+            const ratingSection = document.getElementById('my-rating-section');
             
             // Mock data for different referees
             const refData = {
@@ -1019,7 +1056,34 @@
             };
 
             const data = refData[refType];
-            refNameDisplay.innerText = data.name;
+            
+            // Re-render input section
+            ratingSection.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-[10px] font-black mono text-[var(--accent-var)] uppercase">Rate this Referee</span>
+                    <span class="bg-zinc-800 text-[var(--accent-var)] px-2 py-0.5 text-[8px] mono">PENDING</span>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[9px] text-zinc-500 uppercase mono mb-2" id="detail-ref-name">${data.name}</p>
+                        <div class="star-rating">
+                            <input type="radio" name="ref-rating" id="star5" value="5"><label for="star5"></label>
+                            <input type="radio" name="ref-rating" id="star4" value="4"><label for="star4"></label>
+                            <input type="radio" name="ref-rating" id="star3" value="3"><label for="star3"></label>
+                            <input type="radio" name="ref-rating" id="star2" value="2"><label for="star2"></label>
+                            <input type="radio" name="ref-rating" id="star1" value="1"><label for="star1"></label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-zinc-500 uppercase mono mb-2">Short Review</label>
+                        <textarea id="ref-review" rows="3" placeholder="한줄평을 입력해주세요" class="w-full bg-zinc-900 border border-zinc-800 p-3 text-xs mono focus:border-[var(--accent-var)] outline-none"></textarea>
+                    </div>
+                    <button onclick="submitRefereeRating()" class="w-full btn-structural bg-[var(--accent-var)] text-black font-black py-3 text-[10px] tracking-tighter italic uppercase">
+                        SUBMIT RATING
+                    </button>
+                </div>
+            `;
+
             avgScoreDisplay.innerText = data.score;
             document.getElementById('detail-total-ratings').innerText = `BASED ON ${data.ratings} RATINGS`;
 
@@ -1378,3 +1442,6 @@
     </script>
 </body>
 </html>
+</html>
+
+
