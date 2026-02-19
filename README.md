@@ -20,12 +20,8 @@ bundle exec rails db:prepare   # 가능하면 스키마 적용
 # db/schema.rb 가 없으면 Solid 스키마가 안 올라갈 수 있음 → 아래 실행
 bundle exec rails db:load_solid_schemas
 
-# 서버 실행 (Tailwind 단독 빌드 후)
-bundle exec rails tailwindcss:build
+# 서버 실행
 bundle exec rails server
-
-# 또는 Rails + Tailwind watch 동시 실행 (foreman 필요)
-./bin/dev
 ```
 
 PostgreSQL이 다른 호스트/포트를 쓰면 `config/database.yml`에서 `host`/`port`를 설정하거나 `DATABASE_URL` 환경 변수를 사용하세요.
