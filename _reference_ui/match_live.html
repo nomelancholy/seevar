@@ -913,12 +913,18 @@
                         </div>
                     ` : ''}
 
-                    <div class="flex gap-4 mt-4 opacity-60">
-                        <button class="flex items-center gap-1 text-[8px] md:text-[9px] mono font-bold hover:text-[var(--accent-var)]">
+                    <div class="flex flex-wrap items-center gap-3 md:gap-4 mt-4 opacity-60">
+                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-[var(--accent-var)]">
+                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#22c55e" stroke="currentColor"/></svg>
                             AGREE (${post.agrees})
                         </button>
-                        <button class="flex items-center gap-1 text-[8px] md:text-[9px] mono font-bold hover:text-red-500">
+                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-yellow-500">
+                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#eab308" stroke="currentColor"/></svg>
                             DISAGREE
+                        </button>
+                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-red-500" title="신고">
+                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#dc2626" stroke="currentColor"/></svg>
+                            신고
                         </button>
                     </div>
                 </div>
