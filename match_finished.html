@@ -1074,19 +1074,9 @@
                         </div>
                     </div>
                     <p class="text-xs md:text-sm text-zinc-300 leading-relaxed mb-4">"${data.name.split(': ')[1]} 심판님 오늘 정말 고생하셨습니다. 판정이 일관성 있어서 보기 좋았네요."</p>
-                    <div class="flex flex-wrap items-center gap-3 md:gap-4 opacity-60">
-                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-[var(--accent-var)]">
-                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#22c55e" stroke="currentColor"/></svg>
-                            AGREE (156)
-                        </button>
-                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-yellow-500">
-                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#eab308" stroke="currentColor"/></svg>
-                            DISAGREE
-                        </button>
-                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-red-500" title="신고">
-                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#dc2626" stroke="currentColor"/></svg>
-                            신고
-                        </button>
+                    <div class="flex gap-4 opacity-60">
+                        <button class="flex items-center gap-1 text-[8px] md:text-[9px] mono font-bold hover:text-[var(--accent-var)]">AGREE (156)</button>
+                        <button class="flex items-center gap-1 text-[8px] md:text-[9px] mono font-bold hover:text-red-500">DISAGREE</button>
                     </div>
                 </div>
                 <div class="feedback-item best p-4 md:p-6">
@@ -1113,19 +1103,9 @@
                         </div>
                     </div>
                     <p class="text-xs md:text-sm text-zinc-300 leading-relaxed mb-4">"상대 팀 입장에서도 수긍할 수 있는 판정이었습니다. 특히 ${refType === 'var' ? '비디오 판독 과정이 신속해서' : '라인 컨트롤이 정확해서'} 좋았습니다."</p>
-                    <div class="flex flex-wrap items-center gap-3 md:gap-4 opacity-60">
-                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-[var(--accent-var)]">
-                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#22c55e" stroke="currentColor"/></svg>
-                            AGREE (98)
-                        </button>
-                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-yellow-500">
-                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#eab308" stroke="currentColor"/></svg>
-                            DISAGREE
-                        </button>
-                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-red-500" title="신고">
-                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#dc2626" stroke="currentColor"/></svg>
-                            신고
-                        </button>
+                    <div class="flex gap-4 opacity-60">
+                        <button class="flex items-center gap-1 text-[8px] md:text-[9px] mono font-bold hover:text-[var(--accent-var)]">AGREE (98)</button>
+                        <button class="flex items-center gap-1 text-[8px] md:text-[9px] mono font-bold hover:text-red-500">DISAGREE</button>
                     </div>
                 </div>
             `;
@@ -1273,18 +1253,12 @@
                         </div>
                     ` : ''}
 
-                    <div class="flex flex-wrap items-center gap-3 md:gap-4 mt-4 opacity-60">
-                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-[var(--accent-var)]">
-                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#22c55e" stroke="currentColor"/></svg>
+                    <div class="flex gap-4 mt-4 opacity-60">
+                        <button class="flex items-center gap-1 text-[8px] md:text-[9px] mono font-bold hover:text-[var(--accent-var)]">
                             AGREE (${post.agrees})
                         </button>
-                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-yellow-500">
-                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#eab308" stroke="currentColor"/></svg>
+                        <button class="flex items-center gap-1 text-[8px] md:text-[9px] mono font-bold hover:text-red-500">
                             DISAGREE
-                        </button>
-                        <button class="flex items-center gap-1.5 text-[8px] md:text-[9px] mono font-bold hover:text-red-500" title="신고">
-                            <svg class="w-4 h-5 md:w-5 md:h-6 flex-shrink-0" viewBox="0 0 24 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="28" rx="2" fill="#dc2626" stroke="currentColor"/></svg>
-                            신고
                         </button>
                     </div>
                 </div>
