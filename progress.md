@@ -6,16 +6,20 @@
 
 ## 1. 프로젝트 기반 구축
 
-- [ ] **Rails 8 프로젝트 초기화**
-  - Rails 8.0+ 생성, PostgreSQL 설정
-  - Solid Cache / Solid Queue 설정
-- [ ] **인증 시스템**
-  - `rails generate authentication` 적용
-  - 네이버 소셜 로그인 연동 (uid, provider 안전 관리)
+- [x] **Rails 8 프로젝트 초기화**
+  - Rails 8.0+ 생성, PostgreSQL 설정 (`config/database.yml`)
+  - Solid Cache / Solid Queue 설정 (`config/cache.yml`, `config/queue.yml`, `db/cache_schema.rb`, `db/queue_schema.rb`)
+  - PostgreSQL Docker 구성 (`docker-compose.yml` — `db` 서비스, Postgres 16 Alpine, 포트 5432)
+  - **로컬 DB 사용:** `.env`에 `DB_PASSWORD` 설정 후 `docker compose up db -d` → `bundle exec rails db:create` → `bundle exec rails db:prepare`
+
 - [ ] **프론트엔드 기반**
   - Tailwind CSS, Hotwire(Turbo/Stimulus) 설정
   - ViewComponent 도입
   - `_reference_ui` 디자인 시스템 참고 및 공통 컴포넌트 정리
+
+- [ ] **인증 시스템**
+  - `rails generate authentication` 적용
+  - 네이버 소셜 로그인 연동 (uid, provider 안전 관리)
 
 ---
 
@@ -92,13 +96,13 @@
 
 ## 8. 참고 규칙 요약
 
-| 항목 | 규칙 |
-|------|------|
+| 항목     | 규칙                                                                        |
+| -------- | --------------------------------------------------------------------------- |
 | 아키텍처 | Fat Model, Skinny Controller; 비즈니스 로직은 `app/services` Service Object |
-| 명명 | 클래스/모듈 `CamelCase`, 메서드/변수/파일 `snake_case` |
-| DB | N+1 방지 `.includes` 필수, 스키마는 Migration만 사용 |
-| UI | `_reference_ui` 폴더 최우선 참고, 디자인 시스템 일관 유지 |
-| AI 답변 | IFAB 규정 번호·반칙 카테고리 명시, 객관적 K리그 VAR 분석관 톤 |
+| 명명     | 클래스/모듈 `CamelCase`, 메서드/변수/파일 `snake_case`                      |
+| DB       | N+1 방지 `.includes` 필수, 스키마는 Migration만 사용                        |
+| UI       | `_reference_ui` 폴더 최우선 참고, 디자인 시스템 일관 유지                   |
+| AI 답변  | IFAB 규정 번호·반칙 카테고리 명시, 객관적 K리그 VAR 분석관 톤               |
 
 ---
 
