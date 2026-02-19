@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* See VAR design tokens (from _reference_ui) */
+@layer base {
+  :root {
+    --ledger-bg: #0d0e10;
+    --ledger-surface: #16181c;
+    --ledger-border: #2d3139;
+    --accent-var: #00ff41;
+    --accent-respect: #3b82f6;
+    --text-muted: #8b949e;
+    --text-main: #ffffff;
+  }
+
+  body.light-mode {
+    --ledger-bg: #f0f2f5;
+    --ledger-surface: #ffffff;
+    --ledger-border: #d1d5db;
+    --text-muted: #6b7280;
+    --text-main: #111827;
+  }
+
+  body {
+    background-color: var(--ledger-bg);
+    color: var(--text-main);
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .font-mono {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+  }
+}
+
+@layer components {
+  .ledger-surface {
+    background: var(--ledger-surface);
+    border: 1px solid var(--ledger-border);
+    box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  .btn-structural {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid var(--ledger-border);
+  }
+
+  .btn-structural:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border-color: #fff;
+  }
+}

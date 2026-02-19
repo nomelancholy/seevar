@@ -1,0 +1,23 @@
+<div class="min-h-screen p-8">
+  <div class="max-w-2xl mx-auto space-y-8">
+    <h1 class="text-3xl font-bold text-[var(--text-main)]">See VAR</h1>
+    <p class="text-[var(--text-muted)]">프론트엔드 기반: Tailwind, Hotwire, ViewComponent</p>
+
+    <div class="space-y-4">
+      <h2 class="text-xl font-semibold">Button 컴포넌트</h2>
+      <div class="flex flex-wrap gap-3">
+        <%= render ButtonComponent.new(variant: :primary) { "Primary" } %>
+        <%= render ButtonComponent.new(variant: :accent) { "Accent" } %>
+        <%= render ButtonComponent.new(variant: :muted) { "Muted" } %>
+        <%= render ButtonComponent.new(variant: :accent, size: :lg) { "Large" } %>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h2 class="text-xl font-semibold">Card 컴포넌트</h2>
+      <%= render CardComponent.new do %>
+        <p class="text-[var(--text-main)]">ledger-surface 스타일의 카드. _reference_ui 디자인 토큰 적용.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+<% if href %>
+  <%= link_to href, **tag_options do %>
+    <%= content %>
+  <% end %>
+<% else %>
+  <%= tag.button content, **tag_options, type: type %>
+<% end %>

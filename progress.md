@@ -12,10 +12,12 @@
   - PostgreSQL Docker 구성 (`docker-compose.yml` — `db` 서비스, Postgres 16 Alpine, 포트 5432)
   - **로컬 DB 사용:** `.env`에 `DB_PASSWORD` 설정 후 `docker compose up db -d` → `bundle exec rails db:create` → `bundle exec rails db:prepare`
 
-- [ ] **프론트엔드 기반**
-  - Tailwind CSS, Hotwire(Turbo/Stimulus) 설정
-  - ViewComponent 도입
-  - `_reference_ui` 디자인 시스템 참고 및 공통 컴포넌트 정리
+- [x] **프론트엔드 기반**
+  - Tailwind CSS 설정 (`tailwindcss-rails`, `app/assets/stylesheets/application.tailwind.css`, `config/tailwind.config.js`) — _reference_ui 디자인 토큰 반영
+  - Hotwire: Turbo (importmap + application.js), Stimulus 유지
+  - ViewComponent 도입 (`app/components/ApplicationComponent`, `ButtonComponent`, `CardComponent`)
+  - `_reference_ui` 정리: `_reference_ui/README.md`에 토큰·클래스·파일 목록 문서화
+  - **로컬:** `bundle exec rails tailwindcss:watch` 또는 `./bin/dev` (Rails + Tailwind watch)
 
 - [ ] **인증 시스템**
   - `rails generate authentication` 적용
