@@ -14,16 +14,34 @@
             --accent-var: #00ff41;
             --accent-respect: #3b82f6;
             --text-muted: #8b949e;
+            --text-main: #ffffff;
+        }
+
+        body.light-mode {
+            --ledger-bg: #f0f2f5;
+            --ledger-surface: #ffffff;
+            --ledger-border: #d1d5db;
+            --text-muted: #6b7280;
+            --text-main: #111827;
         }
 
         body {
             background-color: var(--ledger-bg);
-            color: #ffffff;
+            color: var(--text-main);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .mono { font-family: 'JetBrains+Mono', monospace; }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
         .ledger-surface {
             background: var(--ledger-surface);
@@ -71,7 +89,7 @@
         .modal-tab-btn {
             padding: 1rem 2rem;
             font-family: 'JetBrains+Mono', monospace;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 900;
             letter-spacing: 0.1em;
             color: var(--text-muted);
@@ -96,43 +114,52 @@
 <body class="p-4 md:p-8">
     <div class="grain-overlay"></div>
 
-    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 mb-12 border-b border-[#2d3139] pb-6">
-        <div class="flex items-center gap-4">
-            <a href="index.html" class="text-2xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity">
+    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-8 mb-8 md:mb-12 border-b border-[#2d3139] pb-6">
+        <div class="flex items-center justify-between w-full md:w-auto gap-4">
+            <a href="index.html" class="text-2xl md:text-3xl font-black tracking-tighter leading-none italic">
                 SEE <span class="text-[var(--accent-var)]">VAR</span>
             </a>
             <div class="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
+            <!-- MOBILE PROFILE TOGGLE -->
+            <div class="md:hidden flex items-center gap-3 cursor-pointer" onclick="toggleUserDrawer()">
+                <div class="relative">
+                    <div class="w-9 h-9 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center relative">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천" class="w-full h-full">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="relative flex-1 w-full max-w-md">
             <input type="text" placeholder="SEARCH TEAMS, MATCHES..." 
-                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
+                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-xs md:text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
             <span class="absolute right-3 top-2.5 opacity-30">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </span>
         </div>
 
-        <div class="flex items-center gap-8 text-xs font-bold tracking-widest mono ml-auto">
-            <a href="about.html" class="text-[var(--text-muted)] hover:text-white">ABOUT</a>
-            <a href="matches.html" class="text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
-            <a href="referee_list.html" class="text-[var(--text-muted)] hover:text-white">REFEREES</a>
-            <a href="teams.html" class="text-white border-b border-[var(--accent-var)] pb-1">TEAMS</a>
-
-            <!-- USER PROFILE -->
-            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
+        <div class="flex items-center justify-center md:justify-end gap-4 md:gap-8 text-[10px] md:text-xs font-bold tracking-widest mono w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0">
+            <a href="about.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">ABOUT</a>
+            <a href="matches.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">ARCHIVE</a>
+            <a href="referee_list.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">REFEREES</a>
+            <a href="teams.html" class="menu-link text-white border-b border-[var(--accent-var)] pb-1 whitespace-nowrap">TEAMS</a>
+            
+            <!-- DESKTOP USER PROFILE -->
+            <div class="hidden md:flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
                     <span class="text-[10px] text-white leading-none font-black italic">인천 유나이티드</span>
                 </div>
                 <div class="relative">
-                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
+                    <div class="w-11 h-11 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors relative">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
-                </div>
-                <!-- User Profile Image -->
-                <div class="w-10 h-10 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-full h-full">
+                    </div>
                 </div>
             </div>
         </div>
@@ -150,8 +177,15 @@
                 </div>
 
                 <div class="flex items-center gap-4 mb-4 p-4 bg-zinc-900/50 border border-zinc-800">
-                    <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <!-- JERSEY STYLE PROFILE (DRAWER) -->
+                    <div class="relative">
+                        <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <!-- TEAM EMBLEM (JERSEY BADGE POSITION) -->
+                        <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-1 shadow-lg z-10">
+                            <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-full h-full">
+                        </div>
                     </div>
                     <div>
                         <p class="text-lg font-black italic">USER_7721</p>
@@ -193,217 +227,220 @@
     </div>
 
     <main class="max-w-7xl mx-auto">
-        <header class="mb-12">
-            <h1 class="text-6xl font-black italic tracking-tighter uppercase mb-4">TEAM ANALYSIS</h1>
-            <p class="mono text-sm text-[var(--text-muted)]">팀별 경기 데이터와 심판 상성 데이터를 확인하세요.</p>
+        <header class="mb-8 md:mb-12">
+            <h1 class="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">TEAM ANALYSIS</h1>
+            <p class="mono text-[10px] md:text-sm text-[var(--text-muted)]">팀별 경기 데이터와 심판 상성 데이터를 확인하세요.</p>
         </header>
 
         <!-- TEAM SELECTOR GRID -->
-        <div class="ledger-surface p-8 mb-12">
-            <h3 class="mono text-xs font-black tracking-widest text-[var(--text-muted)] uppercase mb-8">Select Team</h3>
-            <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div class="ledger-surface p-4 md:p-8 mb-8 md:mb-12">
+            <h3 class="mono text-[10px] md:text-sm font-black tracking-widest text-[var(--text-muted)] uppercase mb-6 md:mb-8">Select Team</h3>
+            <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
                 <!-- 가나다 순 정렬 -->
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/gangwon_fc.svg" alt="강원 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/gangwon_fc.svg" alt="강원 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">강원 FC</span>
+                    <span class="mono text-xs font-bold">강원 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/gyeongnam_fc.svg" alt="경남 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/gyeongnam_fc.svg" alt="경남 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">경남 FC</span>
+                    <span class="mono text-xs font-bold">경남 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/gwangju_fc.svg" alt="광주 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/gwangju_fc.svg" alt="광주 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">광주 FC</span>
+                    <span class="mono text-xs font-bold">광주 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/gimhae_fc_2008.svg" alt="김해 FC 2008" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/gimhae_fc_2008.svg" alt="김해 FC 2008" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">김해 FC 2008</span>
+                    <span class="mono text-xs font-bold">김해 FC 2008</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/gimpo_fc.svg" alt="김포 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/gimpo_fc.svg" alt="김포 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">김포 FC</span>
+                    <span class="mono text-xs font-bold">김포 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/gimcheon_sangmu_fc.svg" alt="김천 상무 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/gimcheon_sangmu_fc.svg" alt="김천 상무 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">김천 상무 FC</span>
+                    <span class="mono text-xs font-bold">김천 상무 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/daegu_fc.svg" alt="대구 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/daegu_fc.svg" alt="대구 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">대구 FC</span>
+                    <span class="mono text-xs font-bold">대구 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/daejeon_hana_citizen.svg" alt="대전 하나 시티즌" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/daejeon_hana_citizen.svg" alt="대전 하나 시티즌" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">대전 하나 시티즌</span>
+                    <span class="mono text-xs font-bold">대전 하나 시티즌</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/busan_ipark.svg" alt="부산 아이파크" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/busan_ipark.svg" alt="부산 아이파크" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">부산 아이파크</span>
+                    <span class="mono text-xs font-bold">부산 아이파크</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/bucheon_fc_1995.svg" alt="부천 FC 1995" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/bucheon_fc_1995.svg" alt="부천 FC 1995" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">부천 FC 1995</span>
+                    <span class="mono text-xs font-bold">부천 FC 1995</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/seoul_e_land_fc.svg" alt="서울 이랜드 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/seoul_e_land_fc.svg" alt="서울 이랜드 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">서울 이랜드 FC</span>
+                    <span class="mono text-xs font-bold">서울 이랜드 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/seongname_fc.svg" alt="성남 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/seongname_fc.svg" alt="성남 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">성남 FC</span>
+                    <span class="mono text-xs font-bold">성남 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/suwon_fc.svg" alt="수원 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/suwon_fc.svg" alt="수원 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">수원 FC</span>
+                    <span class="mono text-xs font-bold">수원 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/suwon_samsung_bluewings.svg" alt="수원 삼성 블루윙즈" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/suwon_samsung_bluewings.svg" alt="수원 삼성 블루윙즈" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">수원 삼성 블루윙즈</span>
+                    <span class="mono text-xs font-bold">수원 삼성 블루윙즈</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/ansan_greeners_fc.svg" alt="안산 그리너스 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/ansan_greeners_fc.svg" alt="안산 그리너스 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">안산 그리너스 FC</span>
+                    <span class="mono text-xs font-bold">안산 그리너스 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/yongin_fc.svg" alt="용인 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/yongin_fc.svg" alt="용인 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">용인 FC</span>
+                    <span class="mono text-xs font-bold">용인 FC</span>
                 </button>
                 <button class="team-btn active flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" alt="울산 HD FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" alt="울산 HD FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">울산 HD FC</span>
+                    <span class="mono text-xs font-bold">울산 HD FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">인천 유나이티드</span>
+                    <span class="mono text-xs font-bold">인천 유나이티드</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/jeonbuk_hyundai_motors.svg" alt="전북 현대 모터스" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/jeonbuk_hyundai_motors.svg" alt="전북 현대 모터스" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">전북 현대 모터스</span>
+                    <span class="mono text-xs font-bold">전북 현대 모터스</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/jeonnam_dragons.svg" alt="전남 드래곤즈" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/jeonnam_dragons.svg" alt="전남 드래곤즈" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">전남 드래곤즈</span>
+                    <span class="mono text-xs font-bold">전남 드래곤즈</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/jeju_sk_fc.svg" alt="제주 SK FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/jeju_sk_fc.svg" alt="제주 SK FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">제주 SK FC</span>
+                    <span class="mono text-xs font-bold">제주 SK FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/cheonan_city_fc.svg" alt="천안 시티 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/cheonan_city_fc.svg" alt="천안 시티 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">천안 시티 FC</span>
+                    <span class="mono text-xs font-bold">천안 시티 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/cheongju_fc.svg" alt="충북 청주 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/cheongju_fc.svg" alt="충북 청주 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">충북 청주 FC</span>
+                    <span class="mono text-xs font-bold">충북 청주 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/chungnam_asan_fc.svg" alt="충남 아산 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/chungnam_asan_fc.svg" alt="충남 아산 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">충남 아산 FC</span>
+                    <span class="mono text-xs font-bold">충남 아산 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/paju_frontier_fc.svg" alt="파주 프런티어 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/paju_frontier_fc.svg" alt="파주 프런티어 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">파주 프런티어 FC</span>
+                    <span class="mono text-xs font-bold">파주 프런티어 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/pohang_steelers.svg" alt="포항 스틸러스" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/pohang_steelers.svg" alt="포항 스틸러스" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">포항 스틸러스</span>
+                    <span class="mono text-xs font-bold">포항 스틸러스</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague2/hwaseong_fc.svg" alt="화성 FC" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague2/hwaseong_fc.svg" alt="화성 FC" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">화성 FC</span>
+                    <span class="mono text-xs font-bold">화성 FC</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/fc_seoul.svg" alt="FC 서울" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/fc_seoul.svg" alt="FC 서울" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">FC 서울</span>
+                    <span class="mono text-xs font-bold">FC 서울</span>
                 </button>
                 <button class="team-btn flex flex-col items-center gap-2 group">
-                    <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/fc_anyang.svg" alt="FC 안양" class="w-8 h-8">
+                    <div class="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src="assets/emblem/2026/kleague1/fc_anyang.svg" alt="FC 안양" class="w-12 h-12">
                     </div>
-                    <span class="mono text-[10px] font-bold">FC 안양</span>
+                    <span class="mono text-xs font-bold">FC 안양</span>
                 </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
             <!-- LEFT: REFEREE COMPATIBILITY & FREQUENCY -->
-            <div class="lg:col-span-4 space-y-8">
+            <div class="lg:col-span-4 space-y-6 md:space-y-8">
                 <!-- Compatibility -->
-                <div class="ledger-surface p-6">
-                    <div class="flex justify-between items-start mb-8">
-                        <h3 class="mono text-[10px] font-black tracking-widest text-[var(--accent-var)] uppercase italic">Referee Compatibility</h3>
-                        <button onclick="openRefereeDataModal('ratings')" class="mono text-[8px] font-bold text-zinc-500 hover:text-white transition-colors underline underline-offset-4">VIEW ALL</button>
+                <div class="ledger-surface p-4 md:p-6">
+                    <div class="flex justify-between items-start mb-6 md:mb-8">
+                        <h3 class="mono text-[10px] md:text-xs font-black tracking-widest text-[var(--accent-var)] uppercase italic">Referee Compatibility</h3>
+                        <button onclick="openRefereeDataModal('ratings')" class="mono text-[9px] md:text-[10px] font-bold text-zinc-500 hover:text-white transition-colors underline underline-offset-4">VIEW ALL</button>
                     </div>
                     
                     <!-- Best Match -->
-                    <div class="mb-8">
-                        <p class="mono text-[8px] text-zinc-500 uppercase mb-4">High Compatibility (Fan Choice)</p>
-                        <div class="bg-zinc-900/50 border border-zinc-800 p-4 flex items-center gap-4">
-                            <div class="w-10 h-10 bg-zinc-800 flex items-center justify-center">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-600"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <div class="mb-6 md:mb-8">
+                        <p class="mono text-[9px] md:text-[10px] text-zinc-500 uppercase mb-3 md:mb-4">High Compatibility (Fan Choice)</p>
+                        <div class="bg-zinc-900/50 border border-zinc-800 p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-zinc-800 flex items-center justify-center">
+                                <svg width="20" height="20" md:width="24" md:height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-600"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"/></svg>
                             </div>
                             <div>
-                                <p class="text-sm font-black italic uppercase leading-none mb-1">KO HYUNG-JIN</p>
+                                <a href="referee.html" target="_blank" class="text-base md:text-lg font-black italic uppercase leading-none mb-1 hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    고형진
+                                    <svg width="10" height="10" md:width="12" md:height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                                 <div class="flex items-center gap-2">
-                                    <div class="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                                    <div class="w-16 md:w-20 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                                         <div class="h-full bg-[var(--accent-var)]" style="width: 88%"></div>
                                     </div>
-                                    <span class="mono text-[9px] font-bold text-[var(--accent-var)]">4.4</span>
+                                    <span class="mono text-[10px] md:text-xs font-bold text-[var(--accent-var)]">4.4</span>
                                 </div>
                             </div>
                         </div>
@@ -411,18 +448,21 @@
 
                     <!-- Worst Match -->
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase mb-4">Low Compatibility (Fan Choice)</p>
-                        <div class="bg-zinc-900/50 border border-zinc-800 p-4 flex items-center gap-4">
-                            <div class="w-10 h-10 bg-zinc-800 flex items-center justify-center">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-600"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <p class="mono text-[9px] md:text-[10px] text-zinc-500 uppercase mb-3 md:mb-4">Low Compatibility (Fan Choice)</p>
+                        <div class="bg-zinc-900/50 border border-zinc-800 p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-zinc-800 flex items-center justify-center">
+                                <svg width="20" height="20" md:width="24" md:height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-600"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"/></svg>
                             </div>
                             <div>
-                                <p class="text-sm font-black italic uppercase leading-none mb-1">KIM HEE-GON</p>
+                                <a href="referee.html" target="_blank" class="text-base md:text-lg font-black italic uppercase leading-none mb-1 hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    김희곤
+                                    <svg width="10" height="10" md:width="12" md:height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                                 <div class="flex items-center gap-2">
-                                    <div class="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                                    <div class="w-16 md:w-20 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                                         <div class="h-full bg-red-600" style="width: 35%"></div>
                                     </div>
-                                    <span class="mono text-[9px] font-bold text-red-500">1.8</span>
+                                    <span class="mono text-[10px] md:text-xs font-bold text-red-500">1.8</span>
                                 </div>
                             </div>
                         </div>
@@ -430,129 +470,170 @@
                 </div>
 
                 <!-- Frequency TOP 5 -->
-                <div class="ledger-surface p-6">
-                    <div class="flex justify-between items-start mb-8">
-                        <h3 class="mono text-[10px] font-black tracking-widest text-[var(--accent-var)] uppercase italic">Frequent Assignments (TOP 5)</h3>
-                        <button onclick="openRefereeDataModal('assignments')" class="mono text-[8px] font-bold text-zinc-500 hover:text-white transition-colors underline underline-offset-4">VIEW ALL</button>
+                <div class="ledger-surface p-4 md:p-6">
+                    <div class="flex justify-between items-start mb-6 md:mb-8">
+                        <h3 class="mono text-[10px] md:text-xs font-black tracking-widest text-[var(--accent-var)] uppercase italic">Frequent Assignments</h3>
+                        <button onclick="openRefereeDataModal('assignments')" class="mono text-[9px] md:text-[10px] font-bold text-zinc-500 hover:text-white transition-colors underline underline-offset-4">VIEW ALL</button>
                     </div>
                     
-                    <div class="space-y-6">
-                        <!-- Main Ref TOP 5 -->
-                        <div>
-                            <p class="mono text-[8px] text-zinc-500 uppercase mb-3">Main Referee / VAR</p>
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-[var(--accent-var)]">
-                                    <span class="text-[10px] font-bold italic uppercase">1. KO HYUNG-JIN</span>
-                                    <span class="mono text-[9px] text-zinc-500">12 Matches</span>
-                                </div>
-                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-zinc-700">
-                                    <span class="text-[10px] font-bold italic uppercase">2. KIM HEE-GON</span>
-                                    <span class="mono text-[9px] text-zinc-500">9 Matches</span>
-                                </div>
-                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-zinc-700">
-                                    <span class="text-[10px] font-bold italic uppercase">3. CHOI HYUN-JAI</span>
-                                    <span class="mono text-[9px] text-zinc-500">8 Matches</span>
-                                </div>
-                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-zinc-700">
-                                    <span class="text-[10px] font-bold italic uppercase">4. LEE DONG-JUN</span>
-                                    <span class="mono text-[9px] text-zinc-500">6 Matches</span>
-                                </div>
-                                <div class="flex items-center justify-between bg-zinc-900/30 p-2 border-l-2 border-zinc-700">
-                                    <span class="text-[10px] font-bold italic uppercase">5. PARK BYUNG-JIN</span>
-                                    <span class="mono text-[9px] text-zinc-500">5 Matches</span>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- Frequency Tabs -->
+                    <div class="flex border-b border-zinc-800 mb-4 overflow-x-auto no-scrollbar">
+                        <button onclick="switchFrequencyTab('TOTAL')" class="freq-tab-btn active px-3 py-2 mono text-[9px] font-black italic whitespace-nowrap border-b-2 border-[var(--accent-var)] text-white">TOTAL</button>
+                        <button onclick="switchFrequencyTab('MAIN')" class="freq-tab-btn px-3 py-2 mono text-[9px] font-black italic whitespace-nowrap border-b-2 border-transparent text-zinc-500 hover:text-white transition-all">MAIN</button>
+                        <button onclick="switchFrequencyTab('VAR')" class="freq-tab-btn px-3 py-2 mono text-[9px] font-black italic whitespace-nowrap border-b-2 border-transparent text-zinc-500 hover:text-white transition-all">VAR</button>
+                        <button onclick="switchFrequencyTab('AVAR')" class="freq-tab-btn px-3 py-2 mono text-[9px] font-black italic whitespace-nowrap border-b-2 border-transparent text-zinc-500 hover:text-white transition-all">AVAR</button>
+                        <button onclick="switchFrequencyTab('ASST')" class="freq-tab-btn px-3 py-2 mono text-[9px] font-black italic whitespace-nowrap border-b-2 border-transparent text-zinc-500 hover:text-white transition-all">ASST</button>
+                        <button onclick="switchFrequencyTab('4TH')" class="freq-tab-btn px-3 py-2 mono text-[9px] font-black italic whitespace-nowrap border-b-2 border-transparent text-zinc-500 hover:text-white transition-all">4TH</button>
+                    </div>
+
+                    <div id="frequency-list-container" class="space-y-2">
+                        <!-- Content will be injected by JavaScript -->
                     </div>
                 </div>
             </div>
 
             <!-- RIGHT: TEAM MATCH HISTORY -->
-            <div class="lg:col-span-8 ledger-surface p-6">
-                <h3 class="mono text-xs font-black tracking-widest text-[var(--text-muted)] mb-8 uppercase">Incheon Utd Match History</h3>
+            <div class="lg:col-span-8 ledger-surface p-4 md:p-6">
+                <h3 class="mono text-[10px] md:text-sm font-black tracking-widest text-[var(--text-muted)] mb-6 md:mb-8 uppercase">울산 HD FC Match History</h3>
                 <div class="space-y-4">
                     <!-- Match 1 -->
-                    <div class="flex flex-col p-6 border border-zinc-800 hover:border-zinc-600 transition-colors group">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-8">
-                                <div class="mono text-xs text-zinc-500">2024/03/01</div>
-                                <div class="flex items-center gap-6">
-                                    <span class="font-black italic text-lg uppercase">INCHEON</span>
-                                    <span class="text-3xl font-black italic tracking-tighter">0 : 0</span>
-                                    <span class="font-black italic text-lg uppercase text-zinc-500">GANGWON</span>
+                    <div class="flex flex-col p-4 md:p-6 border border-zinc-800 hover:border-zinc-600 transition-colors group">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+                                <div class="mono text-xs md:text-sm text-zinc-500">2024/03/01</div>
+                                <div class="flex items-center gap-4 md:gap-6">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" class="w-6 h-6 md:w-8 md:h-8" alt="울산">
+                                        <span class="font-black italic text-base md:text-xl uppercase">울산 HD FC</span>
+                                    </div>
+                                    <span class="text-2xl md:text-4xl font-black italic tracking-tighter">0 : 0</span>
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <img src="assets/emblem/2026/kleague1/gangwon_fc.svg" class="w-6 h-6 md:w-8 md:h-8" alt="강원">
+                                        <span class="font-black italic text-base md:text-xl uppercase text-zinc-500">강원 FC</span>
+                                    </div>
                                 </div>
                             </div>
-                            <span class="text-[var(--accent-var)] mono text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">VIEW DATA →</span>
+                            <div class="flex items-center gap-3">
+                                <a href="match_finished.html" class="btn-structural bg-[var(--ledger-surface)] px-3 md:px-4 py-1.5 md:py-2 text-[8px] md:text-[10px] font-black italic mono text-[var(--accent-var)] flex items-center gap-2 hover:bg-[var(--accent-var)] hover:text-black transition-all">
+                                    INSIDE GAME <svg width="10" height="10" md:width="12" md:height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                </a>
+                            </div>
                         </div>
                         
                         <!-- Full Referee Crew -->
-                        <div class="grid grid-cols-2 md:grid-cols-6 gap-4 pt-4 border-t border-zinc-900">
+                        <div class="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4 pt-4 border-t border-zinc-900">
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Main</span>
-                                <span class="mono text-[10px] font-bold">KO HYUNG-JIN</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">Main</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    고형진
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Asst 1</span>
-                                <span class="mono text-[10px] font-bold">PARK SANG-JUN</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">Asst 1</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    박상준
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Asst 2</span>
-                                <span class="mono text-[10px] font-bold">KWAK SEUNG-SOON</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">Asst 2</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    곽승순
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">VAR</span>
-                                <span class="mono text-[10px] font-bold">KIM HEE-GON</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">VAR</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    김희곤
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">AVAR</span>
-                                <span class="mono text-[10px] font-bold">LEE SEUL-GI</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">AVAR</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    이슬기
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">4th</span>
-                                <span class="mono text-[10px] font-bold">CHOI HYUN-JAI</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">4th</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    최현재
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                         </div>
                     </div>
 
                     <!-- Match 2 -->
-                    <div class="flex flex-col p-6 border border-zinc-800 hover:border-zinc-600 transition-colors group">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-8">
-                                <div class="mono text-xs text-zinc-500">2023/11/24</div>
-                                <div class="flex items-center gap-6">
-                                    <span class="font-black italic text-lg uppercase">INCHEON</span>
-                                    <span class="text-3xl font-black italic tracking-tighter">2 : 1</span>
-                                    <span class="font-black italic text-lg uppercase text-zinc-500">ULSAN</span>
+                    <div class="flex flex-col p-4 md:p-6 border border-zinc-800 hover:border-zinc-600 transition-colors group">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+                                <div class="mono text-xs md:text-sm text-zinc-500">2023/11/24</div>
+                                <div class="flex items-center gap-4 md:gap-6">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" class="w-6 h-6 md:w-8 md:h-8" alt="울산">
+                                        <span class="font-black italic text-base md:text-xl uppercase">울산 HD FC</span>
+                                    </div>
+                                    <span class="text-2xl md:text-4xl font-black italic tracking-tighter">2 : 1</span>
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" class="w-6 h-6 md:w-8 md:h-8" alt="인천">
+                                        <span class="font-black italic text-base md:text-xl uppercase text-zinc-500">인천 유나이티드</span>
+                                    </div>
                                 </div>
                             </div>
-                            <span class="text-[var(--accent-var)] mono text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">VIEW DATA →</span>
+                            <div class="flex items-center gap-3">
+                                <a href="match_finished.html" class="btn-structural bg-[var(--ledger-surface)] px-3 md:px-4 py-1.5 md:py-2 text-[8px] md:text-[10px] font-black italic mono text-[var(--accent-var)] flex items-center gap-2 hover:bg-[var(--accent-var)] hover:text-black transition-all">
+                                    INSIDE GAME <svg width="10" height="10" md:width="12" md:height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                </a>
+                            </div>
                         </div>
                         
                         <!-- Full Referee Crew -->
-                        <div class="grid grid-cols-2 md:grid-cols-6 gap-4 pt-4 border-t border-zinc-900">
+                        <div class="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4 pt-4 border-t border-zinc-900">
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Main</span>
-                                <span class="mono text-[10px] font-bold">KIM HEE-GON</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">Main</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    김희곤
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Asst 1</span>
-                                <span class="mono text-[10px] font-bold">LEE JUNG-MIN</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">Asst 1</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    이정민
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">Asst 2</span>
-                                <span class="mono text-[10px] font-bold">KIM KYE-YONG</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">Asst 2</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    김계용
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">VAR</span>
-                                <span class="mono text-[10px] font-bold">KO HYUNG-JIN</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">VAR</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    고형진
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">AVAR</span>
-                                <span class="mono text-[10px] font-bold">SONG BONG-GEUN</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">AVAR</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    송봉근
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                             <div class="flex flex-col">
-                                <span class="mono text-[8px] text-zinc-500 uppercase mb-1">4th</span>
-                                <span class="mono text-[10px] font-bold">LEE DONG-JUN</span>
+                                <span class="mono text-[8px] md:text-[10px] text-zinc-500 uppercase mb-1">4th</span>
+                                <a href="referee.html" target="_blank" class="mono text-[10px] md:text-xs font-bold hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                    이동준
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -588,15 +669,18 @@
         function toggleDarkMode() {
             const body = document.body;
             const icon = document.getElementById('theme-icon');
+            const isLightMode = body.classList.toggle('light-mode');
             
-            if (body.style.backgroundColor === 'white') {
-                body.style.backgroundColor = 'var(--ledger-bg)';
-                body.style.color = 'white';
-                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-            } else {
-                body.style.backgroundColor = 'white';
-                body.style.color = 'black';
+            if (isLightMode) {
                 icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+                // Update toggle button style for light mode
+                event.currentTarget.classList.remove('bg-white', 'text-black');
+                event.currentTarget.classList.add('bg-zinc-900', 'text-white');
+            } else {
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+                // Update toggle button style for dark mode
+                event.currentTarget.classList.remove('bg-zinc-900', 'text-white');
+                event.currentTarget.classList.add('bg-white', 'text-black');
             }
         }
 
@@ -622,16 +706,16 @@
 
         // REFEREE DATA MODAL LOGIC
         const mockRefereeData = [
-            { name: 'KO HYUNG-JIN', rating: 4.4, main: 8, asst: 0, var: 4, avar: 0, fourth: 0 },
-            { name: 'KIM HEE-GON', rating: 1.8, main: 5, asst: 0, var: 4, avar: 0, fourth: 0 },
-            { name: 'CHOI HYUN-JAI', rating: 3.2, main: 4, asst: 0, var: 2, avar: 0, fourth: 2 },
-            { name: 'LEE DONG-JUN', rating: 2.5, main: 3, asst: 0, var: 1, avar: 0, fourth: 2 },
-            { name: 'PARK BYUNG-JIN', rating: 3.8, main: 2, asst: 0, var: 3, avar: 0, fourth: 0 },
-            { name: 'PARK SANG-JUN', rating: 4.1, main: 0, asst: 10, var: 0, avar: 0, fourth: 0 },
-            { name: 'KWAK SEUNG-SOON', rating: 3.9, main: 0, asst: 8, var: 0, avar: 0, fourth: 0 },
-            { name: 'LEE SEUL-GI', rating: 3.5, main: 0, asst: 0, var: 0, avar: 7, fourth: 0 },
-            { name: 'SONG BONG-GEUN', rating: 3.0, main: 0, asst: 0, var: 0, avar: 5, fourth: 0 },
-            { name: 'KIM KYE-YONG', rating: 3.7, main: 0, asst: 6, var: 0, avar: 0, fourth: 0 }
+            { name: '고형진', rating: 4.4, main: 12, asst: 0, var: 4, avar: 0, fourth: 0 },
+            { name: '김희곤', rating: 1.8, main: 9, asst: 0, var: 4, avar: 0, fourth: 0 },
+            { name: '최현재', rating: 3.2, main: 8, asst: 0, var: 2, avar: 0, fourth: 2 },
+            { name: '이동준', rating: 2.5, main: 6, asst: 0, var: 1, avar: 0, fourth: 2 },
+            { name: '박병진', rating: 3.8, main: 5, asst: 0, var: 3, avar: 0, fourth: 0 },
+            { name: '박상준', rating: 4.1, main: 0, asst: 10, var: 0, avar: 0, fourth: 0 },
+            { name: '곽승순', rating: 3.9, main: 0, asst: 8, var: 0, avar: 0, fourth: 0 },
+            { name: '이슬기', rating: 3.5, main: 0, asst: 0, var: 0, avar: 7, fourth: 0 },
+            { name: '송봉근', rating: 3.0, main: 0, asst: 0, var: 0, avar: 5, fourth: 0 },
+            { name: '김계용', rating: 3.7, main: 0, asst: 6, var: 0, avar: 0, fourth: 0 }
         ];
 
         function openRefereeDataModal(tab) {
@@ -659,20 +743,23 @@
                         ${mockRefereeData.sort((a,b) => b.rating - a.rating).map(ref => `
                             <div class="bg-zinc-900/50 border border-zinc-800 p-4 flex items-center justify-between">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 bg-zinc-800 flex items-center justify-center">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-600"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    <div class="w-12 h-12 bg-zinc-800 flex items-center justify-center">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-600"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-black italic uppercase leading-none mb-1">${ref.name}</p>
-                                        <p class="mono text-[8px] text-zinc-500 uppercase">Average Rating</p>
+                                        <a href="referee.html" target="_blank" class="text-base font-black italic uppercase leading-none mb-1 hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                            ${ref.name}
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                        </a>
+                                        <p class="mono text-[10px] text-zinc-500 uppercase">Average Rating</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
                                     <div class="flex items-center gap-2 justify-end mb-1">
-                                        <div class="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                                        <div class="w-20 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                                             <div class="h-full ${ref.rating >= 3.5 ? 'bg-[var(--accent-var)]' : ref.rating >= 2.5 ? 'bg-yellow-500' : 'bg-red-600'}" style="width: ${ref.rating * 20}%"></div>
                                         </div>
-                                        <span class="mono text-[10px] font-bold ${ref.rating >= 3.5 ? 'text-[var(--accent-var)]' : ref.rating >= 2.5 ? 'text-yellow-500' : 'text-red-500'}">${ref.rating.toFixed(1)}</span>
+                                        <span class="mono text-xs font-bold ${ref.rating >= 3.5 ? 'text-[var(--accent-var)]' : ref.rating >= 2.5 ? 'text-yellow-500' : 'text-red-500'}">${ref.rating.toFixed(1)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -686,7 +773,7 @@
 
                 let html = `
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left mono text-[10px]">
+                        <table class="w-full text-left mono text-xs">
                             <thead>
                                 <tr class="border-b border-zinc-800 text-zinc-500 uppercase tracking-widest">
                                     <th class="py-4 font-black">Referee Name</th>
@@ -703,13 +790,18 @@
                                     const total = ref.main + ref.asst + ref.var + ref.avar + ref.fourth;
                                     return `
                                         <tr class="hover:bg-white/5 transition-colors">
-                                            <td class="py-4 font-bold italic uppercase">${ref.name}</td>
+                                            <td class="py-4 font-bold italic uppercase text-sm">
+                                                <a href="referee.html" target="_blank" class="hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                                                    ${ref.name}
+                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                                                </a>
+                                            </td>
                                             <td class="py-4 text-center ${ref.main > 0 ? 'text-white' : 'text-zinc-700'}">${ref.main}</td>
                                             <td class="py-4 text-center ${ref.asst > 0 ? 'text-white' : 'text-zinc-700'}">${ref.asst}</td>
                                             <td class="py-4 text-center ${ref.var > 0 ? 'text-white' : 'text-zinc-700'}">${ref.var}</td>
                                             <td class="py-4 text-center ${ref.avar > 0 ? 'text-white' : 'text-zinc-700'}">${ref.avar}</td>
                                             <td class="py-4 text-center ${ref.fourth > 0 ? 'text-white' : 'text-zinc-700'}">${ref.fourth}</td>
-                                            <td class="py-4 text-center font-black bg-zinc-900/30 text-[var(--accent-var)]">${total}</td>
+                                            <td class="py-4 text-center font-black bg-zinc-900/30 text-[var(--accent-var)] text-sm">${total}</td>
                                         </tr>
                                     `;
                                 }).join('')}
@@ -720,6 +812,58 @@
                 contentArea.innerHTML = html;
             }
         }
+
+        function switchFrequencyTab(type) {
+            // Update UI tabs
+            document.querySelectorAll('.freq-tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-[var(--accent-var)]', 'text-white');
+                btn.classList.add('border-transparent', 'text-zinc-500');
+                if(btn.innerText === type) {
+                    btn.classList.add('active', 'border-[var(--accent-var)]', 'text-white');
+                    btn.classList.remove('border-transparent', 'text-zinc-500');
+                }
+            });
+
+            const container = document.getElementById('frequency-list-container');
+            let sortedData = [...mockRefereeData];
+
+            if (type === 'TOTAL') {
+                sortedData.sort((a,b) => (b.main+b.asst+b.var+b.avar+b.fourth) - (a.main+a.asst+a.var+a.avar+a.fourth));
+            } else if (type === 'MAIN') {
+                sortedData.sort((a,b) => b.main - a.main);
+            } else if (type === 'VAR') {
+                sortedData.sort((a,b) => b.var - a.var);
+            } else if (type === 'AVAR') {
+                sortedData.sort((a,b) => b.avar - a.avar);
+            } else if (type === 'ASST') {
+                sortedData.sort((a,b) => b.asst - a.asst);
+            } else if (type === '4TH') {
+                sortedData.sort((a,b) => b.fourth - a.fourth);
+            }
+
+            container.innerHTML = sortedData.slice(0, 5).map((ref, idx) => {
+                let count = 0;
+                if (type === 'TOTAL') count = ref.main + ref.asst + ref.var + ref.avar + ref.fourth;
+                else if (type === 'MAIN') count = ref.main;
+                else if (type === 'VAR') count = ref.var;
+                else if (type === 'AVAR') count = ref.avar;
+                else if (type === 'ASST') count = ref.asst;
+                else if (type === '4TH') count = ref.fourth;
+
+                return `
+                    <div class="flex items-center justify-between bg-zinc-900/30 p-2.5 md:p-3 border-l-2 ${idx === 0 ? 'border-[var(--accent-var)]' : 'border-zinc-700'}">
+                        <a href="referee.html" target="_blank" class="text-[10px] md:text-xs font-bold italic uppercase hover:text-[var(--accent-var)] transition-colors flex items-center gap-1">
+                            ${idx + 1}. ${ref.name}
+                            <svg width="8" height="8" md:width="10" md:height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+                        </a>
+                        <span class="mono text-[9px] md:text-[10px] text-zinc-500">${count} Matches</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize frequency list
+        switchFrequencyTab('TOTAL');
     </script>
 </body>
 </html>

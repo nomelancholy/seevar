@@ -14,12 +14,23 @@
             --accent-var: #00ff41;
             --accent-respect: #3b82f6;
             --text-muted: #8b949e;
+            --text-main: #ffffff;
         }
+
+        body.light-mode {
+            --ledger-bg: #f0f2f5;
+            --ledger-surface: #ffffff;
+            --ledger-border: #d1d5db;
+            --text-muted: #6b7280;
+            --text-main: #111827;
+        }
+
         body {
             background-color: var(--ledger-bg);
-            color: #ffffff;
+            color: var(--text-main);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
         .mono { font-family: 'JetBrains+Mono', monospace; }
         .ledger-surface {
@@ -48,26 +59,26 @@
             </button>
         </div>
 
-        <header class="mb-12 flex justify-between items-end">
+        <header class="mb-8 md:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div>
-                <h1 class="text-5xl font-black italic tracking-tighter uppercase mb-4">MY VAR MOMENTS</h1>
-                <p class="mono text-sm text-[var(--text-muted)]">내가 생성하거나 참여한 논란의 순간들을 확인하세요.</p>
+                <h1 class="text-3xl md:text-5xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">MY VAR MOMENTS</h1>
+                <p class="mono text-[10px] md:text-sm text-[var(--text-muted)]">내가 생성하거나 참여한 논란의 순간들을 확인하세요.</p>
             </div>
-            <div class="text-right">
-                <span class="text-[10px] mono text-zinc-500 uppercase">Total Created</span>
-                <p class="text-3xl font-black italic mono text-[var(--accent-var)]">12</p>
+            <div class="text-left md:text-right w-full md:w-auto">
+                <span class="text-[8px] md:text-[10px] mono text-zinc-500 uppercase">Total Created</span>
+                <p class="text-2xl md:text-3xl font-black italic mono text-[var(--accent-var)]">12</p>
             </div>
         </header>
 
         <!-- TABS -->
-        <div class="flex gap-8 border-b border-zinc-800 mb-8">
-            <button class="pb-4 text-xs font-black italic mono border-b-2 border-[var(--accent-var)] text-white">CREATED BY ME</button>
-            <button class="pb-4 text-xs font-black italic mono text-zinc-500 hover:text-white transition-colors">PARTICIPATED</button>
-            <button class="pb-4 text-xs font-black italic mono text-zinc-500 hover:text-white transition-colors">SAVED</button>
+        <div class="flex gap-6 md:gap-8 border-b border-zinc-800 mb-6 md:mb-8 overflow-x-auto no-scrollbar">
+            <button class="pb-4 text-[10px] md:text-xs font-black italic mono border-b-2 border-[var(--accent-var)] text-white whitespace-nowrap">CREATED BY ME</button>
+            <button class="pb-4 text-[10px] md:text-xs font-black italic mono text-zinc-500 hover:text-white transition-colors whitespace-nowrap">PARTICIPATED</button>
+            <button class="pb-4 text-[10px] md:text-xs font-black italic mono text-zinc-500 hover:text-white transition-colors whitespace-nowrap">SAVED</button>
         </div>
 
         <!-- MOMENTS GRID -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             <!-- Moment 1 -->
             <div class="moment-card">
                 <div class="flex justify-between items-start mb-4">
@@ -115,5 +126,32 @@
             </div>
         </div>
     </main>
+
+    <script>
+        function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            const isLightMode = body.classList.toggle('light-mode');
+            
+            if (isLightMode) {
+                icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+                // Update toggle button style for light mode
+                event.currentTarget.classList.remove('bg-white', 'text-black');
+                event.currentTarget.classList.add('bg-zinc-900', 'text-white');
+            } else {
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+                // Update toggle button style for dark mode
+                event.currentTarget.classList.remove('bg-zinc-900', 'text-white');
+                event.currentTarget.classList.add('bg-white', 'text-black');
+            }
+        }
+    </script>
+
+    <!-- DARK MODE TOGGLE -->
+    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black dark:bg-zinc-800 dark:text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000] border border-zinc-200 dark:border-zinc-700" title="Toggle Dark Mode">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
 </body>
 </html>

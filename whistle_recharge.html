@@ -14,12 +14,23 @@
             --accent-var: #00ff41;
             --accent-respect: #3b82f6;
             --text-muted: #8b949e;
+            --text-main: #ffffff;
         }
+
+        body.light-mode {
+            --ledger-bg: #f0f2f5;
+            --ledger-surface: #ffffff;
+            --ledger-border: #d1d5db;
+            --text-muted: #6b7280;
+            --text-main: #111827;
+        }
+
         body {
             background-color: var(--ledger-bg);
-            color: #ffffff;
+            color: var(--text-main);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
         .mono { font-family: 'JetBrains+Mono', monospace; }
         .ledger-surface {
@@ -85,56 +96,56 @@
             </button>
         </div>
 
-        <header class="mb-12 flex justify-between items-end">
+        <header class="mb-8 md:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div>
-                <h1 class="text-5xl font-black italic tracking-tighter uppercase mb-4">WHISTLE RECHARGE</h1>
-                <p class="mono text-sm text-[var(--text-muted)]">호각을 충전하여 AI 판정 등 프리미엄 기능을 이용하세요.</p>
+                <h1 class="text-3xl md:text-5xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">WHISTLE RECHARGE</h1>
+                <p class="mono text-[10px] md:text-sm text-[var(--text-muted)]">호각을 충전하여 AI 판정 등 프리미엄 기능을 이용하세요.</p>
             </div>
-            <div class="bg-zinc-900 border border-zinc-800 p-4 text-right">
-                <span class="text-[10px] mono text-zinc-500 uppercase">Current Balance</span>
-                <p class="text-2xl font-black italic mono">1,240 <span class="text-[10px] text-zinc-500 not-italic">호각</span></p>
+            <div class="bg-zinc-900 border border-zinc-800 p-3 md:p-4 text-right w-full md:w-auto">
+                <span class="text-[8px] md:text-[10px] mono text-zinc-500 uppercase">Current Balance</span>
+                <p class="text-xl md:text-2xl font-black italic mono">1,240 <span class="text-[8px] md:text-[10px] text-zinc-500 not-italic">호각</span></p>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
             <!-- Pack 1 -->
-            <div class="whistle-card">
+            <div class="whistle-card p-6 md:p-8">
                 <div class="whistle-badge mb-4">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
                     100 호각
                 </div>
-                <div class="text-3xl font-black italic mono mb-2">₩ 1,100</div>
-                <p class="text-[10px] mono text-zinc-500 mb-8">AI 판정 요청 2회 가능</p>
-                <button class="w-full btn-structural py-3 text-[10px] font-black italic mono hover:bg-white hover:text-black transition-all">SELECT PACK</button>
+                <div class="text-2xl md:text-3xl font-black italic mono mb-2">₩ 1,100</div>
+                <p class="text-[9px] md:text-[10px] mono text-zinc-500 mb-6 md:mb-8">AI 판정 요청 2회 가능</p>
+                <button class="w-full btn-structural py-3 text-[9px] md:text-[10px] font-black italic mono hover:bg-white hover:text-black transition-all">SELECT PACK</button>
             </div>
 
             <!-- Pack 2 -->
-            <div class="whistle-card popular border-[var(--accent-var)]">
+            <div class="whistle-card popular border-[var(--accent-var)] p-6 md:p-8">
                 <div class="whistle-badge mb-4">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
                     550 호각
                 </div>
-                <div class="text-3xl font-black italic mono mb-2">₩ 5,500</div>
-                <p class="text-[10px] mono text-zinc-500 mb-8">50 호각 추가 증정 (10%)</p>
-                <button class="w-full btn-structural bg-[var(--accent-var)] text-black py-3 text-[10px] font-black italic mono">SELECT PACK</button>
+                <div class="text-2xl md:text-3xl font-black italic mono mb-2">₩ 5,500</div>
+                <p class="text-[9px] md:text-[10px] mono text-zinc-500 mb-6 md:mb-8">50 호각 추가 증정 (10%)</p>
+                <button class="w-full btn-structural bg-[var(--accent-var)] text-black py-3 text-[9px] md:text-[10px] font-black italic mono">SELECT PACK</button>
             </div>
 
             <!-- Pack 3 -->
-            <div class="whistle-card">
+            <div class="whistle-card p-6 md:p-8">
                 <div class="whistle-badge mb-4">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
                     1,200 호각
                 </div>
-                <div class="text-3xl font-black italic mono mb-2">₩ 11,000</div>
-                <p class="text-[10px] mono text-zinc-500 mb-8">200 호각 추가 증정 (20%)</p>
-                <button class="w-full btn-structural py-3 text-[10px] font-black italic mono hover:bg-white hover:text-black transition-all">SELECT PACK</button>
+                <div class="text-2xl md:text-3xl font-black italic mono mb-2">₩ 11,000</div>
+                <p class="text-[9px] md:text-[10px] mono text-zinc-500 mb-6 md:mb-8">200 호각 추가 증정 (20%)</p>
+                <button class="w-full btn-structural py-3 text-[9px] md:text-[10px] font-black italic mono hover:bg-white hover:text-black transition-all">SELECT PACK</button>
             </div>
         </div>
 
         <!-- RECHARGE INFO -->
-        <section class="ledger-surface p-8">
-            <h3 class="text-sm font-black italic uppercase mb-6">Payment Methods</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <section class="ledger-surface p-6 md:p-8">
+            <h3 class="text-xs md:text-sm font-black italic uppercase mb-6">Payment Methods</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 <button class="border border-zinc-800 p-4 flex flex-col items-center gap-2 hover:border-zinc-600 transition-colors">
                     <div class="w-8 h-8 bg-yellow-400 rounded-lg"></div>
                     <span class="text-[9px] mono font-bold">KAKAO PAY</span>
@@ -158,5 +169,32 @@
             * 모든 충전 금액에는 부가세가 포함되어 있습니다. 충전 후 7일 이내 미사용 시 환불 가능합니다.
         </p>
     </main>
+
+    <script>
+        function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            const isLightMode = body.classList.toggle('light-mode');
+            
+            if (isLightMode) {
+                icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+                // Update toggle button style for light mode
+                event.currentTarget.classList.remove('bg-white', 'text-black');
+                event.currentTarget.classList.add('bg-zinc-900', 'text-white');
+            } else {
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+                // Update toggle button style for dark mode
+                event.currentTarget.classList.remove('bg-zinc-900', 'text-white');
+                event.currentTarget.classList.add('bg-white', 'text-black');
+            }
+        }
+    </script>
+
+    <!-- DARK MODE TOGGLE -->
+    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black dark:bg-zinc-800 dark:text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000] border border-zinc-200 dark:border-zinc-700" title="Toggle Dark Mode">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
 </body>
 </html>

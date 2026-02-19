@@ -14,12 +14,23 @@
             --accent-var: #00ff41;
             --accent-respect: #3b82f6;
             --text-muted: #8b949e;
+            --text-main: #ffffff;
         }
+
+        body.light-mode {
+            --ledger-bg: #f0f2f5;
+            --ledger-surface: #ffffff;
+            --ledger-border: #d1d5db;
+            --text-muted: #6b7280;
+            --text-main: #111827;
+        }
+
         body {
             background-color: var(--ledger-bg);
-            color: #ffffff;
+            color: var(--text-main);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
         .mono { font-family: 'JetBrains+Mono', monospace; }
         .ledger-surface {
@@ -104,46 +115,46 @@
             </button>
         </div>
 
-        <header class="mb-12">
-            <h1 class="text-5xl font-black italic tracking-tighter uppercase mb-4">MY INFORMATION</h1>
-            <p class="mono text-sm text-[var(--text-muted)]">내 프로필 정보를 관리하세요.</p>
+        <header class="mb-8 md:mb-12">
+            <h1 class="text-3xl md:text-5xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">MY INFORMATION</h1>
+            <p class="mono text-[10px] md:text-sm text-[var(--text-muted)]">내 프로필 정보를 관리하세요.</p>
         </header>
 
-        <section class="ledger-surface p-8 space-y-10">
+        <section class="ledger-surface p-6 md:p-8 space-y-8 md:space-y-10">
             <!-- Social Info -->
-            <div class="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 gap-4">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-[#03C75A] rounded-full flex items-center justify-center">
+                    <div class="w-10 h-10 bg-[#03C75A] rounded-full flex items-center justify-center shrink-0">
                         <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
                             <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/>
                         </svg>
                     </div>
                     <div>
-                        <p class="text-[10px] mono text-zinc-500 uppercase tracking-widest">Linked Account</p>
-                        <p class="text-sm font-bold">NAVER SOCIAL LOGIN</p>
+                        <p class="text-[8px] md:text-[10px] mono text-zinc-500 uppercase tracking-widest">Linked Account</p>
+                        <p class="text-xs md:text-sm font-bold">NAVER SOCIAL LOGIN</p>
                     </div>
                 </div>
                 <span class="text-[8px] mono text-zinc-600">ID: user_7721_naver</span>
             </div>
 
             <!-- Profile Image Section -->
-            <div class="flex items-center gap-8">
-                <div class="w-24 h-24 rounded-full border-2 border-zinc-800 bg-zinc-900 flex items-center justify-center relative group cursor-pointer">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-700"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <div class="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+                <div class="w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-zinc-800 bg-zinc-900 flex items-center justify-center relative group cursor-pointer shrink-0">
+                    <svg width="32" height="32" md:width="40" md:height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-700"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     <div class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span class="text-[8px] font-black mono uppercase">Change</span>
+                        <span class="text-[7px] md:text-[8px] font-black mono uppercase">Change</span>
                     </div>
                 </div>
-                <div class="flex-1">
-                    <label class="block text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Nickname</label>
-                    <input type="text" value="USER_7721" class="input-field">
+                <div class="flex-1 w-full">
+                    <label class="block text-[8px] md:text-[10px] mono text-zinc-500 mb-2 uppercase tracking-widest">Nickname</label>
+                    <input type="text" value="USER_7721" class="input-field text-xs md:text-sm">
                 </div>
             </div>
 
             <!-- Supporting Team Section -->
             <div>
-                <label class="block text-[10px] mono text-zinc-500 mb-4 uppercase tracking-widest">Supporting Team</label>
-                <div class="team-grid">
+                <label class="block text-[8px] md:text-[10px] mono text-zinc-500 mb-4 uppercase tracking-widest">Supporting Team</label>
+                <div class="team-grid grid-cols-3 md:grid-cols-4">
                     <!-- K League 1 -->
                     <div class="team-option" onclick="selectTeam(this)">
                         <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" alt="울산 HD FC">
@@ -266,17 +277,17 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="pt-8 flex justify-end gap-4">
-                <button class="px-8 py-3 text-xs font-black italic mono text-zinc-500 hover:text-white transition-colors">CANCEL</button>
-                <button class="btn-structural bg-[var(--accent-var)] text-black px-12 py-3 text-xs font-black italic tracking-tighter uppercase">SAVE CHANGES</button>
+            <div class="pt-6 md:pt-8 flex flex-col md:flex-row justify-end gap-3 md:gap-4">
+                <button class="w-full md:w-auto px-8 py-3 text-[10px] md:text-xs font-black italic mono text-zinc-500 hover:text-white transition-colors">CANCEL</button>
+                <button class="w-full md:w-auto btn-structural bg-[var(--accent-var)] text-black px-12 py-3 text-[10px] md:text-xs font-black italic tracking-tighter uppercase">SAVE CHANGES</button>
             </div>
         </section>
 
         <!-- Danger Zone -->
-        <section class="mt-12 p-8 border border-red-900/30 bg-red-900/5">
-            <h3 class="text-sm font-black italic text-red-500 uppercase mb-2">Danger Zone</h3>
-            <p class="text-xs text-zinc-500 mb-6">계정을 삭제하면 모든 데이터가 소멸되며 복구할 수 없습니다.</p>
-            <button class="border border-red-900 text-red-500 px-6 py-2 text-[10px] font-black italic mono hover:bg-red-900 hover:text-white transition-all">DELETE ACCOUNT</button>
+        <section class="mt-8 md:mt-12 p-6 md:p-8 border border-red-900/30 bg-red-900/5">
+            <h3 class="text-xs md:text-sm font-black italic text-red-500 uppercase mb-2">Danger Zone</h3>
+            <p class="text-[10px] md:text-xs text-zinc-500 mb-6">계정을 삭제하면 모든 데이터가 소멸되며 복구할 수 없습니다.</p>
+            <button class="w-full md:w-auto border border-red-900 text-red-500 px-6 py-2.5 text-[9px] md:text-[10px] font-black italic mono hover:bg-red-900 hover:text-white transition-all">DELETE ACCOUNT</button>
         </section>
     </main>
 
@@ -285,6 +296,31 @@
             document.querySelectorAll('.team-option').forEach(opt => opt.classList.remove('selected'));
             el.classList.add('selected');
         }
+
+        function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            const isLightMode = body.classList.toggle('light-mode');
+            
+            if (isLightMode) {
+                icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+                // Update toggle button style for light mode
+                event.currentTarget.classList.remove('bg-white', 'text-black');
+                event.currentTarget.classList.add('bg-zinc-900', 'text-white');
+            } else {
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+                // Update toggle button style for dark mode
+                event.currentTarget.classList.remove('bg-zinc-900', 'text-white');
+                event.currentTarget.classList.add('bg-white', 'text-black');
+            }
+        }
     </script>
+
+    <!-- DARK MODE TOGGLE -->
+    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black dark:bg-zinc-800 dark:text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000] border border-zinc-200 dark:border-zinc-700" title="Toggle Dark Mode">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
 </body>
 </html>

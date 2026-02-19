@@ -14,16 +14,34 @@
             --accent-var: #00ff41;
             --accent-respect: #3b82f6;
             --text-muted: #8b949e;
+            --text-main: #ffffff;
+        }
+
+        body.light-mode {
+            --ledger-bg: #f0f2f5;
+            --ledger-surface: #ffffff;
+            --ledger-border: #d1d5db;
+            --text-muted: #6b7280;
+            --text-main: #111827;
         }
 
         body {
             background-color: var(--ledger-bg);
-            color: #ffffff;
+            color: var(--text-main);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .mono { font-family: 'JetBrains+Mono', monospace; }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
         .ledger-surface {
             background: var(--ledger-surface);
@@ -52,43 +70,52 @@
 <body class="p-4 md:p-8">
     <div class="grain-overlay"></div>
 
-    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 mb-12 border-b border-[#2d3139] pb-6">
-        <div class="flex items-center gap-4">
-            <a href="index.html" class="text-2xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity">
+    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-8 mb-8 md:mb-12 border-b border-[#2d3139] pb-6">
+        <div class="flex items-center justify-between w-full md:w-auto gap-4">
+            <a href="index.html" class="text-2xl md:text-3xl font-black tracking-tighter leading-none italic">
                 SEE <span class="text-[var(--accent-var)]">VAR</span>
             </a>
             <div class="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
+            <!-- MOBILE PROFILE TOGGLE -->
+            <div class="md:hidden flex items-center gap-3 cursor-pointer" onclick="toggleUserDrawer()">
+                <div class="relative">
+                    <div class="w-9 h-9 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center relative">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천" class="w-full h-full">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="relative flex-1 w-full max-w-md">
             <input type="text" placeholder="SEARCH MATCH, PLAYER, DATA..." 
-                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
+                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-xs md:text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
             <span class="absolute right-3 top-2.5 opacity-30">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </span>
         </div>
 
-        <div class="flex items-center gap-8 text-xs font-bold tracking-widest mono ml-auto">
-            <a href="about.html" class="text-[var(--text-muted)] hover:text-white">ABOUT</a>
-            <a href="matches.html" class="text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
-            <a href="referee_list.html" class="text-white border-b border-[var(--accent-var)] pb-1">REFEREES</a>
-            <a href="teams.html" class="text-[var(--text-muted)] hover:text-white">TEAMS</a>
-
-            <!-- USER PROFILE (REPLACED LOGIN) -->
-            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
+        <div class="flex items-center justify-center md:justify-end gap-4 md:gap-8 text-[10px] md:text-xs font-bold tracking-widest mono w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0">
+            <a href="about.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">ABOUT</a>
+            <a href="matches.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">ARCHIVE</a>
+            <a href="referee_list.html" class="menu-link text-white border-b border-[var(--accent-var)] pb-1 whitespace-nowrap">REFEREES</a>
+            <a href="teams.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">TEAMS</a>
+            
+            <!-- DESKTOP USER PROFILE -->
+            <div class="hidden md:flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
                     <span class="text-[10px] text-white leading-none font-black italic">인천 유나이티드</span>
                 </div>
                 <div class="relative">
-                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
+                    <div class="w-11 h-11 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors relative">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
-                </div>
-                <!-- User Profile Image -->
-                <div class="w-10 h-10 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-full h-full">
+                    </div>
                 </div>
             </div>
         </div>
@@ -106,8 +133,15 @@
                 </div>
 
                 <div class="flex items-center gap-4 mb-4 p-4 bg-zinc-900/50 border border-zinc-800">
-                    <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <!-- JERSEY STYLE PROFILE (DRAWER) -->
+                    <div class="relative">
+                        <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <!-- TEAM EMBLEM (JERSEY BADGE POSITION) -->
+                        <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-1 shadow-lg z-10">
+                            <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-full h-full">
+                        </div>
                     </div>
                     <div>
                         <p class="text-lg font-black italic">USER_7721</p>
@@ -149,306 +183,306 @@
     </div>
 
     <main class="max-w-7xl mx-auto">
-        <header class="mb-12">
-            <h1 class="text-6xl font-black italic tracking-tighter uppercase mb-4">REFEREE DATABASE</h1>
-            <p class="mono text-sm text-[var(--text-muted)] max-w-2xl">
+        <header class="mb-8 md:mb-12">
+            <h1 class="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">REFEREE DATABASE</h1>
+            <p class="mono text-[10px] md:text-sm text-[var(--text-muted)] max-w-2xl">
                 K LEAGUE 공식 심판진의 활동 데이터 및 팬 평점을 확인할 수 있는 통합 데이터베이스입니다.
             </p>
         </header>
 
         <!-- FILTER BAR -->
-        <div class="flex flex-wrap gap-4 mb-8">
-            <button class="bg-white text-black px-6 py-2 text-xs font-black italic mono">ALL REFEREES</button>
-            <button class="border border-[#2d3139] text-[var(--text-muted)] px-6 py-2 text-xs font-black italic mono hover:text-white hover:border-white transition-all">K LEAGUE 1</button>
-            <button class="border border-[#2d3139] text-[var(--text-muted)] px-6 py-2 text-xs font-black italic mono hover:text-white hover:border-white transition-all">K LEAGUE 2</button>
+        <div class="flex flex-wrap gap-3 md:gap-4 mb-6 md:mb-8">
+            <button class="bg-white text-black px-4 md:px-6 py-1.5 md:py-2 text-[10px] md:text-xs font-black italic mono">ALL REFEREES</button>
+            <button class="border border-[#2d3139] text-[var(--text-muted)] px-4 md:px-6 py-1.5 md:py-2 text-[10px] md:text-xs font-black italic mono hover:text-white hover:border-white transition-all">K LEAGUE 1</button>
+            <button class="border border-[#2d3139] text-[var(--text-muted)] px-4 md:px-6 py-1.5 md:py-2 text-[10px] md:text-xs font-black italic mono hover:text-white hover:border-white transition-all">K LEAGUE 2</button>
         </div>
 
         <!-- REFEREE GRID -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <!-- 고형진 -->
-            <a href="referee.html" class="ledger-surface p-6 referee-card flex flex-col gap-6">
+            <a href="referee.html" class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">고형진</h2>
-                        <p class="mono text-[10px] text-[var(--accent-var)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">고형진</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--accent-var)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-[var(--accent-var)]">4.2</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-[var(--accent-var)]">4.2</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">186</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">186</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">15,820</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">15,820</p>
                     </div>
                 </div>
             </a>
 
             <!-- 김대용 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김대용</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">김대용</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.5</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.5</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">124</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">124</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">9,120</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">9,120</p>
                     </div>
                 </div>
             </div>
 
             <!-- 김우성 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김우성</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">김우성</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.2</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">98</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">98</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">7,450</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">7,450</p>
                     </div>
                 </div>
             </div>
 
             <!-- 김종혁 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">김종혁</h2>
-                        <p class="mono text-[10px] text-red-500 font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">김종혁</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-red-500 font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-red-500">2.1</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-red-500">2.1</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">115</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">115</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">8,940</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">8,940</p>
                     </div>
                 </div>
             </div>
 
             <!-- 박병진 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">박병진</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">박병진</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.8</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.8</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">132</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">132</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">10,240</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">10,240</p>
                     </div>
                 </div>
             </div>
 
             <!-- 설태환 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">설태환</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">설태환</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.4</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.4</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">86</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">86</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">5,120</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">5,120</p>
                     </div>
                 </div>
             </div>
 
             <!-- 송민석 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">송민석</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">송민석</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.6</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.6</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">74</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">74</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">4,820</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">4,820</p>
                     </div>
                 </div>
             </div>
 
             <!-- 신용준 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">신용준</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">신용준</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.1</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.1</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">112</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">112</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">7,920</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">7,920</p>
                     </div>
                 </div>
             </div>
 
             <!-- 이동준 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">이동준</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">이동준</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.5</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.5</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">145</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">145</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
                         <p class="mono text-xs font-bold">11,200</p>
                     </div>
                 </div>
             </div>
 
             <!-- 채상협 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">채상협</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">채상협</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.7</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.7</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">128</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">128</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">9,840</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">9,840</p>
                     </div>
                 </div>
             </div>
 
             <!-- 최철준 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">최철준</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">최철준</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.3</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.3</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">92</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">92</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">6,120</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">6,120</p>
                     </div>
                 </div>
             </div>
 
             <!-- 최현재 -->
-            <div class="ledger-surface p-6 referee-card flex flex-col gap-6 opacity-80 cursor-not-allowed">
+            <div class="ledger-surface p-4 md:p-6 referee-card flex flex-col gap-4 md:gap-6 opacity-80 cursor-not-allowed">
                 <div class="flex justify-between items-start">
                     <div class="text-left">
-                        <h2 class="text-2xl font-black italic tracking-tighter uppercase mb-1">최현재</h2>
-                        <p class="mono text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
+                        <h2 class="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-1">최현재</h2>
+                        <p class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] font-bold">K LEAGUE 1 REFEREE</p>
                     </div>
                     <div class="text-right">
-                        <div class="mono text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
-                        <div class="text-2xl font-black italic text-zinc-500">3.2</div>
+                        <div class="mono text-[9px] md:text-[10px] text-[var(--text-muted)] uppercase tracking-tighter mb-1">Global Rating</div>
+                        <div class="text-xl md:text-2xl font-black italic text-zinc-500">3.2</div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div class="grid grid-cols-2 gap-3 md:gap-4 border-t border-zinc-800 pt-3 md:pt-4">
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Matches</p>
-                        <p class="mono text-xs font-bold">104</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Matches</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">104</p>
                     </div>
                     <div>
-                        <p class="mono text-[8px] text-zinc-500 uppercase">Total Votes</p>
-                        <p class="mono text-xs font-bold">7,820</p>
+                        <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase">Total Votes</p>
+                        <p class="mono text-[10px] md:text-xs font-bold">7,820</p>
                     </div>
                 </div>
             </div>
@@ -1651,7 +1685,7 @@
       </script>
 
     <!-- DARK MODE TOGGLE -->
-    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000]" title="Toggle Dark Mode">
+    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black dark:bg-zinc-800 dark:text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000] border border-zinc-200 dark:border-zinc-700" title="Toggle Dark Mode">
         <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
@@ -1661,15 +1695,18 @@
         function toggleDarkMode() {
             const body = document.body;
             const icon = document.getElementById('theme-icon');
+            const isLightMode = body.classList.toggle('light-mode');
             
-            if (body.style.backgroundColor === 'white') {
-                body.style.backgroundColor = 'var(--ledger-bg)';
-                body.style.color = 'white';
-                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-            } else {
-                body.style.backgroundColor = 'white';
-                body.style.color = 'black';
+            if (isLightMode) {
                 icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+                // Update toggle button style for light mode
+                event.currentTarget.classList.remove('bg-white', 'text-black');
+                event.currentTarget.classList.add('bg-zinc-900', 'text-white');
+            } else {
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+                // Update toggle button style for dark mode
+                event.currentTarget.classList.remove('bg-zinc-900', 'text-white');
+                event.currentTarget.classList.add('bg-white', 'text-black');
             }
         }
 

@@ -1,238 +1,567 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ABOUT | SEE VAR</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --ledger-bg: #0d0e10;
-            --ledger-surface: #16181c;
-            --ledger-border: #2d3139;
-            --accent-var: #00ff41;
-            --accent-respect: #3b82f6;
-            --text-muted: #8b949e;
-        }
+      :root {
+        --ledger-bg: #0d0e10;
+        --ledger-surface: #16181c;
+        --ledger-border: #2d3139;
+        --accent-var: #00ff41;
+        --accent-respect: #3b82f6;
+        --text-muted: #8b949e;
+        --text-main: #ffffff;
+      }
 
-        body {
-            background-color: var(--ledger-bg);
-            color: #ffffff;
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-        }
+      body.light-mode {
+        --ledger-bg: #f0f2f5;
+        --ledger-surface: #ffffff;
+        --ledger-border: #d1d5db;
+        --text-muted: #6b7280;
+        --text-main: #111827;
+      }
 
-        .mono { font-family: 'JetBrains+Mono', monospace; }
+      body {
+        background-color: var(--ledger-bg);
+        color: var(--text-main);
+        font-family: "Inter", sans-serif;
+        overflow-x: hidden;
+        transition: background-color 0.3s, color 0.3s;
+      }
 
-        .ledger-surface {
-            background: var(--ledger-surface);
-            border: 1px solid var(--ledger-border);
-            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
-        }
+      .mono {
+        font-family: "JetBrains+Mono", monospace;
+      }
 
-        .grain-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 99;
-            opacity: 0.03;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-        }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
 
-        .manifesto-text {
-            line-height: 1.8;
-            letter-spacing: -0.01em;
+      .ledger-surface {
+        background: var(--ledger-surface);
+        border: 1px solid var(--ledger-border);
+        box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.5);
+      }
+
+      .grain-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 99;
+        opacity: 0.03;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      }
+
+      .manifesto-text {
+        line-height: 2;
+        letter-spacing: -0.02em;
+        word-break: keep-all;
+      }
+
+      .gradient-text {
+        background: linear-gradient(90deg, #ffffff 0%, var(--accent-var) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .quote-accent {
+        position: relative;
+        padding-left: 2rem;
+        border-left: 4px solid var(--accent-var);
+      }
+
+      .mission-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .mission-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent-var),
+          transparent
+        );
+        animation: scan 3s linear infinite;
+      }
+
+      @keyframes scan {
+        0% {
+          transform: translateX(-100%);
         }
+        100% {
+          transform: translateX(100%);
+        }
+      }
     </style>
-</head>
-<body class="p-4 md:p-8">
+  </head>
+  <body class="p-4 md:p-8">
     <div class="grain-overlay"></div>
 
-    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 mb-12 border-b border-[#2d3139] pb-6">
-        <div class="flex items-center gap-4">
-            <a href="index.html" class="text-2xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity">
+    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-8 mb-8 md:mb-12 border-b border-[#2d3139] pb-6">
+        <div class="flex items-center justify-between w-full md:w-auto gap-4">
+            <a href="index.html" class="text-2xl md:text-3xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity">
                 SEE <span class="text-[var(--accent-var)]">VAR</span>
             </a>
             <div class="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
+            <!-- MOBILE PROFILE TOGGLE -->
+            <div class="md:hidden flex items-center gap-3 cursor-pointer" onclick="toggleUserDrawer()">
+                <div class="relative">
+                    <div class="w-9 h-9 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center relative">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천" class="w-full h-full">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="relative flex-1 w-full max-w-md">
             <input type="text" placeholder="SEARCH MATCH, PLAYER, DATA..." 
-                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
+                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-xs md:text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
             <span class="absolute right-3 top-2.5 opacity-30">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </span>
         </div>
 
-        <div class="flex items-center gap-8 text-xs font-bold tracking-widest mono ml-auto">
-            <a href="about.html" class="text-white border-b border-[var(--accent-var)] pb-1">ABOUT</a>
-            <a href="matches.html" class="menu-link text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
-            <a href="referee_list.html" class="menu-link text-[var(--text-muted)] hover:text-white">REFEREES</a>
-            <a href="teams.html" class="menu-link text-[var(--text-muted)] hover:text-white">TEAMS</a>
-
-            <!-- USER PROFILE -->
-            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
+        <div class="flex items-center justify-center md:justify-end gap-4 md:gap-8 text-[10px] md:text-xs font-bold tracking-widest mono w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0">
+            <a href="about.html" class="menu-link text-white border-b border-[var(--accent-var)] pb-1 whitespace-nowrap">ABOUT</a>
+            <a href="matches.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">ARCHIVE</a>
+            <a href="referee_list.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">REFEREES</a>
+            <a href="teams.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">TEAMS</a>
+            
+            <!-- DESKTOP USER PROFILE -->
+            <div class="hidden md:flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
                     <span class="text-[10px] text-white leading-none font-black italic">인천 유나이티드</span>
                 </div>
                 <div class="relative">
-                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
+                    <div class="w-11 h-11 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors relative">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
-                </div>
-                <!-- User Profile Image -->
-                <div class="w-10 h-10 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-full h-full">
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- USER DRAWER -->
-    <div id="user-drawer-overlay" class="fixed inset-0 z-[4000] hidden" onclick="if(event.target === this) toggleUserDrawer()">
-        <div id="user-drawer" class="absolute top-0 right-0 w-80 h-full bg-[var(--ledger-surface)] border-l border-[var(--ledger-border)] shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out">
-            <div class="p-8">
-                <div class="flex justify-between items-center mb-12">
-                    <h2 class="text-2xl font-black italic tracking-tighter uppercase">MY PAGE</h2>
-                    <button onclick="toggleUserDrawer()" class="text-zinc-500 hover:text-white">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </button>
-                </div>
+    <div
+      id="user-drawer-overlay"
+      class="fixed inset-0 z-[4000] hidden"
+      onclick="if (event.target === this) toggleUserDrawer();"
+    >
+      <div
+        id="user-drawer"
+        class="absolute top-0 right-0 w-80 h-full bg-[var(--ledger-surface)] border-l border-[var(--ledger-border)] shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out"
+      >
+        <div class="p-8">
+          <div class="flex justify-between items-center mb-12">
+            <h2 class="text-2xl font-black italic tracking-tighter uppercase">
+              MY PAGE
+            </h2>
+            <button
+              onclick="toggleUserDrawer()"
+              class="text-zinc-500 hover:text-white"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-                <div class="flex items-center gap-4 mb-4 p-4 bg-zinc-900/50 border border-zinc-800">
-                    <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-lg font-black italic">USER_7721</p>
-                        <div class="whistle-badge mt-1" style="background: #ffd700; color: black; padding: 2px 6px; border-radius: 99px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px;">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2z"/></svg>
-                            1,240 호각
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUPPORTING TEAM INFO -->
-                <div class="flex items-center justify-between mb-12 px-4 py-3 border-l-2 border-blue-700 bg-blue-900/10">
-                    <div class="flex flex-col">
-                        <span class="text-[8px] mono text-zinc-500 uppercase tracking-widest">Supporting Team</span>
-                        <span class="text-xs font-black italic text-white">인천 유나이티드</span>
-                    </div>
-                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
-                    </div>
-                </div>
-
-                <nav class="flex flex-col gap-2">
-                    <a href="my_information.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
-                        <span class="mono text-[10px] font-black tracking-widest uppercase">My Information</span>
-                    </a>
-                    <a href="my_var_moments.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
-                        <span class="mono text-[10px] font-black tracking-widest uppercase">My VAR Moments</span>
-                    </a>
-                    <a href="whistle_recharge.html" class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group">
-                        <span class="mono text-[10px] font-black tracking-widest uppercase">Whistle Recharge</span>
-                    </a>
-                    <div class="h-[1px] bg-zinc-800 my-4"></div>
-                    <a href="#" class="flex items-center gap-4 p-4 hover:bg-red-600 hover:text-white transition-all group text-zinc-500">
-                        <span class="mono text-[10px] font-black tracking-widest uppercase">Logout</span>
-                    </a>
-                </nav>
+          <div
+            class="flex items-center gap-4 mb-4 p-4 bg-zinc-900/50 border border-zinc-800"
+          >
+            <!-- JERSEY STYLE PROFILE (DRAWER) -->
+            <div class="relative">
+              <div
+                class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center"
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1"
+                  class="text-zinc-500"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <!-- TEAM EMBLEM (JERSEY BADGE POSITION) -->
+              <div
+                class="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-1 shadow-lg z-10"
+              >
+                <img
+                  src="assets/emblem/2026/kleague1/incheon_united_fc.svg"
+                  alt="인천 유나이티드"
+                  class="w-full h-full"
+                />
+              </div>
             </div>
+            <div>
+              <p class="text-lg font-black italic">USER_7721</p>
+              <div
+                class="whistle-badge mt-1"
+                style="
+                  background: #ffd700;
+                  color: black;
+                  padding: 2px 6px;
+                  border-radius: 99px;
+                  font-size: 10px;
+                  font-weight: 900;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 4px;
+                "
+              >
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 2L1 21h22L12 2z" />
+                </svg>
+                1,240 호각
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="flex items-center justify-between mb-12 px-4 py-3 border-l-2 border-blue-700 bg-blue-900/10"
+          >
+            <div class="flex flex-col">
+              <span
+                class="text-[8px] mono text-zinc-500 uppercase tracking-widest"
+                >Supporting Team</span
+              >
+              <span class="text-xs font-black italic text-white"
+                >인천 유나이티드</span
+              >
+            </div>
+            <div
+              class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden"
+            >
+              <img
+                src="assets/emblem/2026/kleague1/incheon_united_fc.svg"
+                alt="인천 유나이티드"
+                class="w-8 h-8"
+              />
+            </div>
+          </div>
+
+          <nav class="flex flex-col gap-2">
+            <a
+              href="my_information.html"
+              class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group"
+            >
+              <span
+                class="mono text-[10px] font-black tracking-widest uppercase"
+                >My Information</span
+              >
+            </a>
+            <a
+              href="my_var_moments.html"
+              class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group"
+            >
+              <span
+                class="mono text-[10px] font-black tracking-widest uppercase"
+                >My VAR Moments</span
+              >
+            </a>
+            <a
+              href="whistle_recharge.html"
+              class="flex items-center gap-4 p-4 hover:bg-white hover:text-black transition-all group"
+            >
+              <span
+                class="mono text-[10px] font-black tracking-widest uppercase"
+                >Whistle Recharge</span
+              >
+            </a>
+            <div class="h-[1px] bg-zinc-800 my-4"></div>
+            <a
+              href="#"
+              class="flex items-center gap-4 p-4 hover:bg-red-600 hover:text-white transition-all group text-zinc-500"
+            >
+              <span
+                class="mono text-[10px] font-black tracking-widest uppercase"
+                >Logout</span
+              >
+            </a>
+          </nav>
         </div>
+      </div>
     </div>
 
-    <main class="max-w-4xl mx-auto py-12">
-        <header class="mb-16">
-            <h1 class="text-7xl font-black italic tracking-tighter uppercase mb-6">OUR MISSION</h1>
-            <p class="mono text-lg text-[var(--accent-var)] font-bold">BETTER JUDGEMENT, BETTER LEAGUE.</p>
-        </header>
+    <main class="max-w-4xl mx-auto py-8 md:py-12">
+      <header class="mb-12 md:mb-16">
+        <h1
+          class="text-5xl md:text-7xl font-black italic tracking-tighter uppercase mb-4 md:mb-6 gradient-text"
+        >
+          OUR MISSION
+        </h1>
+        <p
+          class="mono text-sm md:text-lg text-[var(--accent-var)] font-bold tracking-widest"
+        >
+          BETTER JUDGEMENT, BETTER LEAGUE.
+        </p>
+      </header>
 
-        <section class="ledger-surface p-12 manifesto-text">
-            <div class="space-y-8 text-zinc-300">
-                <p class="text-xl text-white font-bold italic">
-                    "SEE VAR은 특정 심판을 비방하거나 공격하기 위해 만들어진 공간이 아닙니다."
-                </p>
-                
-                <p>
-                    축구 경기에서 판정은 경기의 흐름을 결정짓는 가장 중요한 요소 중 하나입니다. 
-                    우리는 때로 판정에 환호하고, 때로는 실망하지만 이 모든 과정이 결국 리그의 발전으로 이어져야 한다고 믿습니다.
-                </p>
+      <section class="ledger-surface p-6 md:p-12 manifesto-text mission-card">
+        <div class="space-y-8 md:space-y-12 text-zinc-300">
+          <div class="space-y-4 md:space-y-6">
+            <p class="text-base md:text-lg">
+              축구 팬들에게 축구는 단순한 스포츠 그 이상입니다. 우리는 승점
+              1점에 울고 웃으며, 좋아하는 선수와 감독의 플레이를 보는 것으로
+              삶의 에너지를 얻습니다.
+            </p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 py-8 border-y border-zinc-800 my-8">
-                    <div>
-                        <h3 class="mono text-[10px] font-black text-[var(--accent-var)] uppercase mb-4">Objective Data</h3>
-                        <p class="text-sm leading-relaxed">
-                            팬들의 주관적인 감정을 실시간 데이터로 시각화하여, 판정에 대한 대중의 반응을 투명하게 기록합니다. 
-                            이는 단순한 불만이 아닌, 개선을 위한 소중한 피드백이 될 것입니다.
-                        </p>
-                    </div>
-                    <div>
-                        <h3 class="mono text-[10px] font-black text-[var(--accent-respect)] uppercase mb-4">Constructive Respect</h3>
-                        <p class="text-sm leading-relaxed">
-                            심판 또한 경기의 일부이며 존중받아야 할 전문가입니다. 
-                            우리는 비난보다는 건설적인 비판과 데이터에 기반한 평가를 통해 더 나은 판정 환경을 지향합니다.
-                        </p>
-                    </div>
-                </div>
+            <p class="text-base md:text-lg">
+              하지만 때로 공정해야 할 승점의 향방이 명백한 오심에 의해
+              뒤바뀌기도 합니다. 원칙 없는 판정으로 과열된 경기 속에서 선수는
+              부상의 위협에 노출되고, 현장의 목소리는 억울한 징계로 침묵당하곤
+              합니다. 이러한 악순환은 우리가 사랑하는 리그의 발전을 저해하는
+              가장 큰 장애물입니다.
+            </p>
+          </div>
 
-                <p>
-                    SEE VAR의 목표는 명확합니다. 
-                    팬들의 목소리가 데이터가 되고, 그 데이터가 리그의 판정 퀄리티를 높이는 선순환 구조를 만드는 것입니다. 
-                    우리는 K리그가 세계에서 가장 공정하고 수준 높은 판정이 이루어지는 리그가 되기를 진심으로 바랍니다.
-                </p>
+          <div
+            class="p-6 md:p-8 bg-zinc-900/50 border-l-4 border-[var(--accent-var)] quote-accent"
+          >
+            <p class="text-lg md:text-xl text-white font-medium leading-relaxed">
+              현장의 축구인들은 징계와 벌금이라는 벽 앞에 서 있습니다. 자정
+              작용조차 기대하기 힘든 현실 속에서, 어떤 오심은 정심으로 둔갑하고
+              징계를 받았던 심판이 금세 다시 경기장에 나타나기도 합니다.
+            </p>
+          </div>
 
-                <div class="pt-8 opacity-50 mono text-[10px] border-t border-zinc-800">
-                    CONTACT: <a href="mailto:support@seevar.com" class="underline hover:text-white">support@seevar.com</a><br>
-                    PROJECT_CODE: SEE_VAR_MANIFESTO<br>
-                    LAST_UPDATED: 2026.02.04
-                </div>
+          <div class="py-8 md:py-12 text-center">
+            <h2
+              class="text-2xl md:text-4xl font-black italic tracking-tighter text-white opacity-80"
+            >
+              "그래서 See VAR가 탄생했습니다."
+            </h2>
+          </div>
+
+          <div class="space-y-4 md:space-y-6">
+            <p class="text-base md:text-lg">
+              현장의 목소리가 닿지 않는 곳에서, 판정에 대한 팬들의 순수한
+              목소리를 하나로 모으고자 합니다. 우리는 팬들의 객관적인 데이터를
+              통해 더 공정한 판정과 더 건강한 리그를 만드는 마중물이 될
+              것입니다.
+            </p>
+
+            <div
+              class="p-6 md:p-10 bg-zinc-900/80 border-y-2 border-[var(--accent-var)] text-center my-8 md:my-12 relative overflow-hidden"
+            >
+              <div
+                class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none"
+              >
+                <svg
+                  width="100%"
+                  height="100%"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M0 100 L100 0"
+                    stroke="var(--accent-var)"
+                    stroke-width="0.5"
+                    fill="none"
+                  />
+                  <path
+                    d="M0 0 L100 100"
+                    stroke="var(--accent-var)"
+                    stroke-width="0.5"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+              <p
+                class="text-xs text-zinc-400 mono uppercase tracking-[0.3em] mb-4 md:mb-6"
+              >
+                Our Core Commitment
+              </p>
+
+              <p
+                class="text-base md:text-lg text-zinc-300 mb-6 md:mb-8 max-w-2xl mx-auto leading-relaxed"
+              >
+                우리의 목표는 심판에 대한 비난이나 괴롭힘이 아닙니다. 클린봇과
+                철저한 운영 시스템을 통해 지나친 비난은 지양하고,
+              </p>
+
+              <p
+                class="text-xl md:text-3xl text-white font-black italic leading-relaxed mb-4 md:mb-6"
+              >
+                "오직
+                <span class="text-[var(--accent-var)]">‘더 나은 판정’</span>과
+                <span class="text-[var(--accent-var)]">‘더 나은 리그’</span>를
+                위한<br class="hidden md:block" />
+                생산적인 비판만을 담겠습니다."
+              </p>
+              <p
+                class="text-lg md:text-2xl text-[var(--accent-var)] font-bold italic"
+              >
+                우리는 우리가 사랑하는 축구를 끝까지 지켜낼 것입니다.
+              </p>
             </div>
-        </section>
+          </div>
+
+          <div class="pt-8 md:pt-12 border-t border-zinc-800 space-y-8 md:space-y-12">
+            <!-- CONTACT SECTION -->
+            <div class="flex flex-col md:flex-row justify-between items-start gap-6 md:gap-8">
+              <div class="space-y-2">
+                <h4 class="mono text-[10px] md:text-xs font-black text-[var(--accent-var)] uppercase tracking-widest">Contact Us</h4>
+                <p class="text-xl md:text-3xl font-black italic tracking-tighter">
+                  <a href="mailto:support@seevar.com" class="hover:text-[var(--accent-var)] transition-colors underline decoration-1 underline-offset-8">support@seevar.com</a>
+                </p>
+              </div>
+              
+              <!-- SPONSORSHIP BUTTON -->
+              <div class="w-full md:w-auto">
+                <button class="w-full md:w-auto bg-white text-black px-6 md:px-8 py-3 md:py-4 font-black italic mono text-xs md:text-sm hover:bg-[var(--accent-var)] transition-all flex items-center justify-center gap-2 md:gap-3 group">
+                  <svg width="18" height="18" md:width="20" md:height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:scale-110 transition-transform"><path d="M20.84 4.61a5.5 5.01 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  SUPPORT SEE VAR
+                </button>
+              </div>
+            </div>
+
+            <!-- COLLAPSIBLE SPONSORS LIST -->
+            <div class="bg-zinc-900/30 border border-zinc-800 overflow-hidden">
+              <button onclick="toggleSponsors()" class="w-full p-4 md:p-6 flex justify-between items-center hover:bg-zinc-800/50 transition-colors group">
+                <div class="flex items-center gap-3 md:gap-4">
+                  <span class="mono text-[9px] md:text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Our Supporters</span>
+                  <span class="bg-zinc-800 text-white text-[8px] md:text-[9px] px-1.5 md:px-2 py-0.5 font-bold mono">128 MEMBERS</span>
+                </div>
+                <svg id="sponsor-arrow" width="16" height="16" md:width="20" md:height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-zinc-600 group-hover:text-white transition-transform"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              
+              <div id="sponsors-list" class="hidden p-4 md:p-8 pt-0">
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-y-4 md:gap-y-6 gap-x-3 md:gap-y-4 border-t border-zinc-800/50 pt-6 md:pt-8">
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@INCHEON_KING</div>
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@VAR_MASTER</div>
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@K_LEAGUE_FAN</div>
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@FOOTBALL_LIFE</div>
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@CLEAN_JUDGE</div>
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@ULSAN_PRIDE</div>
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@SEOUL_SOUL</div>
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@JEONBUK_GREEN</div>
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@GWANGJU_POWER</div>
+                  <div class="mono text-[9px] md:text-[10px] text-zinc-400 hover:text-[var(--accent-var)] transition-colors cursor-default">@REFEREE_WATCH</div>
+                  <!-- ... more names ... -->
+                  <div class="col-span-full text-center pt-4">
+                    <span class="text-[8px] md:text-[9px] mono text-zinc-600 italic">AND 118 OTHER SUPPORTERS...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <footer class="max-w-7xl mx-auto mt-12 pb-12 border-t border-zinc-900 pt-8 opacity-20 mono text-[10px] flex justify-between">
-        <div>© 2024 K LEAGUE DATA PORTAL. ALL RIGHTS RESERVED.</div>
-        <div>SEE VAR SYSTEM V1.0.4</div>
+    <footer
+      class="max-w-7xl mx-auto mt-12 pb-12 border-t border-zinc-900 pt-8 opacity-20 mono text-[10px] flex justify-between"
+    >
+      <div>© 2024 K LEAGUE DATA PORTAL. ALL RIGHTS RESERVED.</div>
+      <div>SEE VAR SYSTEM V1.0.4</div>
     </footer>
-    <script>
-        function toggleDarkMode() {
-            const body = document.body;
-            const icon = document.getElementById('theme-icon');
-            
-            if (body.style.backgroundColor === 'white') {
-                body.style.backgroundColor = 'var(--ledger-bg)';
-                body.style.color = 'white';
-                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-            } else {
-                body.style.backgroundColor = 'white';
-                body.style.color = 'black';
-                icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
-            }
-        }
 
-        function toggleUserDrawer() {
-            const overlay = document.getElementById('user-drawer-overlay');
-            const drawer = document.getElementById('user-drawer');
-            const isHidden = overlay.classList.contains('hidden');
-            
-            if (isHidden) {
-                overlay.classList.remove('hidden');
-                setTimeout(() => {
-                    drawer.classList.remove('translate-x-full');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-            } else {
-                drawer.classList.add('translate-x-full');
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                }, 300);
-                document.body.style.overflow = 'auto';
-            }
+    <!-- DARK MODE TOGGLE -->
+    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black dark:bg-zinc-800 dark:text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000] border border-zinc-200 dark:border-zinc-700" title="Toggle Dark Mode">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <script>
+      function toggleDarkMode() {
+        const body = document.body;
+        const icon = document.getElementById("theme-icon");
+        const isLightMode = body.classList.toggle("light-mode");
+
+        if (isLightMode) {
+          icon.innerHTML =
+            '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+          // Update toggle button style for light mode
+          event.currentTarget.classList.remove("bg-white", "text-black");
+          event.currentTarget.classList.add("bg-zinc-900", "text-white");
+        } else {
+          icon.innerHTML =
+            '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+          // Update toggle button style for dark mode
+          event.currentTarget.classList.remove("bg-zinc-900", "text-white");
+          event.currentTarget.classList.add("bg-white", "text-black");
         }
+      }
+
+      function toggleUserDrawer() {
+        const overlay = document.getElementById("user-drawer-overlay");
+        const drawer = document.getElementById("user-drawer");
+        const isHidden = overlay.classList.contains("hidden");
+
+        if (isHidden) {
+          overlay.classList.remove("hidden");
+          setTimeout(() => {
+            drawer.classList.remove("translate-x-full");
+          }, 10);
+          document.body.style.overflow = "hidden";
+        } else {
+          drawer.classList.add("translate-x-full");
+          setTimeout(() => {
+            overlay.classList.add("hidden");
+          }, 300);
+          document.body.style.overflow = "auto";
+        }
+      }
+
+      function toggleSponsors() {
+        const list = document.getElementById("sponsors-list");
+        const arrow = document.getElementById("sponsor-arrow");
+        const isHidden = list.classList.contains("hidden");
+        
+        if (isHidden) {
+          list.classList.remove("hidden");
+          arrow.style.transform = "rotate(180deg)";
+        } else {
+          list.classList.add("hidden");
+          arrow.style.transform = "rotate(0deg)";
+        }
+      }
     </script>
-</body>
+  </body>
 </html>

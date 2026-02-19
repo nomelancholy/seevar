@@ -14,16 +14,34 @@
             --accent-var: #00ff41;
             --accent-respect: #3b82f6;
             --text-muted: #8b949e;
+            --text-main: #ffffff;
+        }
+
+        body.light-mode {
+            --ledger-bg: #f0f2f5;
+            --ledger-surface: #ffffff;
+            --ledger-border: #d1d5db;
+            --text-muted: #6b7280;
+            --text-main: #111827;
         }
 
         body {
             background-color: var(--ledger-bg);
-            color: #ffffff;
+            color: var(--text-main);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .mono { font-family: 'JetBrains+Mono', monospace; }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
         .ledger-surface {
             background: var(--ledger-surface);
@@ -112,43 +130,52 @@
 <body class="p-4 md:p-8">
     <div class="grain-overlay"></div>
 
-    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 mb-12 border-b border-[#2d3139] pb-6">
-        <div class="flex items-center gap-4">
-            <a href="index.html" class="text-2xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity">
+    <nav class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-8 mb-8 md:mb-12 border-b border-[#2d3139] pb-6">
+        <div class="flex items-center justify-between w-full md:w-auto gap-4">
+            <a href="index.html" class="text-2xl md:text-3xl font-black tracking-tighter leading-none italic">
                 SEE <span class="text-[var(--accent-var)]">VAR</span>
             </a>
             <div class="h-8 w-[1px] bg-zinc-800 hidden md:block"></div>
+            <!-- MOBILE PROFILE TOGGLE -->
+            <div class="md:hidden flex items-center gap-3 cursor-pointer" onclick="toggleUserDrawer()">
+                <div class="relative">
+                    <div class="w-9 h-9 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center relative">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천" class="w-full h-full">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="relative flex-1 w-full max-w-md">
             <input type="text" placeholder="SEARCH MATCH, PLAYER, DATA..." 
-                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
+                class="w-full bg-[#1c1f24] border border-[#2d3139] px-4 py-2 text-xs md:text-sm mono focus:outline-none focus:border-[var(--accent-var)] transition-colors">
             <span class="absolute right-3 top-2.5 opacity-30">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </span>
         </div>
 
-        <div class="flex items-center gap-8 text-xs font-bold tracking-widest mono ml-auto">
-            <a href="about.html" class="text-[var(--text-muted)] hover:text-white">ABOUT</a>
-            <a href="matches.html" class="text-[var(--text-muted)] hover:text-white">ARCHIVE</a>
-            <a href="referee_list.html" class="text-[var(--text-muted)] hover:text-white">REFEREES</a>
-            <a href="teams.html" class="text-[var(--text-muted)] hover:text-white">TEAMS</a>
-
-            <!-- USER PROFILE (REPLACED LOGIN) -->
-            <div class="flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
+        <div class="flex items-center justify-center md:justify-end gap-4 md:gap-8 text-[10px] md:text-xs font-bold tracking-widest mono w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0">
+            <a href="about.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">ABOUT</a>
+            <a href="matches.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">ARCHIVE</a>
+            <a href="referee_list.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">REFEREES</a>
+            <a href="teams.html" class="menu-link text-[var(--text-muted)] hover:text-white whitespace-nowrap">TEAMS</a>
+            
+            <!-- DESKTOP USER PROFILE -->
+            <div class="hidden md:flex items-center gap-3 pl-4 border-l border-zinc-800 cursor-pointer group" onclick="toggleUserDrawer()">
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] text-[var(--text-muted)] leading-none mb-1 uppercase">Supporting</span>
                     <span class="text-[10px] text-white leading-none font-black italic">인천 유나이티드</span>
                 </div>
                 <div class="relative">
-                    <div class="w-10 h-10 bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-8 h-8">
+                    <div class="w-11 h-11 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors relative">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--ledger-bg)] bg-[var(--accent-var)]"></div>
-                </div>
-                <!-- User Profile Image -->
-                <div class="w-10 h-10 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center group-hover:border-white transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                        <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-full h-full">
+                    </div>
                 </div>
             </div>
         </div>
@@ -166,8 +193,15 @@
                 </div>
 
                 <div class="flex items-center gap-4 mb-4 p-4 bg-zinc-900/50 border border-zinc-800">
-                    <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <!-- JERSEY STYLE PROFILE (DRAWER) -->
+                    <div class="relative">
+                        <div class="w-16 h-16 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <!-- TEAM EMBLEM (JERSEY BADGE POSITION) -->
+                        <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-1 shadow-lg z-10">
+                            <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천 유나이티드" class="w-full h-full">
+                        </div>
                     </div>
                     <div>
                         <p class="text-lg font-black italic">USER_7721</p>
@@ -210,132 +244,114 @@
 
     <main class="max-w-4xl mx-auto">
         <!-- REFEREE HEADER -->
-        <section class="ledger-surface p-8 mb-8 relative">
-            <div class="flex flex-col md:flex-row gap-8 items-start">
-                <div class="flex-1">
+        <section class="ledger-surface p-4 md:p-8 mb-6 md:mb-8 relative">
+            <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+                <div class="flex-1 w-full">
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <h1 class="text-5xl font-black italic tracking-tighter uppercase mb-2">고형진</h1>
-                            <p class="mono text-xs text-[var(--accent-var)] font-bold">K LEAGUE 1 REFEREE</p>
+                            <h1 class="text-3xl md:text-5xl font-black italic tracking-tighter uppercase mb-2">고형진</h1>
+                            <p class="mono text-[10px] md:text-xs text-[var(--accent-var)] font-bold">K LEAGUE 1 REFEREE</p>
                         </div>
-                        <a href="https://namu.wiki/w/%EA%B3%A0%ED%98%95%EC%A7%84" target="_blank" class="btn-structural bg-[#16181c] px-4 py-2 text-[10px] font-bold mono flex items-center gap-2">
-                            NAMU WIKI <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6m4-2h7v7m-7 0L23 1"></path></svg>
+                        <a href="https://namu.wiki/w/%EA%B3%A0%ED%98%95%EC%A7%84" target="_blank" class="btn-structural bg-[#16181c] px-3 md:px-4 py-1.5 md:py-2 text-[8px] md:text-[10px] font-bold mono flex items-center gap-2">
+                            NAMU WIKI <svg width="10" height="10" md:width="12" md:height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6m4-2h7v7m-7 0L23 1"></path></svg>
                         </a>
                     </div>
 
                     <!-- RATING SECTION -->
-                    <div class="mt-8 border-t border-zinc-800 pt-6">
+                    <div class="mt-6 md:mt-8 border-t border-zinc-800 pt-4 md:pt-6">
                         <div id="ratingToggle" class="flex items-center justify-between cursor-pointer group">
-                            <div class="flex items-center gap-6">
+                            <div class="flex items-center gap-4 md:gap-6">
                                 <div class="flex flex-col">
-                                    <div class="text-[10px] mono text-[var(--text-muted)] uppercase tracking-widest">Global Rating</div>
-                                    <div class="text-[9px] mono text-[var(--accent-var)] opacity-70">TOTAL VOTES: 12,402</div>
+                                    <div class="text-[8px] md:text-[10px] mono text-[var(--text-muted)] uppercase tracking-widest">Global Rating</div>
+                                    <div class="text-[7px] md:text-[9px] mono text-[var(--accent-var)] opacity-70">TOTAL VOTES: 12,402</div>
                                 </div>
-                                <div class="flex items-end gap-2">
-                                    <span class="text-4xl font-black italic text-[var(--accent-var)]">3.8</span>
-                                    <span class="text-zinc-600 font-bold mb-1">/ 5.0</span>
+                                <div class="flex items-end gap-1 md:gap-2">
+                                    <span class="text-3xl md:text-4xl font-black italic text-[var(--accent-var)]">3.8</span>
+                                    <span class="text-zinc-600 font-bold mb-0.5 md:mb-1 text-xs md:text-base">/ 5.0</span>
                                 </div>
                             </div>
-                            <div class="arrow-rotate bg-zinc-800 p-2 rounded-full group-hover:bg-zinc-700">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                            <div class="arrow-rotate bg-zinc-800 p-1.5 md:p-2 rounded-full group-hover:bg-zinc-700">
+                                <svg width="16" height="16" md:width="20" md:height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
                             </div>
                         </div>
 
                         <!-- ROLE-BASED RATINGS (NEW) -->
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-                            <div class="bg-zinc-900/30 p-3 border border-zinc-800/50">
-                                <p class="mono text-[8px] text-zinc-500 uppercase mb-1">주심 (Main)</p>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mt-4 md:mt-6">
+                            <div class="bg-zinc-900/30 p-2.5 md:p-3 border border-zinc-800/50">
+                                <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase mb-1">주심 (Main)</p>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-lg font-black italic">3.9</span>
-                                    <span class="text-[8px] text-zinc-600">/5.0</span>
+                                    <span class="text-base md:text-lg font-black italic">3.9</span>
+                                    <span class="text-[7px] md:text-[8px] text-zinc-600">/5.0</span>
                                 </div>
                             </div>
-                            <div class="bg-zinc-900/30 p-3 border border-zinc-800/50">
-                                <p class="mono text-[8px] text-zinc-500 uppercase mb-1">부심 1 (Asst 1)</p>
+                            <div class="bg-zinc-900/30 p-2.5 md:p-3 border border-zinc-800/50">
+                                <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase mb-1">부심 1 (Asst 1)</p>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-lg font-black italic">4.2</span>
-                                    <span class="text-[8px] text-zinc-600">/5.0</span>
+                                    <span class="text-base md:text-lg font-black italic">4.2</span>
+                                    <span class="text-[7px] md:text-[8px] text-zinc-600">/5.0</span>
                                 </div>
                             </div>
-                            <div class="bg-zinc-900/30 p-3 border border-zinc-800/50">
-                                <p class="mono text-[8px] text-zinc-500 uppercase mb-1">부심 2 (Asst 2)</p>
+                            <div class="bg-zinc-900/30 p-2.5 md:p-3 border border-zinc-800/50">
+                                <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase mb-1">부심 2 (Asst 2)</p>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-lg font-black italic">4.1</span>
-                                    <span class="text-[8px] text-zinc-600">/5.0</span>
+                                    <span class="text-base md:text-lg font-black italic">4.1</span>
+                                    <span class="text-[7px] md:text-[8px] text-zinc-600">/5.0</span>
                                 </div>
                             </div>
-                            <div class="bg-zinc-900/30 p-3 border border-zinc-800/50">
-                                <p class="mono text-[8px] text-zinc-500 uppercase mb-1">VAR</p>
+                            <div class="bg-zinc-900/30 p-2.5 md:p-3 border border-zinc-800/50">
+                                <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase mb-1">VAR</p>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-lg font-black italic">3.6</span>
-                                    <span class="text-[8px] text-zinc-600">/5.0</span>
+                                    <span class="text-base md:text-lg font-black italic">3.6</span>
+                                    <span class="text-[7px] md:text-[8px] text-zinc-600">/5.0</span>
                                 </div>
                             </div>
-                            <div class="bg-zinc-900/30 p-3 border border-zinc-800/50">
-                                <p class="mono text-[8px] text-zinc-500 uppercase mb-1">AVAR</p>
+                            <div class="bg-zinc-900/30 p-2.5 md:p-3 border border-zinc-800/50">
+                                <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase mb-1">AVAR</p>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-lg font-black italic">3.8</span>
-                                    <span class="text-[8px] text-zinc-600">/5.0</span>
+                                    <span class="text-base md:text-lg font-black italic">3.8</span>
+                                    <span class="text-[7px] md:text-[8px] text-zinc-600">/5.0</span>
                                 </div>
                             </div>
-                            <div class="bg-zinc-900/30 p-3 border border-zinc-800/50">
-                                <p class="mono text-[8px] text-zinc-500 uppercase mb-1">대기심 (4th)</p>
+                            <div class="bg-zinc-900/30 p-2.5 md:p-3 border border-zinc-800/50">
+                                <p class="mono text-[7px] md:text-[8px] text-zinc-500 uppercase mb-1">대기심 (4th)</p>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-lg font-black italic">4.5</span>
-                                    <span class="text-[8px] text-zinc-600">/5.0</span>
+                                    <span class="text-base md:text-lg font-black italic">4.5</span>
+                                    <span class="text-[7px] md:text-[8px] text-zinc-600">/5.0</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- TEAM RATINGS (EXPANDABLE) -->
                         <div id="teamRatings" class="rating-expand">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pb-4">
-                                <div class="bg-zinc-900/50 p-4 border border-zinc-800 flex justify-between items-center">
-                                    <div class="flex flex-col">
-                                        <span class="mono text-xs">FC SEOUL</span>
-                                        <span class="mono text-[8px] text-zinc-500">VOTES: 3,120</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mt-4 md:mt-6 pb-4">
+                                <div class="bg-zinc-900/50 p-3 md:p-4 border border-zinc-800 flex justify-between items-center">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <img src="assets/emblem/2026/kleague1/fc_seoul.svg" class="w-5 h-5 md:w-6 md:h-6" alt="서울">
+                                        <div class="flex flex-col">
+                                            <span class="mono text-[10px] md:text-xs">FC SEOUL</span>
+                                            <span class="mono text-[7px] md:text-[8px] text-zinc-500">VOTES: 3,120</span>
+                                        </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <div class="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                                        <div class="w-16 md:w-24 h-1.5 md:h-2 bg-zinc-800 rounded-full overflow-hidden">
                                             <div class="h-full bg-red-600" style="width: 40%"></div>
                                         </div>
-                                        <span class="mono text-[10px] font-bold">2.0</span>
+                                        <span class="mono text-[9px] md:text-[10px] font-bold">2.0</span>
                                     </div>
                                 </div>
-                                <div class="bg-zinc-900/50 p-4 border border-zinc-800 flex justify-between items-center">
-                                    <div class="flex flex-col">
-                                        <span class="mono text-xs">ULSAN HD</span>
-                                        <span class="mono text-[8px] text-zinc-500">VOTES: 2,845</span>
+                                <div class="bg-zinc-900/50 p-3 md:p-4 border border-zinc-800 flex justify-between items-center">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" class="w-5 h-5 md:w-6 md:h-6" alt="울산">
+                                        <div class="flex flex-col">
+                                            <span class="mono text-[10px] md:text-xs">ULSAN HD</span>
+                                            <span class="mono text-[7px] md:text-[8px] text-zinc-500">VOTES: 2,845</span>
+                                        </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <div class="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                                        <div class="w-16 md:w-24 h-1.5 md:h-2 bg-zinc-800 rounded-full overflow-hidden">
                                             <div class="h-full bg-blue-600" style="width: 85%"></div>
                                         </div>
-                                        <span class="mono text-[10px] font-bold">4.2</span>
-                                    </div>
-                                </div>
-                                <div class="bg-zinc-900/50 p-4 border border-zinc-800 flex justify-between items-center">
-                                    <div class="flex flex-col">
-                                        <span class="mono text-xs">JEONBUK HYUNDAI</span>
-                                        <span class="mono text-[8px] text-zinc-500">VOTES: 2,110</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                                            <div class="h-full bg-green-600" style="width: 70%"></div>
-                                        </div>
-                                        <span class="mono text-[10px] font-bold">3.5</span>
-                                    </div>
-                                </div>
-                                <div class="bg-zinc-900/50 p-4 border border-zinc-800 flex justify-between items-center">
-                                    <div class="flex flex-col">
-                                        <span class="mono text-xs">POHANG STEELERS</span>
-                                        <span class="mono text-[8px] text-zinc-500">VOTES: 1,980</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                                            <div class="h-full bg-zinc-400" style="width: 90%"></div>
-                                        </div>
-                                        <span class="mono text-[10px] font-bold">4.5</span>
+                                        <span class="mono text-[9px] md:text-[10px] font-bold">4.2</span>
                                     </div>
                                 </div>
                             </div>
@@ -345,109 +361,182 @@
             </div>
         </section>
 
+        <!-- ASSIGNMENT STATISTICS (NEW) -->
+        <section class="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
+            <div class="flex justify-between items-end mb-6 md:mb-8">
+                <h3 class="mono text-[10px] md:text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">Assignment Statistics</h3>
+                <select class="bg-zinc-900 border border-zinc-800 px-3 py-1 text-[10px] mono focus:outline-none">
+                    <option value="2024">2024 SEASON</option>
+                    <option value="2023">2023 SEASON</option>
+                    <option value="ALL">ALL SEASONS</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+                <div class="bg-zinc-900/30 p-4 border border-zinc-800/50 text-center">
+                    <p class="mono text-[8px] md:text-[9px] text-zinc-500 uppercase mb-2">주심 (Main)</p>
+                    <p class="text-2xl md:text-3xl font-black italic mono">24</p>
+                    <p class="text-[7px] md:text-[8px] text-zinc-600 mt-1">MATCHES</p>
+                </div>
+                <div class="bg-zinc-900/30 p-4 border border-zinc-800/50 text-center">
+                    <p class="mono text-[8px] md:text-[9px] text-zinc-500 uppercase mb-2">부심 (Asst)</p>
+                    <p class="text-2xl md:text-3xl font-black italic mono">12</p>
+                    <p class="text-[7px] md:text-[8px] text-zinc-600 mt-1">MATCHES</p>
+                </div>
+                <div class="bg-zinc-900/30 p-4 border border-zinc-800/50 text-center">
+                    <p class="mono text-[8px] md:text-[9px] text-zinc-500 uppercase mb-2">VAR</p>
+                    <p class="text-2xl md:text-3xl font-black italic mono">8</p>
+                    <p class="text-[7px] md:text-[8px] text-zinc-600 mt-1">MATCHES</p>
+                </div>
+                <div class="bg-zinc-900/30 p-4 border border-zinc-800/50 text-center">
+                    <p class="mono text-[8px] md:text-[9px] text-zinc-500 uppercase mb-2">AVAR</p>
+                    <p class="text-2xl md:text-3xl font-black italic mono">5</p>
+                    <p class="text-[7px] md:text-[8px] text-zinc-600 mt-1">MATCHES</p>
+                </div>
+                <div class="bg-zinc-900/30 p-4 border border-zinc-800/50 text-center">
+                    <p class="mono text-[8px] md:text-[9px] text-zinc-500 uppercase mb-2">대기심 (4th)</p>
+                    <p class="text-2xl md:text-3xl font-black italic mono">10</p>
+                    <p class="text-[7px] md:text-[8px] text-zinc-600 mt-1">MATCHES</p>
+                </div>
+            </div>
+
+            <!-- Total Summary -->
+            <div class="mt-6 pt-6 border-t border-zinc-800/50 flex justify-between items-center px-2">
+                <span class="mono text-[9px] md:text-[10px] text-zinc-500 uppercase tracking-widest">Total Assignments</span>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-xl md:text-2xl font-black italic text-[var(--accent-var)]">59</span>
+                    <span class="text-[9px] md:text-[10px] text-zinc-600 mono">MATCHES</span>
+                </div>
+            </div>
+        </section>
+
         <!-- MATCH HISTORY -->
-        <section class="ledger-surface p-8">
-            <h3 class="mono text-xs font-bold tracking-widest text-[var(--text-muted)] mb-8 uppercase">Recent Match Assignments</h3>
+        <section class="ledger-surface p-4 md:p-8">
+            <h3 class="mono text-[10px] md:text-xs font-bold tracking-widest text-[var(--text-muted)] mb-6 md:mb-8 uppercase">Recent Match Assignments</h3>
             
             <div class="space-y-4">
                 <!-- Match Item 1 -->
                 <div class="border border-zinc-800 hover:border-zinc-600 transition-colors group overflow-hidden">
-                    <div class="flex items-center justify-between p-4 cursor-pointer" onclick="toggleMatchDetail(this)">
-                        <div class="flex items-center gap-8">
-                            <div class="mono text-[10px] text-zinc-500">2024/03/01</div>
-                            <div class="flex items-center gap-4">
-                                <span class="font-bold">FC SEOUL</span>
-                                <span class="text-zinc-700 italic">VS</span>
-                                <span class="font-bold">ULSAN HD</span>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between p-4 cursor-pointer gap-4" onclick="toggleMatchDetail(this)">
+                        <div class="flex items-center justify-between md:justify-start md:gap-8">
+                            <div class="mono text-[9px] md:text-[10px] text-zinc-500">2024/03/01</div>
+                            <div class="flex items-center gap-3 md:gap-4">
+                                <div class="flex items-center gap-1.5 md:gap-2">
+                                    <img src="assets/emblem/2026/kleague1/fc_seoul.svg" class="w-4 h-4 md:w-5 md:h-5" alt="서울">
+                                    <span class="font-bold text-xs md:text-base">FC SEOUL</span>
+                                </div>
+                                <span class="text-zinc-700 italic text-[10px] md:text-sm">VS</span>
+                                <div class="flex items-center gap-1.5 md:gap-2">
+                                    <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" class="w-4 h-4 md:w-5 md:h-5" alt="울산">
+                                    <span class="font-bold text-xs md:text-base">ULSAN HD</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-6">
-                            <div class="flex flex-col items-end">
-                                <span class="mono text-[9px] text-[var(--accent-var)] font-bold uppercase">Main Referee</span>
+                        <div class="flex items-center justify-between md:justify-end md:gap-6 border-t border-zinc-800/50 md:border-0 pt-3 md:pt-0">
+                            <div class="flex flex-col items-start md:items-end">
+                                <span class="mono text-[8px] md:text-[9px] text-[var(--accent-var)] font-bold uppercase">Main Referee</span>
                                 <div class="flex items-center gap-2">
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini"></div>
                                     </div>
-                                    <span class="mono text-[10px] font-black italic">4.2</span>
+                                    <span class="mono text-[9px] md:text-[10px] font-black italic">4.2</span>
                                 </div>
                             </div>
-                            <div class="arrow-rotate bg-zinc-900 p-1.5 rounded-full border border-zinc-800">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                            <div class="arrow-rotate bg-zinc-900 p-1 md:p-1.5 rounded-full border border-zinc-800">
+                                <svg width="12" height="12" md:width="14" md:height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
                             </div>
                         </div>
                     </div>
                     <div class="match-detail-expand">
                         <div class="p-0 space-y-0">
-                            <div class="flex justify-between items-center px-6 py-3 border-b border-zinc-800/50 bg-zinc-900/30">
-                                <span class="text-[10px] mono text-zinc-500 uppercase tracking-widest">Community Feedbacks</span>
-                                <a href="match_finished.html" class="text-[9px] mono text-[var(--accent-var)] hover:underline">VIEW ALL DATA →</a>
+                            <div class="flex justify-between items-center px-4 md:px-6 py-2.5 md:py-3 border-b border-zinc-800/50 bg-zinc-900/30">
+                                <span class="text-[9px] md:text-[10px] mono text-zinc-500 uppercase tracking-widest">Community Feedbacks</span>
+                                <div class="flex items-center gap-3 md:gap-4">
+                                    <a href="match_finished.html" class="btn-structural bg-[var(--ledger-surface)] px-2.5 md:px-3 py-1 md:py-1.5 text-[8px] md:text-[9px] font-black italic mono text-[var(--accent-var)] flex items-center gap-1.5 md:gap-2 hover:bg-[var(--accent-var)] hover:text-black transition-all">
+                                        INSIDE GAME <svg width="8" height="8" md:width="10" md:height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                    </a>
+                                </div>
                             </div>
                             
                             <!-- BEST FEEDBACKS (TEAM A) -->
-                            <div class="feedback-item best">
+                            <div class="feedback-item best p-3 md:p-4">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <!-- JERSEY STYLE PROFILE (USER COMMENT) -->
                                         <div class="relative">
-                                            <div class="w-6 h-6 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[6px] mono overflow-hidden">
-                                                <div class="w-full h-full bg-red-600"></div>
+                                            <div class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                                                <svg width="14" height="14" md:width="16" md:height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                             </div>
-                                            <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border border-[var(--ledger-bg)] bg-red-500 text-[5px] flex items-center justify-center font-bold text-white">S</div>
+                                            <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                                                <img src="assets/emblem/2026/kleague1/fc_seoul.svg" alt="서울" class="w-full h-full">
+                                            </div>
                                         </div>
                                         <div class="flex flex-col">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[9px] font-bold text-zinc-400">SEOUL_PRIDE</span>
-                                                <span class="bg-red-600 text-white text-[6px] px-1 font-black italic">BEST</span>
+                                            <div class="flex items-center gap-1.5 md:gap-2">
+                                                <span class="text-[9px] md:text-[10px] font-black italic text-white">SEOUL_PRIDE</span>
+                                                <span class="bg-red-600 text-white text-[6px] md:text-[7px] px-1 font-black italic">BEST</span>
                                             </div>
-                                            <span class="text-[7px] text-zinc-600 mono">1H AGO | FC SEOUL SUPPORTING</span>
+                                            <span class="text-[7px] md:text-[8px] text-zinc-600 mono uppercase">FC SEOUL SUPPORTING</span>
                                         </div>
                                     </div>
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini"></div><div class="star-mini"></div>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-zinc-300 leading-relaxed">"판정 기준이 조금 아쉬웠습니다. 홈 경기였는데도 불구하고 애매한 상황에서 불리한 판정이 많았던 것 같아요."</p>
+                                <p class="text-[10px] md:text-[11px] text-zinc-300 leading-relaxed">"판정 기준이 조금 아쉬웠습니다. 홈 경기였는데도 불구하고 애매한 상황에서 불리한 판정이 많았던 것 같아요."</p>
                             </div>
 
                             <!-- BEST FEEDBACKS (TEAM B) -->
-                            <div class="feedback-item best">
+                            <div class="feedback-item best p-3 md:p-4">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <!-- JERSEY STYLE PROFILE (USER COMMENT) -->
                                         <div class="relative">
-                                            <div class="w-6 h-6 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[6px] mono overflow-hidden">
-                                                <div class="w-full h-full bg-blue-700"></div>
+                                            <div class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                                                <svg width="14" height="14" md:width="16" md:height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                             </div>
-                                            <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border border-[var(--ledger-bg)] bg-blue-600 text-[5px] flex items-center justify-center font-bold text-white">U</div>
+                                            <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                                                <img src="assets/emblem/2026/kleague1/ulsan_hd_fc.svg" alt="울산" class="w-full h-full">
+                                            </div>
                                         </div>
                                         <div class="flex flex-col">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[9px] font-bold text-zinc-400">ULSAN_KING</span>
-                                                <span class="bg-red-600 text-white text-[6px] px-1 font-black italic">BEST</span>
+                                            <div class="flex items-center gap-1.5 md:gap-2">
+                                                <span class="text-[9px] md:text-[10px] font-black italic text-white">ULSAN_KING</span>
+                                                <span class="bg-red-600 text-white text-[6px] md:text-[7px] px-1 font-black italic">BEST</span>
                                             </div>
-                                            <span class="text-[7px] text-zinc-600 mono">45M AGO | ULSAN HD SUPPORTING</span>
+                                            <span class="text-[7px] md:text-[8px] text-zinc-600 mono uppercase">ULSAN HD SUPPORTING</span>
                                         </div>
                                     </div>
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-zinc-300 leading-relaxed">"오늘 주심 판정 정말 깔끔했습니다. 어드밴티지 룰 적용도 적절했고, 경기 흐름을 잘 살려주셨네요."</p>
+                                <p class="text-[10px] md:text-[11px] text-zinc-300 leading-relaxed">"오늘 주심 판정 정말 깔끔했습니다. 어드밴티지 룰 적용도 적절했고, 경기 흐름을 잘 살려주셨네요."</p>
                             </div>
 
                             <!-- OTHERS -->
-                            <div class="feedback-item">
+                            <div class="feedback-item p-3 md:p-4">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-6 h-6 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[6px] mono">K</div>
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <!-- JERSEY STYLE PROFILE (USER COMMENT) -->
+                                        <div class="relative">
+                                            <div class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                                                <svg width="14" height="14" md:width="16" md:height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                            </div>
+                                            <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                                                <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천" class="w-full h-full">
+                                            </div>
+                                        </div>
                                         <div class="flex flex-col">
-                                            <span class="text-[9px] font-bold text-zinc-400">K-FAN_99</span>
-                                            <span class="text-[7px] text-zinc-600 mono">10M AGO | K LEAGUE SUPPORTING</span>
+                                            <span class="text-[9px] md:text-[10px] font-black italic text-white">K-FAN_99</span>
+                                            <span class="text-[7px] md:text-[8px] text-zinc-600 mono uppercase">K LEAGUE SUPPORTING</span>
                                         </div>
                                     </div>
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini"></div>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-zinc-400 italic">"무난한 경기 운영이었습니다. 큰 오심 없이 잘 끝났네요."</p>
+                                <p class="text-[10px] md:text-[11px] text-zinc-400 italic">"무난한 경기 운영이었습니다. 큰 오심 없이 잘 끝났네요."</p>
                             </div>
                         </div>
                     </div>
@@ -455,85 +544,101 @@
 
                 <!-- Match Item 2 -->
                 <div class="border border-zinc-800 hover:border-zinc-600 transition-colors group overflow-hidden">
-                    <div class="flex items-center justify-between p-4 cursor-pointer" onclick="toggleMatchDetail(this)">
-                        <div class="flex items-center gap-8">
-                            <div class="mono text-[10px] text-zinc-500">2023/11/25</div>
-                            <div class="flex items-center gap-4">
-                                <span class="font-bold">POHANG</span>
-                                <span class="text-zinc-700 italic">VS</span>
-                                <span class="font-bold">JEONBUK</span>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between p-4 cursor-pointer gap-4" onclick="toggleMatchDetail(this)">
+                        <div class="flex items-center justify-between md:justify-start md:gap-8">
+                            <div class="mono text-[9px] md:text-[10px] text-zinc-500">2023/11/25</div>
+                            <div class="flex items-center gap-3 md:gap-4">
+                                <div class="flex items-center gap-1.5 md:gap-2">
+                                    <img src="assets/emblem/2026/kleague1/pohang_steelers.svg" class="w-4 h-4 md:w-5 md:h-5" alt="포항">
+                                    <span class="font-bold text-xs md:text-base">POHANG</span>
+                                </div>
+                                <span class="text-zinc-700 italic text-[10px] md:text-sm">VS</span>
+                                <div class="flex items-center gap-1.5 md:gap-2">
+                                    <img src="assets/emblem/2026/kleague1/jeonbuk_hyundai_motors.svg" class="w-4 h-4 md:w-5 md:h-5" alt="전북">
+                                    <span class="font-bold text-xs md:text-base">JEONBUK</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-6">
-                            <div class="flex flex-col items-end">
-                                <span class="mono text-[9px] text-zinc-500 font-bold uppercase">VAR Official</span>
+                        <div class="flex items-center justify-between md:justify-end md:gap-6 border-t border-zinc-800/50 md:border-0 pt-3 md:pt-0">
+                            <div class="flex flex-col items-start md:items-end">
+                                <span class="mono text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase">VAR Official</span>
                                 <div class="flex items-center gap-2">
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini"></div>
                                     </div>
-                                    <span class="mono text-[10px] font-black italic text-zinc-500">3.8</span>
+                                    <span class="mono text-[9px] md:text-[10px] font-black italic text-zinc-500">3.8</span>
                                 </div>
                             </div>
-                            <div class="arrow-rotate bg-zinc-900 p-1.5 rounded-full border border-zinc-800">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                            <div class="arrow-rotate bg-zinc-900 p-1 md:p-1.5 rounded-full border border-zinc-800">
+                                <svg width="12" height="12" md:width="14" md:height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
                             </div>
                         </div>
                     </div>
                     <div class="match-detail-expand">
                         <div class="p-0 space-y-0">
-                            <div class="flex justify-between items-center px-6 py-3 border-b border-zinc-800/50 bg-zinc-900/30">
-                                <span class="text-[10px] mono text-zinc-500 uppercase tracking-widest">Community Feedbacks</span>
-                                <a href="#" class="text-[9px] mono text-[var(--accent-var)] hover:underline">VIEW ALL DATA →</a>
+                            <div class="flex justify-between items-center px-4 md:px-6 py-2.5 md:py-3 border-b border-zinc-800/50 bg-zinc-900/30">
+                                <span class="text-[9px] md:text-[10px] mono text-zinc-500 uppercase tracking-widest">Community Feedbacks</span>
+                                <div class="flex items-center gap-3 md:gap-4">
+                                    <a href="match_finished.html" class="btn-structural bg-[var(--ledger-surface)] px-2.5 md:px-3 py-1 md:py-1.5 text-[8px] md:text-[9px] font-black italic mono text-[var(--accent-var)] flex items-center gap-1.5 md:gap-2 hover:bg-[var(--accent-var)] hover:text-black transition-all">
+                                        INSIDE GAME <svg width="8" height="8" md:width="10" md:height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                    </a>
+                                </div>
                             </div>
                             
                             <!-- BEST FEEDBACKS (TEAM A) -->
-                            <div class="feedback-item best">
+                            <div class="feedback-item best p-3 md:p-4">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <!-- JERSEY STYLE PROFILE (USER COMMENT) -->
                                         <div class="relative">
-                                            <div class="w-6 h-6 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[6px] mono overflow-hidden">
-                                                <div class="w-full h-full bg-zinc-400"></div>
+                                            <div class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                                                <svg width="14" height="14" md:width="16" md:height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                             </div>
-                                            <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border border-[var(--ledger-bg)] bg-zinc-500 text-[5px] flex items-center justify-center font-bold text-white">P</div>
+                                            <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                                                <img src="assets/emblem/2026/kleague1/pohang_steelers.svg" alt="포항" class="w-full h-full">
+                                            </div>
                                         </div>
                                         <div class="flex flex-col">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[9px] font-bold text-zinc-400">POHANG_STEEL</span>
-                                                <span class="bg-red-600 text-white text-[6px] px-1 font-black italic">BEST</span>
+                                            <div class="flex items-center gap-1.5 md:gap-2">
+                                                <span class="text-[9px] md:text-[10px] font-black italic text-white">POHANG_STEEL</span>
+                                                <span class="bg-red-600 text-white text-[6px] md:text-[7px] px-1 font-black italic">BEST</span>
                                             </div>
-                                            <span class="text-[7px] text-zinc-600 mono">1D AGO | POHANG SUPPORTING</span>
+                                            <span class="text-[7px] md:text-[8px] text-zinc-600 mono uppercase">POHANG SUPPORTING</span>
                                         </div>
                                     </div>
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini"></div>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-zinc-300 leading-relaxed">"VAR 판독 과정이 조금 길었지만 정확한 판정을 위해 필요한 시간이었습니다."</p>
+                                <p class="text-[10px] md:text-[11px] text-zinc-300 leading-relaxed">"VAR 판독 과정이 조금 길었지만 정확한 판정을 위해 필요한 시간이었습니다."</p>
                             </div>
 
                             <!-- BEST FEEDBACKS (TEAM B) -->
-                            <div class="feedback-item best">
+                            <div class="feedback-item best p-3 md:p-4">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <!-- JERSEY STYLE PROFILE (USER COMMENT) -->
                                         <div class="relative">
-                                            <div class="w-6 h-6 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[6px] mono overflow-hidden">
-                                                <div class="w-full h-full bg-green-800"></div>
+                                            <div class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                                                <svg width="14" height="14" md:width="16" md:height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                             </div>
-                                            <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border border-[var(--ledger-bg)] bg-green-700 text-[5px] flex items-center justify-center font-bold text-white">J</div>
+                                            <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                                                <img src="assets/emblem/2026/kleague1/jeonbuk_hyundai_motors.svg" alt="전북" class="w-full h-full">
+                                            </div>
                                         </div>
                                         <div class="flex flex-col">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[9px] font-bold text-zinc-400">JEONBUK_FAN</span>
-                                                <span class="bg-red-600 text-white text-[6px] px-1 font-black italic">BEST</span>
+                                            <div class="flex items-center gap-1.5 md:gap-2">
+                                                <span class="text-[9px] md:text-[10px] font-black italic text-white">JEONBUK_FAN</span>
+                                                <span class="bg-red-600 text-white text-[6px] md:text-[7px] px-1 font-black italic">BEST</span>
                                             </div>
-                                            <span class="text-[7px] text-zinc-600 mono">1D AGO | JEONBUK SUPPORTING</span>
+                                            <span class="text-[7px] md:text-[8px] text-zinc-600 mono uppercase">JEONBUK SUPPORTING</span>
                                         </div>
                                     </div>
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini"></div><div class="star-mini"></div>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-zinc-300 leading-relaxed">"VAR 교신 과정에서의 소통이 더 원활했으면 좋았을 것 같습니다."</p>
+                                <p class="text-[10px] md:text-[11px] text-zinc-300 leading-relaxed">"VAR 교신 과정에서의 소통이 더 원활했으면 좋았을 것 같습니다."</p>
                             </div>
                         </div>
                     </div>
@@ -541,85 +646,101 @@
 
                 <!-- Match Item 3 -->
                 <div class="border border-zinc-800 hover:border-zinc-600 transition-colors group overflow-hidden">
-                    <div class="flex items-center justify-between p-4 cursor-pointer" onclick="toggleMatchDetail(this)">
-                        <div class="flex items-center gap-8">
-                            <div class="mono text-[10px] text-zinc-500">2023/10/20</div>
-                            <div class="flex items-center gap-4">
-                                <span class="font-bold">INCHEON</span>
-                                <span class="text-zinc-700 italic">VS</span>
-                                <span class="font-bold">GWANGJU</span>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between p-4 cursor-pointer gap-4" onclick="toggleMatchDetail(this)">
+                        <div class="flex items-center justify-between md:justify-start md:gap-8">
+                            <div class="mono text-[9px] md:text-[10px] text-zinc-500">2023/10/20</div>
+                            <div class="flex items-center gap-3 md:gap-4">
+                                <div class="flex items-center gap-1.5 md:gap-2">
+                                    <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" class="w-4 h-4 md:w-5 md:h-5" alt="인천">
+                                    <span class="font-bold text-xs md:text-base">INCHEON</span>
+                                </div>
+                                <span class="text-zinc-700 italic text-[10px] md:text-sm">VS</span>
+                                <div class="flex items-center gap-1.5 md:gap-2">
+                                    <img src="assets/emblem/2026/kleague1/gwangju_fc.svg" class="w-4 h-4 md:w-5 md:h-5" alt="광주">
+                                    <span class="font-bold text-xs md:text-base">GWANGJU</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-6">
-                            <div class="flex flex-col items-end">
-                                <span class="mono text-[9px] text-zinc-500 font-bold uppercase">4th Official</span>
+                        <div class="flex items-center justify-between md:justify-end md:gap-6 border-t border-zinc-800/50 md:border-0 pt-3 md:pt-0">
+                            <div class="flex flex-col items-start md:items-end">
+                                <span class="mono text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase">4th Official</span>
                                 <div class="flex items-center gap-2">
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div>
                                     </div>
-                                    <span class="mono text-[10px] font-black italic text-zinc-500">4.5</span>
+                                    <span class="mono text-[9px] md:text-[10px] font-black italic text-zinc-500">4.5</span>
                                 </div>
                             </div>
-                            <div class="arrow-rotate bg-zinc-900 p-1.5 rounded-full border border-zinc-800">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                            <div class="arrow-rotate bg-zinc-900 p-1 md:p-1.5 rounded-full border border-zinc-800">
+                                <svg width="12" height="12" md:width="14" md:height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
                             </div>
                         </div>
                     </div>
                     <div class="match-detail-expand">
                         <div class="p-0 space-y-0">
-                            <div class="flex justify-between items-center px-6 py-3 border-b border-zinc-800/50 bg-zinc-900/30">
-                                <span class="text-[10px] mono text-zinc-500 uppercase tracking-widest">Community Feedbacks</span>
-                                <a href="#" class="text-[9px] mono text-[var(--accent-var)] hover:underline">VIEW ALL DATA →</a>
+                            <div class="flex justify-between items-center px-4 md:px-6 py-2.5 md:py-3 border-b border-zinc-800/50 bg-zinc-900/30">
+                                <span class="text-[9px] md:text-[10px] mono text-zinc-500 uppercase tracking-widest">Community Feedbacks</span>
+                                <div class="flex items-center gap-3 md:gap-4">
+                                    <a href="match_finished.html" class="btn-structural bg-[var(--ledger-surface)] px-2.5 md:px-3 py-1 md:py-1.5 text-[8px] md:text-[9px] font-black italic mono text-[var(--accent-var)] flex items-center gap-1.5 md:gap-2 hover:bg-[var(--accent-var)] hover:text-black transition-all">
+                                        INSIDE GAME <svg width="8" height="8" md:width="10" md:height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                    </a>
+                                </div>
                             </div>
                             
                             <!-- BEST FEEDBACKS (TEAM A) -->
-                            <div class="feedback-item best">
+                            <div class="feedback-item best p-3 md:p-4">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <!-- JERSEY STYLE PROFILE (USER COMMENT) -->
                                         <div class="relative">
-                                            <div class="w-6 h-6 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[6px] mono overflow-hidden">
-                                                <div class="w-full h-full flex flex-col"><div class="flex-1 bg-blue-700"></div><div class="flex-1 bg-black"></div></div>
+                                            <div class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                                                <svg width="14" height="14" md:width="16" md:height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                             </div>
-                                            <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border border-[var(--ledger-bg)] bg-blue-600 text-[5px] flex items-center justify-center font-bold text-white">I</div>
+                                            <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                                                <img src="assets/emblem/2026/kleague1/incheon_united_fc.svg" alt="인천" class="w-full h-full">
+                                            </div>
                                         </div>
                                         <div class="flex flex-col">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[9px] font-bold text-zinc-400">INCHEON_UTD</span>
-                                                <span class="bg-red-600 text-white text-[6px] px-1 font-black italic">BEST</span>
+                                            <div class="flex items-center gap-1.5 md:gap-2">
+                                                <span class="text-[9px] md:text-[10px] font-black italic text-white">INCHEON_UTD</span>
+                                                <span class="bg-red-600 text-white text-[6px] md:text-[7px] px-1 font-black italic">BEST</span>
                                             </div>
-                                            <span class="text-[7px] text-zinc-600 mono">2D AGO | INCHEON SUPPORTING</span>
+                                            <span class="text-[7px] md:text-[8px] text-zinc-600 mono uppercase">INCHEON SUPPORTING</span>
                                         </div>
                                     </div>
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-zinc-300 leading-relaxed">"대기심으로서 교체 타이밍 조율과 벤치 컨트롤이 매우 훌륭했습니다."</p>
+                                <p class="text-[10px] md:text-[11px] text-zinc-300 leading-relaxed">"대기심으로서 교체 타이밍 조율과 벤치 컨트롤이 매우 훌륭했습니다."</p>
                             </div>
 
                             <!-- BEST FEEDBACKS (TEAM B) -->
-                            <div class="feedback-item best">
+                            <div class="feedback-item best p-3 md:p-4">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 md:gap-3">
+                                        <!-- JERSEY STYLE PROFILE (USER COMMENT) -->
                                         <div class="relative">
-                                            <div class="w-6 h-6 bg-zinc-800 rounded-full border border-zinc-700 flex items-center justify-center text-[6px] mono overflow-hidden">
-                                                <div class="w-full h-full bg-orange-600"></div>
+                                            <div class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
+                                                <svg width="14" height="14" md:width="16" md:height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                             </div>
-                                            <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border border-[var(--ledger-bg)] bg-orange-500 text-[5px] flex items-center justify-center font-bold text-white">G</div>
+                                            <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                                                <img src="assets/emblem/2026/kleague1/gwangju_fc.svg" alt="광주" class="w-full h-full">
+                                            </div>
                                         </div>
                                         <div class="flex flex-col">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[9px] font-bold text-zinc-400">GWANGJU_FAN</span>
-                                                <span class="bg-red-600 text-white text-[6px] px-1 font-black italic">BEST</span>
+                                            <div class="flex items-center gap-1.5 md:gap-2">
+                                                <span class="text-[9px] md:text-[10px] font-black italic text-white">GWANGJU_FAN</span>
+                                                <span class="bg-red-600 text-white text-[6px] md:text-[7px] px-1 font-black italic">BEST</span>
                                             </div>
-                                            <span class="text-[7px] text-zinc-600 mono">2D AGO | GWANGJU SUPPORTING</span>
+                                            <span class="text-[7px] md:text-[8px] text-zinc-600 mono uppercase">GWANGJU SUPPORTING</span>
                                         </div>
                                     </div>
                                     <div class="star-rating-mini">
                                         <div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini active"></div><div class="star-mini"></div>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-zinc-300 leading-relaxed">"추가시간 산정이 합리적이었습니다. 경기 지연 상황을 잘 반영해주었네요."</p>
+                                <p class="text-[10px] md:text-[11px] text-zinc-300 leading-relaxed">"추가시간 산정이 합리적이었습니다. 경기 지연 상황을 잘 반영해주었네요."</p>
                             </div>
                         </div>
                     </div>
@@ -662,7 +783,7 @@
       </script>
 
     <!-- DARK MODE TOGGLE -->
-    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000]" title="Toggle Dark Mode">
+    <button onclick="toggleDarkMode()" class="fixed bottom-8 right-8 w-12 h-12 bg-white text-black dark:bg-zinc-800 dark:text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-[3000] border border-zinc-200 dark:border-zinc-700" title="Toggle Dark Mode">
         <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
@@ -672,15 +793,18 @@
         function toggleDarkMode() {
             const body = document.body;
             const icon = document.getElementById('theme-icon');
+            const isLightMode = body.classList.toggle('light-mode');
             
-            if (body.style.backgroundColor === 'white') {
-                body.style.backgroundColor = 'var(--ledger-bg)';
-                body.style.color = 'white';
-                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-            } else {
-                body.style.backgroundColor = 'white';
-                body.style.color = 'black';
+            if (isLightMode) {
                 icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+                // Update toggle button style for light mode
+                event.currentTarget.classList.remove('bg-white', 'text-black');
+                event.currentTarget.classList.add('bg-zinc-900', 'text-white');
+            } else {
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+                // Update toggle button style for dark mode
+                event.currentTarget.classList.remove('bg-zinc-900', 'text-white');
+                event.currentTarget.classList.add('bg-white', 'text-black');
             }
         }
 
