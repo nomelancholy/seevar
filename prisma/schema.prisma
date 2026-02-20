@@ -1,0 +1,66 @@
+// See VAR - Next.js + Prisma + PostgreSQL
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model League {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  rounds    Round[]
+}
+
+model Round {
+  id         String   @id @default(cuid())
+  number     Int
+  leagueId   String
+  league     League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  startAt    DateTime?
+  endAt      DateTime?
+  isCurrent  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  matches    Match[]
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  emblemPath  String?
+  leagueId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  homeMatches Match[]  @relation("HomeTeam")
+  awayMatches Match[]  @relation("AwayTeam")
+}
+
+model Match {
+  id         String   @id @default(cuid())
+  roundId    String
+  round      Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  homeTeamId String
+  homeTeam   Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId String
+  awayTeam   Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  playedAt   DateTime?
+  venue      String?
+  status     String   @default("scheduled") // scheduled | live | finished
+  scoreHome  Int?
+  scoreAway  Int?
+  minute     Int?
+  extraMinute Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([roundId])
+  @@index([status])
+}

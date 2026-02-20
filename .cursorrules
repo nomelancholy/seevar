@@ -1,0 +1,69 @@
+🤖 See VAR: Next.js Full-stack 프로젝트 가이드라인
+당신은 숙련된 Next.js (App Router) 및 Prisma 전문가이자 축구 도메인 전문가입니다. See VAR는 아래의 기술 스택과 비즈니스 로직을 엄격히 준수하여 코드를 생성합니다.
+
+1. 프로젝트 개요 & 핵심 가치
+목적: 축구 판정 아카이브 및 AI(Gemini) 분석 커뮤니티.
+
+주요 기능: 라운드별 경기 관리, Server Actions 기반의 판정 토론, Prisma를 활용한 심판 통계 아카이브.
+
+원칙: IFAB 규정에 근거한 기술적 분석과 타입 안정성(Type-safety) 확보.
+
+2. 기술 스택 (Tech Stack)
+Framework: Next.js 15+ (App Router)
+
+Language: TypeScript (Strict Mode)
+
+ORM: Prisma (PostgreSQL)
+
+Styling: Tailwind CSS
+
+Components: Radix UI / Shadcn UI (Reusable components)
+
+State Management: React Server Components (RSC) 우선, 클라이언트 상태는 필요한 경우에만 Zustand 혹은 React Query 사용.
+
+AI: Gemini API (Google Generative AI SDK)
+
+3. 코드 작성 규칙
+패턴: Server Actions를 통한 데이터 변조(Mutation). 비즈니스 로직은 lib/services 폴더 내의 순수 함수나 클래스로 분리.
+
+컴포넌트 구조:
+
+app/: Routing 및 Layout.
+
+components/ui/: 원자 단위 컴포넌트(Shadcn).
+
+components/features/: 도메인별 복합 컴포넌트(예: MatchList, DecisionCard).
+
+데이터 조회: 페이지 상단(RSC)에서 prisma를 직접 호출하여 Props로 전달. N+1 문제를 위해 include 활용.
+
+에러 처리: try-catch와 함께 Next.js의 error.tsx 및 Zod를 이용한 스키마 검증 필수.
+
+4. "See VAR" 운영 로직 (Domain Logic)
+A. 라운드 기반 라이프사이클 (Prisma)
+상태: Round 모델의 isCurrent 필드로 관리.
+
+전환: activeBetween 등의 서버 헬퍼 함수를 통해 현재 날짜와 경기 일정을 비교하여 활성화.
+
+B. 경기 및 심판 데이터
+상태: Enum (SCHEDULED, LIVE, FINISHED).
+
+심판 기록: Referee와 Match 간의 관계형 데이터를 통해 통계 산출. 모든 평점 계산 로직은 lib/utils/stats.ts에서 관리.
+
+C. AI 판정 분석 (See VAR 기능)
+Gemini 연동: 분석 시 lib/ai/gemini.ts 모듈 사용.
+
+프롬프트: 반드시 IFAB Laws of the Game 규정 번호와 카테고리를 포함하도록 유도.
+
+구조: AiDecisionAnalysisService는 서버 액션에서 호출되는 비동기 서비스로 구현.
+
+D. 데이터 유효성 및 보안
+Zod: 모든 폼 입력 및 API 요청 데이터는 Zod 스키마로 검증.
+
+Auth: NextAuth.js 혹은 Rails 8 스타일의 커스텀 세션 관리 사용.
+
+5. 성능 및 최적화
+Caching: Next.js의 unstable_cache 및 revalidatePath를 적재적소에 사용.
+
+Image: next/image를 사용하여 팀 로고 및 경기 하이라이트 스크린샷 최적화.
+
+Prisma: PrismaClient 인스턴스는 개발 환경에서 Hot Reloading 시 커넥션 풀 고갈을 방지하기 위해 싱글톤 패턴(lib/prisma.ts)으로 관리.

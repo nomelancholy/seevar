@@ -243,10 +243,13 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
         .moment-modal-header {
-            padding: 1rem md:1.5rem;
+            padding: 1rem;
             border-bottom: 1px solid var(--ledger-border);
             background: var(--ledger-surface);
             z-index: 10;
+        }
+        @media (min-width: 768px) {
+            .moment-modal-header { padding: 1.5rem; }
         }
         .moment-modal-content {
             flex: 1;
@@ -254,9 +257,12 @@
             background: rgba(0,0,0,0.2);
         }
         .user-post-item {
-            padding: 1rem md:1.5rem;
+            padding: 1rem;
             border-bottom: 1px solid var(--ledger-border);
             transition: background 0.2s;
+        }
+        @media (min-width: 768px) {
+            .user-post-item { padding: 1.5rem; }
         }
         .user-post-item.expandable {
             cursor: pointer;

@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ledger-bg: #0d0e10;
+  --ledger-surface: #16181c;
+  --ledger-border: #2d3139;
+  --accent-var: #00ff41;
+  --accent-respect: #3b82f6;
+  --text-muted: #8b949e;
+  --text-main: #ffffff;
+}
+
+body {
+  background-color: var(--ledger-bg);
+  color: var(--text-main);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+body.light-mode {
+  --ledger-bg: #f0f2f5;
+  --ledger-surface: #ffffff;
+  --ledger-border: #d1d5db;
+  --text-muted: #6b7280;
+  --text-main: #111827;
+}
+
+.mono {
+  font-family: "JetBrains Mono", monospace;
+}
