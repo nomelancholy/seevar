@@ -1,7 +1,7 @@
 ■ K리그1 주심(12명) :
 
 [고형진](https://namu.wiki/w/%EA%B3%A0%ED%98%95%EC%A7%84)
-[김대용](<https://namu.wiki/w/%EA%B9%80%EB%8C%80%EC%9A%A9(%EC%B6%95%EA%B5%AC%20%EC%8B%AC%ED%8C%90))
+[김대용](<https://namu.wiki/w/%EA%B9%80%EB%8C%80%EC%9A%A9(%EC%B6%95%EA%B5%AC%20%EC%8B%AC%ED%8C%90)>)
 [김우성](<https://namu.wiki/w/%EA%B9%80%EC%9A%B0%EC%84%B1(%EC%B6%95%EA%B5%AC%20%EC%8B%AC%ED%8C%90)>)
 [김종혁](<https://namu.wiki/w/%EA%B9%80%EC%A2%85%ED%98%81(%EC%B6%95%EA%B5%AC%20%EC%8B%AC%ED%8C%90)>)
 [박병진](<https://namu.wiki/w/%EB%B0%95%EB%B3%91%EC%A7%84(%EC%B6%95%EA%B5%AC%20%EC%8B%AC%ED%8C%90)>)

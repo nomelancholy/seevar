@@ -62,6 +62,7 @@ model Round {
 model Team {
   id             String   @id @default(cuid())
   name           String
+  slug           String?  @unique // e.g. kleague1-incheon_united_fc (시드 멱등용)
   emblemPath     String?
   leagueId       String?
   league         League?  @relation(fields: [leagueId], references: [id], onDelete: SetNull)
@@ -105,6 +106,7 @@ model Match {
 model Referee {
   id               String   @id @default(cuid())
   name             String
+  link             String?  // 나무위키 등 프로필 링크 (optional)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   matchReferees    MatchReferee[]
