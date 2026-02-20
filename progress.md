@@ -65,8 +65,8 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 
 ### A. 기반 작업
 
-- [ ] **Prisma 스키마 보강**  
-  Referee, MatchReferee, User(또는 Account) 등 도메인 모델 추가. Round `isCurrent`, Match `status` enum 정리.
+- [x] **Prisma 스키마 보강**  
+  Referee, MatchReferee, User 도메인 모델 추가. `MatchStatus`(SCHEDULED/LIVE/FINISHED), `RefereeRole` enum. Round `isCurrent` 유지, Match `status` → enum 적용. `prisma generate` 완료.
 - [ ] **DB 시드**  
   리그/라운드/팀/경기/심판 등 참조 데이터 시드 스크립트.
 - [ ] **Shadcn UI 도입**  
@@ -133,6 +133,7 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 | 날짜 | 내용 |
 |------|------|
 | (최초) | progress.md 작성. .cursorrules + _reference_ui 기준 작업 계획 정리. |
+| 2026-02-20 | Prisma 스키마 보강: MatchStatus/RefereeRole enum, Referee, MatchReferee, User 모델 추가. League–Team 관계, Round unique(leagueId, number) 등 보완. |
 
 ---
 

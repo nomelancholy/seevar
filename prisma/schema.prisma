@@ -10,6 +10,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ---------------------------------------------------------------------------
+// Enums (도메인 규칙: .cursorrules 경기 상태, 심판 역할)
+// ---------------------------------------------------------------------------
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+}
+
+enum RefereeRole {
+  MAIN_REFEREE
+  ASSISTANT_REFEREE_1
+  ASSISTANT_REFEREE_2
+  FOURTH_OFFICIAL
+  VAR
+  AVAR
+}
+
+// ---------------------------------------------------------------------------
+// League / Round / Team / Match (기존 구조 유지, status → enum)
+// ---------------------------------------------------------------------------
+
 model League {
   id        String   @id @default(cuid())
   name      String
@@ -17,6 +40,7 @@ model League {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   rounds    Round[]
+  teams     Team[]
 }
 
 model Round {
@@ -30,37 +54,99 @@ model Round {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   matches    Match[]
+
+  @@unique([leagueId, number])
+  @@index([leagueId, isCurrent])
 }
 
 model Team {
-  id          String   @id @default(cuid())
-  name        String
-  emblemPath  String?
-  leagueId    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  homeMatches Match[]  @relation("HomeTeam")
-  awayMatches Match[]  @relation("AwayTeam")
+  id             String   @id @default(cuid())
+  name           String
+  emblemPath     String?
+  leagueId       String?
+  league         League?  @relation(fields: [leagueId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  homeMatches    Match[]  @relation("HomeTeam")
+  awayMatches    Match[]  @relation("AwayTeam")
+  supportingUsers User[]
+
+  @@index([leagueId])
 }
 
 model Match {
-  id         String   @id @default(cuid())
-  roundId    String
-  round      Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
-  homeTeamId String
-  homeTeam   Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  awayTeamId String
-  awayTeam   Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
-  playedAt   DateTime?
-  venue      String?
-  status     String   @default("scheduled") // scheduled | live | finished
-  scoreHome  Int?
-  scoreAway  Int?
-  minute     Int?
-  extraMinute Int?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String      @id @default(cuid())
+  roundId      String
+  round        Round       @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  homeTeamId   String
+  homeTeam     Team        @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId   String
+  awayTeam     Team        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  playedAt     DateTime?
+  venue        String?
+  status       MatchStatus @default(SCHEDULED)
+  scoreHome    Int?
+  scoreAway    Int?
+  minute       Int?
+  extraMinute  Int?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  matchReferees MatchReferee[]
 
   @@index([roundId])
   @@index([status])
+  @@index([playedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Referee / MatchReferee (심판 기록 → lib/utils/stats.ts 연동)
+// ---------------------------------------------------------------------------
+
+model Referee {
+  id               String   @id @default(cuid())
+  name             String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  matchReferees    MatchReferee[]
+
+  // 통계 (경기 종료 시 갱신, lib/utils/stats.ts에서 계산)
+  averageRating    Float?
+  matchesCount     Int      @default(0)
+  totalYellowCards Int      @default(0)
+  totalRedCards    Int      @default(0)
+
+  @@index([averageRating])
+}
+
+model MatchReferee {
+  id        String      @id @default(cuid())
+  matchId   String
+  match     Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  refereeId String
+  referee   Referee     @relation(fields: [refereeId], references: [id], onDelete: Cascade)
+  role      RefereeRole
+
+  @@unique([matchId, refereeId, role])
+  @@index([refereeId])
+  @@index([matchId])
+}
+
+// ---------------------------------------------------------------------------
+// User (인증·호각·응원팀; NextAuth 또는 커스텀 세션)
+// ---------------------------------------------------------------------------
+
+model User {
+  id                String    @id @default(cuid())
+  email             String?   @unique
+  emailVerified     DateTime?
+  name              String?
+  image             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  supportingTeamId  String?
+  supportingTeam    Team?     @relation(fields: [supportingTeamId], references: [id], onDelete: SetNull)
+  whistleBalance    Int       @default(0) // 호각
+
+  @@index([supportingTeamId])
 }
