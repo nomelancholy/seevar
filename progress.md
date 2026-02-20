@@ -70,10 +70,10 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 - [x] Docker Compose 활용해 PostgreSQL DB 생성
 - [x] **DB 시드**  
       `prisma/seed.ts`: 리그(K1/K2), 라운드(5라운드 isCurrent), 팀(**TEAM_LIST.md** 순서·정확한 팀명+엠블럼), 경기 3건, 심판(**REFEREE_LINK.md** 파싱, name+**link** 나무위키), MatchReferee 샘플. Referee에 **link** 컬럼 추가. `npm run db:seed` (DB 연결 후 `npx prisma db push` 선행).
-- [ ] **Shadcn UI 도입**  
-      `components/ui` 원자 컴포넌트, reference UI 디자인 토큰 반영.
-- [ ] **공통 레이아웃**  
-      네비게이션, 검색, 프로필, 유저 드로어(Supporting/팀·로그아웃 등) — `index.html` 구조 참고.
+- [x] **Shadcn UI 도입**  
+      `components/ui` 원자 컴포넌트(Button, Input, Sheet), reference 디자인 토큰(ledger)을 Shadcn CSS 변수에 매핑.
+- [x] **공통 레이아웃**  
+      네비게이션(SiteNav), 검색, 프로필 트리거, 유저 드로어(Supporting 팀·호각·My Information/VAR Moments/Whistle Recharge·로그아웃) — `index.html` 구조 참고.
 - [ ] **인증 준비**  
       NextAuth.js 또는 커스텀 세션; 로그인/온보딩 라우트 연동.
 

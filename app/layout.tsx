@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import "./globals.css"
+import { AppLayout } from "@/components/layout/AppLayout"
 
 export const metadata: Metadata = {
   title: "See VAR",
@@ -21,8 +22,8 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased min-h-screen">
-        {children}
+      <body className="antialiased min-h-screen bg-background text-foreground">
+        <AppLayout>{children}</AppLayout>
       </body>
     </html>
   )
