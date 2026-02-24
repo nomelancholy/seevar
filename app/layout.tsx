@@ -1,7 +1,9 @@
 /** 전역 스타일 — FOUC 방지를 위해 반드시 최상단에서 한 번만 임포트 */
 import "./globals.css"
 import type { Metadata, Viewport } from "next"
+import { getCurrentUser } from "@/lib/auth"
 import { AppLayout } from "@/components/layout/AppLayout"
+import { SessionProvider } from "@/components/auth/SessionProvider"
 
 export const metadata: Metadata = {
   title: "See VAR",
@@ -25,11 +27,12 @@ const criticalCss = `
   }
 `
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const user = await getCurrentUser()
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
@@ -42,7 +45,9 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen bg-background text-foreground font-sans" suppressHydrationWarning>
-        <AppLayout>{children}</AppLayout>
+        <SessionProvider>
+          <AppLayout user={user}>{children}</AppLayout>
+        </SessionProvider>
       </body>
     </html>
   )

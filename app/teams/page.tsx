@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
 import { TeamDetailSection } from "@/components/teams/TeamDetailSection"
@@ -8,16 +10,46 @@ export const metadata = {
   description: "팀별 경기 데이터와 심판 상성 데이터",
 }
 
+/** URL 쿼리용: slug의 _ 를 - 로 (e.g. kleague1-incheon_united_fc → kleague1-incheon-united-fc) */
+function slugToParam(slug: string | null): string {
+  return slug ? slug.replace(/_/g, "-") : ""
+}
+/** URL 쿼리 → DB slug. DB는 "리그-엠블럼키" 형식(엠블럼키만 _ 사용). 첫 번째 - 이후만 _로 치환 */
+function paramToSlug(param: string): string {
+  const firstDash = param.indexOf("-")
+  if (firstDash === -1) return param
+  const league = param.slice(0, firstDash)
+  const emblemPart = param.slice(firstDash + 1).replace(/-/g, "_")
+  return `${league}-${emblemPart}`
+}
+
 type SearchParams = Promise<{ team?: string }>
 
 export default async function TeamsPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams
-  const teamId = params.team ?? ""
+  const teamParam = (params.team ?? "").trim()
 
-  const teams = await prisma.team.findMany({
-    orderBy: { name: "asc" },
-    include: { leagues: true },
-  })
+  const [user, teams] = await Promise.all([
+    getCurrentUser(),
+    prisma.team.findMany({
+      orderBy: { name: "asc" },
+      include: { leagues: true },
+    }),
+  ])
+
+  // 응원팀이 있고 team 쿼리가 없으면 응원팀이 선택된 URL로 리다이렉트 (slug 우선, 없으면 id)
+  if (!teamParam && user?.supportingTeamId) {
+    const supporting = teams.find((t) => t.id === user.supportingTeamId)
+    if (supporting) {
+      const query = supporting.slug ? slugToParam(supporting.slug) : supporting.id
+      redirect(`/teams?team=${encodeURIComponent(query)}`)
+    }
+  }
+
+  const teamSlugFromParam = teamParam ? paramToSlug(teamParam) : ""
+  const resolvedTeam = teamParam
+    ? teams.find((t) => t.slug === teamSlugFromParam || t.id === teamParam) ?? null
+    : null
 
   let selectedTeam: { id: string; name: string } | null = null
   let compatibility: { high: { id: string; slug: string; name: string; fanAverageRating: number; totalAssignments: number; roleCounts: Record<string, number> | null } | null; low: { id: string; slug: string; name: string; fanAverageRating: number; totalAssignments: number; roleCounts: Record<string, number> | null } | null } = {
@@ -37,10 +69,10 @@ export default async function TeamsPage({ searchParams }: { searchParams: Search
     matchReferees: { role: string; referee: { id: string; slug: string; name: string } }[]
   }[] = []
 
-  if (teamId) {
-    const team = teams.find((t) => t.id === teamId) ?? null
-    if (team) {
-      selectedTeam = { id: team.id, name: team.name }
+  if (resolvedTeam) {
+    const team = resolvedTeam
+    const teamId = team.id
+    selectedTeam = { id: team.id, name: team.name }
 
       const [teamStats, matchList] = await Promise.all([
         prisma.refereeTeamStat.findMany({
@@ -127,7 +159,6 @@ export default async function TeamsPage({ searchParams }: { searchParams: Search
           referee: { id: mr.referee.id, slug: mr.referee.slug, name: mr.referee.name },
         })),
       }))
-    }
   }
 
   return (
@@ -146,12 +177,15 @@ export default async function TeamsPage({ searchParams }: { searchParams: Search
           Select Team
         </h3>
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
-          {teams.map((t) => (
+          {teams.map((t) => {
+            const isSelected = resolvedTeam?.id === t.id
+            const teamQuery = t.slug ? slugToParam(t.slug) : t.id
+            return (
             <Link
               key={t.id}
-              href={teamId === t.id ? "/teams" : `/teams?team=${t.id}`}
+              href={isSelected ? "/teams" : `/teams?team=${encodeURIComponent(teamQuery)}`}
               className={`team-btn flex flex-col items-center gap-2 group border rounded-md p-3 transition-all duration-300 hover:-translate-y-0.5 ${
-                teamId === t.id ? "active border-primary opacity-100" : "opacity-60 hover:opacity-100"
+                isSelected ? "active border-primary opacity-100" : "opacity-60 hover:opacity-100"
               }`}
             >
               <div className="w-16 h-16 bg-card border border-border flex items-center justify-center overflow-hidden rounded">
@@ -163,7 +197,8 @@ export default async function TeamsPage({ searchParams }: { searchParams: Search
               </div>
               <span className="font-mono text-xs font-bold text-center leading-tight">{t.name}</span>
             </Link>
-          ))}
+            )
+          })}
         </div>
       </div>
 

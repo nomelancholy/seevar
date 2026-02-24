@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { OnboardingForm } from "./OnboardingForm"
 
@@ -10,6 +12,10 @@ export const metadata = {
 type TeamForOnboarding = { id: string; name: string; emblemPath: string | null }
 
 export default async function OnboardingPage() {
+  const user = await getCurrentUser()
+  if (!user) redirect("/login")
+  if (user.supportingTeamId) redirect("/")
+
   const rows = await prisma.team.findMany({ orderBy: { name: "asc" } })
   const teams: TeamForOnboarding[] = rows.map((t) => {
     const row = t as { id: string; name: string; emblemPath?: string | null; emblem?: string | null }

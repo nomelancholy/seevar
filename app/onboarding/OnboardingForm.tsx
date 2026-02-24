@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { completeOnboarding } from "@/lib/actions/onboarding"
 
 type TeamOption = { id: string; name: string; emblemPath: string | null }
 
@@ -14,14 +15,37 @@ export function OnboardingForm({ teams }: Props) {
   const router = useRouter()
   const [nickname, setNickname] = useState("")
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    router.push("/")
+    setError(null)
+    if (!selectedTeamId) {
+      setError("응원팀을 선택해 주세요.")
+      return
+    }
+    setPending(true)
+    try {
+      const result = await completeOnboarding(nickname.trim(), selectedTeamId)
+      if (result.ok) {
+        router.push("/")
+        router.refresh()
+        return
+      }
+      setError(result.error)
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
+      {error && (
+        <p className="text-destructive text-xs font-mono" role="alert">
+          {error}
+        </p>
+      )}
       <div>
         <label className="block text-[8px] md:text-[10px] font-mono text-muted-foreground mb-2 uppercase tracking-widest">
           Your Nickname
@@ -73,8 +97,9 @@ export function OnboardingForm({ teams }: Props) {
       <Button
         type="submit"
         className="w-full mt-8 font-black text-sm py-6"
+        disabled={pending}
       >
-        START SEE VAR
+        {pending ? "저장 중..." : "START SEE VAR"}
       </Button>
     </form>
   )

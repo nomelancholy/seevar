@@ -37,3 +37,6 @@ Thumbs.db
 
 # Vercel
 .vercel
+
+public/assets/game_data/
+public/uploads/

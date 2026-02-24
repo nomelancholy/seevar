@@ -71,6 +71,10 @@ model User {
   supportingTeam    Team?     @relation(fields: [supportingTeamId], references: [id], onDelete: SetNull)
   lastTeamChangeAt  DateTime?
 
+  // NextAuth
+  accounts          Account[]
+  sessions          Session[]
+
   // 관계 필드
   moments           Moment[]
   comments          Comment[]
@@ -83,6 +87,39 @@ model User {
   updatedAt         DateTime  @updatedAt
 
   @@index([supportingTeamId])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
 }
 
 // ---------------------------------------------------------------------------

@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { updateProfile } from "@/app/my/actions"
+import { updateProfile, uploadProfileImage } from "@/app/my/actions"
 
 type Team = { id: string; name: string; emblemPath: string | null }
 
 type Props = {
   initialName: string | null
+  initialImage: string | null
   initialSupportingTeamId: string | null
   teams: Team[]
   linkedAccountLabel?: string
@@ -16,17 +17,21 @@ type Props = {
 
 export function MyInformationForm({
   initialName,
+  initialImage,
   initialSupportingTeamId,
   teams,
   linkedAccountLabel = "NAVER SOCIAL LOGIN",
   linkedAccountId,
 }: Props) {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(initialName ?? "")
+  const [imageUrl, setImageUrl] = useState<string | null>(initialImage)
   const [supportingTeamId, setSupportingTeamId] = useState<string | null>(
     initialSupportingTeamId
   )
   const [pending, setPending] = useState(false)
+  const [imagePending, setImagePending] = useState(false)
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -77,27 +82,65 @@ export function MyInformationForm({
       </div>
 
       {/* Profile Image + Nickname */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="sr-only"
+        aria-label="프로필 사진 선택"
+        onChange={async (e) => {
+          const file = e.target.files?.[0]
+          if (!file) return
+          setImagePending(true)
+          setMessage(null)
+          const formData = new FormData()
+          formData.set("image", file)
+          const result = await uploadProfileImage(formData)
+          setImagePending(false)
+          e.target.value = ""
+          if (result.ok) {
+            setImageUrl(result.url)
+            setMessage({ type: "ok", text: "프로필 사진이 변경되었습니다." })
+            router.refresh()
+          } else {
+            setMessage({ type: "error", text: result.error })
+          }
+        }}
+      />
       <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
-        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-border bg-muted flex items-center justify-center relative group cursor-pointer shrink-0">
-          <svg
-            width="32"
-            height="32"
-            className="md:w-10 md:h-10 text-muted-foreground"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1"
-            aria-hidden
-          >
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={imagePending}
+          className="w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-border bg-muted flex items-center justify-center relative group cursor-pointer shrink-0 overflow-hidden disabled:opacity-70 disabled:cursor-wait"
+        >
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt="프로필"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <svg
+              width="32"
+              height="32"
+              className="md:w-10 md:h-10 text-muted-foreground shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+              aria-hidden
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          )}
           <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <span className="text-[7px] md:text-[8px] font-black font-mono uppercase">
-              Change
+            <span className="text-[7px] md:text-[8px] font-black font-mono uppercase text-white">
+              {imagePending ? "업로드 중…" : "사진 변경"}
             </span>
           </div>
-        </div>
+        </button>
         <div className="flex-1 w-full">
           <label
             htmlFor="nickname"
@@ -118,16 +161,16 @@ export function MyInformationForm({
 
       {/* Supporting Team */}
       <div>
-        <label className="block text-[8px] md:text-[10px] font-mono text-muted-foreground mb-4 uppercase tracking-widest">
+        <label className="block text-[10px] md:text-xs font-mono text-muted-foreground mb-4 uppercase tracking-widest">
           Supporting Team
         </label>
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-3 max-h-[300px] overflow-y-auto pr-2 [scrollbar-width:thin]">
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-3 max-h-[320px] overflow-y-auto pr-2 scrollbar-team">
           {teams.map((team) => (
             <button
               key={team.id}
               type="button"
               onClick={() => setSupportingTeamId(team.id)}
-              className={`flex flex-col items-center gap-2 p-3 bg-card border transition-all text-center ${
+              className={`flex flex-col items-center gap-2 p-3 md:p-4 bg-card border transition-all text-center rounded-md ${
                 supportingTeamId === team.id
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-muted-foreground/50"
@@ -137,12 +180,12 @@ export function MyInformationForm({
                 <img
                   src={team.emblemPath}
                   alt=""
-                  className="w-8 h-8 md:w-9 md:h-9 object-contain"
+                  className="w-9 h-9 md:w-11 md:h-11 object-contain"
                 />
               ) : (
-                <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-muted" />
+                <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-muted shrink-0" />
               )}
-              <span className="font-mono text-[8px] md:text-[9px] font-bold leading-tight">
+              <span className="font-mono text-[10px] md:text-xs font-black leading-tight">
                 {team.name}
               </span>
             </button>

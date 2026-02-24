@@ -74,8 +74,8 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
       `components/ui` 원자 컴포넌트(Button, Input, Sheet), reference 디자인 토큰(ledger)을 Shadcn CSS 변수에 매핑.
 - [x] **공통 레이아웃**  
       네비게이션(SiteNav), 검색, 프로필 트리거, 유저 드로어(Supporting 팀·My Information/VAR Moments·로그아웃). **호각·Whistle Recharge**는 후순위로 비노출.
-- [ ] **인증 준비**  
-      NextAuth.js 또는 커스텀 세션; 로그인/온보딩 라우트 연동.
+- [x] **인증 준비**  
+      NextAuth.js(v4) + 네이버 로그인, Prisma 어댑터(Account/Session). 로그인 → 온보딩 연동, `/onboarding` 비로그인 시 `/login` 리다이렉트. `.env`에 `AUTH_SECRET`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 필요.
 
 ### B. 페이지 이전 (Reference UI → App Router)
 
@@ -139,6 +139,11 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 | **모멘트 게시판** (`/matches/[id]/moments`) | DB 시드 | 해당 경기의 `match.moments`. |
 | **심판 목록/상세** (`/referees`, `/referees/[id]`) | DB 시드 | `prisma.referee` (시드: REFEREE_LINK.md 파싱). |
 | **팀 목록** (`/teams`) | DB 시드 | `prisma.team.findMany`. |
+
+**인증(네이버 로그인) 설정**
+
+- `.env`에 **AUTH_SECRET**, **NAVER_CLIENT_ID**, **NAVER_CLIENT_SECRET** 추가. (`npx auth secret` 또는 32자 이상 랜덤 문자열로 AUTH_SECRET 생성.)
+- [네이버 개발자센터](https://developers.naver.com)에서 애플리케이션 등록 후 로그인 API 사용 설정, 콜백 URL에 `http://localhost:3000/api/auth/callback/naver` (개발) 및 배포 도메인 추가.
 
 **DB 데이터가 보이게 하려면**
 

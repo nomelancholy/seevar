@@ -51,6 +51,7 @@ export default async function MyInformationPage() {
           <section className="ledger-surface p-6 md:p-8">
             <MyInformationForm
               initialName={user.name}
+              initialImage={user.image}
               initialSupportingTeamId={user.supportingTeamId}
               teams={teams}
               linkedAccountLabel="NAVER SOCIAL LOGIN"

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { LoginNaverButton } from "@/components/auth/LoginNaverButton"
 
 export const metadata = {
   title: "Login | See VAR",
@@ -23,19 +24,7 @@ export default function LoginPage() {
         </h2>
 
         <div className="space-y-4">
-          <Link
-            href="/onboarding"
-            className="flex items-center justify-center gap-3 w-full bg-[#03C75A] text-white font-black text-sm py-3 md:py-4 rounded-md hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-md"
-          >
-            <svg
-              className="size-4 md:size-5"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z" />
-            </svg>
-            NAVER LOGIN
-          </Link>
+          <LoginNaverButton />
           <p className="text-[8px] md:text-[9px] font-mono text-muted-foreground mt-6 text-center">
             By continuing, you agree to our <br />
             <span className="underline cursor-pointer hover:text-foreground">
