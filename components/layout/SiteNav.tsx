@@ -15,8 +15,8 @@ import { UserDrawerContent } from "./UserDrawerContent"
 
 export function SiteNav() {
   return (
-    <nav className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-8 mb-8 md:mb-12 border-b border-border pb-6">
-      <div className="flex items-center justify-between w-full md:w-auto gap-4">
+    <nav className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-8 mb-8 md:mb-12 border-b border-border pb-6 w-full">
+      <div className="flex items-center justify-between w-full md:w-auto gap-4 shrink-0">
         <Link
           href="/"
           className="text-2xl md:text-3xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity"
@@ -37,6 +37,7 @@ export function SiteNav() {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[320px] sm:max-w-[320px] p-0">
+            <SheetTitle className="sr-only">마이페이지</SheetTitle>
             <UserDrawerContent onClose={() => {}} />
           </SheetContent>
         </Sheet>
@@ -53,8 +54,8 @@ export function SiteNav() {
         />
       </div>
 
-      {/* 메뉴 링크 + 데스크톱 프로필 */}
-      <div className="flex items-center justify-center md:justify-end gap-4 md:gap-8 text-[10px] md:text-xs font-bold tracking-widest font-mono w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0">
+      {/* 메뉴 링크 + 데스크톱 프로필 — 우측 상단 정렬 */}
+      <div className="flex items-center justify-center md:justify-end md:ml-auto gap-4 md:gap-8 text-[10px] md:text-xs font-bold tracking-widest font-mono w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0 shrink-0">
         <Link
           href="/about"
           className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
@@ -102,6 +103,7 @@ export function SiteNav() {
             </button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[320px] sm:max-w-[320px] p-0">
+            <SheetTitle className="sr-only">마이페이지</SheetTitle>
             <UserDrawerContent onClose={() => {}} />
           </SheetContent>
         </Sheet>

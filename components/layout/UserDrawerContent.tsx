@@ -31,7 +31,7 @@ export function UserDrawerContent({ onClose }: UserDrawerContentProps) {
         </SheetClose>
       </div>
 
-      {/* 프로필 + 호각 */}
+      {/* 프로필 (호각 배지는 후순위 개발로 비노출) */}
       <div className="flex items-center gap-4 mb-4 p-4 bg-muted/50 border border-border rounded-md">
         <div className="relative">
           <div className="w-16 h-16 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center">
@@ -47,10 +47,6 @@ export function UserDrawerContent({ onClose }: UserDrawerContentProps) {
         </div>
         <div>
           <p className="text-lg font-black italic">USER_7721</p>
-          <div className="mt-1 inline-flex items-center gap-1.5 bg-amber-400/90 text-black px-2 py-0.5 rounded-full text-[10px] font-black">
-            <span className="inline-block size-2.5 bg-current rounded-sm" />
-            1,240 호각
-          </div>
         </div>
       </div>
 
@@ -92,16 +88,7 @@ export function UserDrawerContent({ onClose }: UserDrawerContentProps) {
             </span>
           </Link>
         </SheetClose>
-        <SheetClose asChild>
-          <Link
-            href="/my/whistle-recharge"
-            className="flex items-center gap-4 p-4 hover:bg-primary hover:text-primary-foreground transition-all rounded-md"
-          >
-            <span className="font-mono text-[10px] font-black tracking-widest uppercase">
-              Whistle Recharge
-            </span>
-          </Link>
-        </SheetClose>
+        {/* Whistle Recharge: 호각(결제) 후순위 개발로 비노출 */}
         <div className="h-px bg-border my-4" />
         <SheetClose asChild>
           <Link

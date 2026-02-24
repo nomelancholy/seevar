@@ -40,7 +40,7 @@ components/features/: 도메인별 복합 컴포넌트(예: MatchList, DecisionC
 
 4. "See VAR" 운영 로직 (Domain Logic)
 A. 라운드 기반 라이프사이클 (Prisma)
-상태: Round 모델의 isCurrent 필드로 관리.
+상태: Round 모델의 isFocus 필드로 관리 (true=메인 노출, false=아카이브만).
 
 전환: activeBetween 등의 서버 헬퍼 함수를 통해 현재 날짜와 경기 일정을 비교하여 활성화.
 
