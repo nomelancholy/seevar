@@ -1,22 +1,27 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
+import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { deriveMatchStatus } from "@/lib/utils/match-status"
 import { sortMomentsByStartThenDuration } from "@/lib/utils/sort-moments"
 import { MatchDetailBackLink } from "@/components/matches/MatchDetailBackLink"
 import { MatchMomentCards } from "@/components/matches/MatchMomentCards"
+import { MatchRefereeRatingSectionDynamic } from "@/components/matches/MatchRefereeRatingSectionDynamic"
 import { SeeVarButtonWithModal } from "@/components/matches/SeeVarButtonWithModal"
 import { getMatchDetailPath } from "@/lib/match-url"
 
 type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string; matchNumber: string }>
 
+/** DB RefereeRole → 표시 라벨 (경기 상세 심판 그리드용) */
 const ROLE_LABEL: Record<string, string> = {
-  REFEREE: "Referee",
-  ASSISTANCE: "Assistance",
+  MAIN: "Referee",
+  ASSISTANT: "Assistance",
   WAITING: "Waiting",
   VAR: "VAR",
 }
+/** 표시 순서: 주심 → 부심 → 대기심 → VAR */
+const ROLE_DISPLAY_ORDER: (keyof typeof ROLE_LABEL)[] = ["MAIN", "ASSISTANT", "WAITING", "VAR"]
 
 export async function generateMetadata({ params }: { params: Params }) {
   const { year, leagueSlug, roundSlug, matchNumber } = await params
@@ -99,7 +104,10 @@ export default async function MatchDetailBySlugPage({
 }) {
   const { year, leagueSlug, roundSlug, matchNumber } = await params
   const { back: backParam } = await searchParams
-  const match = await resolveMatchBySlug(year, leagueSlug, roundSlug, matchNumber)
+  const [match, currentUser] = await Promise.all([
+    resolveMatchBySlug(year, leagueSlug, roundSlug, matchNumber),
+    getCurrentUser(),
+  ])
   if (!match) notFound()
 
   const matchPath = getMatchDetailPath(match)
@@ -124,10 +132,27 @@ export default async function MatchDetailBySlugPage({
       })
     : ""
 
-  const refereeByRole = Object.fromEntries(
-    match.matchReferees.map((mr) => [mr.role, mr.referee])
+  const refereesByRole = ROLE_DISPLAY_ORDER.reduce(
+    (acc, role) => {
+      acc[role] = match.matchReferees
+        .filter((mr) => mr.role === role)
+        .map((mr) => mr.referee)
+      return acc
+    },
+    {} as Record<string, { id: string; name: string; slug: string; link?: string | null }[]>
   )
   const sortedMoments = sortMomentsByStartThenDuration(match.moments ?? [])
+
+  const matchReviews =
+    status === "FINISHED" &&
+    (await prisma.refereeReview.findMany({
+      where: { matchId: match.id, status: "VISIBLE" },
+      include: {
+        user: { select: { name: true } },
+        fanTeam: { select: { name: true, emblemPath: true } },
+      },
+    }))
+  const reviewsForRating = Array.isArray(matchReviews) ? matchReviews : []
 
   return (
     <main className="py-8 md:py-12">
@@ -222,42 +247,48 @@ export default async function MatchDetailBySlugPage({
             <div className="w-full h-px bg-border my-6" />
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-3 md:gap-y-4 gap-x-4 md:gap-x-8 font-mono text-[10px] md:text-xs text-left mb-6 md:mb-8 w-full max-w-xs">
-              {(["REFEREE", "ASSISTANCE", "WAITING", "VAR"] as const).map((role) => {
-                const ref = refereeByRole[role]
+              {ROLE_DISPLAY_ORDER.map((role) => {
+                const refs = refereesByRole[role] ?? []
                 const label = ROLE_LABEL[role] ?? role
                 const isVar = role === "VAR"
-                const isMain = role === "REFEREE"
+                const isMain = role === "MAIN"
                 return (
                   <div key={role}>
                     <p className="text-muted-foreground mb-1 uppercase tracking-tighter text-[8px] md:text-[10px]">
                       {label}
                     </p>
-                    {ref ? (
-                      isMain && ref.link ? (
-                        <a
-                          href={ref.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`font-bold hover:text-primary transition-colors flex items-center gap-1 ${isVar ? "text-primary" : ""}`}
-                        >
-                          {ref.name}
-                          <ChevronRight className="size-3" />
-                        </a>
-                      ) : (ref as { slug?: string }).slug ? (
-                        <Link
-                          href={`/referees/${(ref as { slug: string }).slug}`}
-                          className={`font-bold hover:text-primary transition-colors flex items-center gap-1 ${isVar ? "text-primary" : ""}`}
-                        >
-                          {ref.name}
-                          <ChevronRight className="size-3" />
-                        </Link>
-                      ) : (
-                        <p className={`font-bold ${isVar ? "text-primary" : ""}`}>
-                          {ref.name}
-                        </p>
-                      )
-                    ) : (
+                    {refs.length === 0 ? (
                       <p className="text-muted-foreground">—</p>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
+                        {refs.map((ref, idx) => {
+                          const sep = idx > 0 ? <span className="text-muted-foreground">·</span> : null
+                          const slug = (ref as { slug?: string }).slug
+                          const refereeHref = slug
+                            ? `/referees/${slug}${matchPath ? `?back=${encodeURIComponent(matchPath)}` : ""}`
+                            : null
+                          if (refereeHref) {
+                            return (
+                              <span key={ref.id} className="inline-flex items-center gap-0.5">
+                                {sep}
+                                <Link
+                                  href={refereeHref}
+                                  className={`font-bold hover:text-primary transition-colors inline-flex items-center gap-0.5 ${isVar ? "text-primary" : ""}`}
+                                >
+                                  {ref.name}
+                                  <ChevronRight className="size-3" />
+                                </Link>
+                              </span>
+                            )
+                          }
+                          return (
+                            <span key={ref.id} className={`inline-flex items-center gap-0.5 ${isVar ? "text-primary" : ""}`}>
+                              {sep}
+                              <span className="font-bold">{ref.name}</span>
+                            </span>
+                          )
+                        })}
+                      </div>
                     )}
                   </div>
                 )
@@ -317,20 +348,46 @@ export default async function MatchDetailBySlugPage({
         </section>
       )}
 
-      <div className="mb-8 border border-border bg-card/50">
-        <div className="flex items-stretch border-b border-border">
-          <button
-            type="button"
-            className="px-4 md:px-6 py-3 font-mono text-xs font-black tracking-widest text-muted-foreground opacity-50 cursor-default"
-            disabled
-          >
-            REFEREE RATING (LOCKED)
-          </button>
+      {isFinished ? (
+        <MatchRefereeRatingSectionDynamic
+          matchId={match.id}
+          homeTeamId={match.homeTeam.id}
+          awayTeamId={match.awayTeam.id}
+          matchReferees={match.matchReferees.map((mr) => ({
+            id: mr.id,
+            role: mr.role,
+            referee: { id: mr.referee.id, name: mr.referee.name, slug: mr.referee.slug },
+          }))}
+          reviews={reviewsForRating.map((r) => ({
+            id: r.id,
+            refereeId: r.refereeId,
+            userId: r.userId,
+            rating: r.rating,
+            comment: r.comment,
+            user: { name: r.user.name },
+            fanTeamId: r.fanTeamId,
+            fanTeam: r.fanTeam
+              ? { name: r.fanTeam.name, emblemPath: r.fanTeam.emblemPath }
+              : null,
+          }))}
+          currentUserId={currentUser?.id ?? null}
+        />
+      ) : (
+        <div className="mb-8 border border-border bg-card/50">
+          <div className="flex items-stretch border-b border-border">
+            <button
+              type="button"
+              className="px-4 md:px-6 py-3 font-mono text-xs font-black tracking-widest text-muted-foreground opacity-50 cursor-default"
+              disabled
+            >
+              REFEREE RATING (LOCKED)
+            </button>
+          </div>
+          <div className="p-8 text-center font-mono text-xs text-muted-foreground">
+            심판 평가는 경기 종료 후 활성화됩니다.
+          </div>
         </div>
-        <div className="p-8 text-center font-mono text-xs text-muted-foreground">
-          심판 평가는 경기 종료 후 활성화됩니다.
-        </div>
-      </div>
+      )}
     </main>
   )
 }

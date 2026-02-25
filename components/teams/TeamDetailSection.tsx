@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { deriveMatchStatus } from "@/lib/utils/match-status"
+import { TeamMatchHistoryYearFilter } from "./TeamMatchHistoryYearFilter"
 
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "MAIN",
@@ -35,6 +36,8 @@ type Props = {
   compatibility: { high: RefereeStat | null; low: RefereeStat | null }
   assignments: RefereeStat[]
   matches: MatchRow[]
+  availableYears: number[]
+  currentYear: number | null
 }
 
 function roleCountDisplay(roleCounts: Record<string, number> | null): string {
@@ -57,6 +60,8 @@ export function TeamDetailSection({
   compatibility,
   assignments,
   matches,
+  availableYears,
+  currentYear,
 }: Props) {
   const formatDate = (d: Date | null) =>
     d
@@ -188,9 +193,12 @@ export function TeamDetailSection({
 
       {/* RIGHT: MATCH HISTORY */}
       <div className="lg:col-span-8 ledger-surface p-4 md:p-6 border border-border">
-        <h3 className="font-mono text-[10px] md:text-sm font-black tracking-widest text-muted-foreground mb-6 md:mb-8 uppercase">
-          {teamName} Match History
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 md:mb-8">
+          <h3 className="font-mono text-[10px] md:text-sm font-black tracking-widest text-muted-foreground uppercase">
+            {teamName} Match History
+          </h3>
+          <TeamMatchHistoryYearFilter availableYears={availableYears} currentYear={currentYear} />
+        </div>
         <div className="space-y-4">
           {matches.length === 0 ? (
             <p className="font-mono text-[10px] text-muted-foreground py-4">등록된 경기가 없습니다.</p>

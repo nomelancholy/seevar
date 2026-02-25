@@ -2,9 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Search, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { User } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -25,15 +23,15 @@ type SiteNavProps = { user: NavUser | null }
 
 export function SiteNav({ user }: SiteNavProps) {
   return (
-    <nav className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-8 mb-8 md:mb-12 border-b border-border pb-6 w-full">
-      <div className="flex items-center justify-between w-full md:w-auto gap-4 shrink-0">
+    <nav className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 mb-8 md:mb-12 border-b border-border pb-6 w-full">
+      <div className="flex items-center justify-between w-full md:w-auto gap-4 shrink-0 md:min-w-0">
         <Link
           href="/"
           className="text-2xl md:text-3xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity"
         >
           SEE <span className="text-primary">VAR</span>
         </Link>
-        <div className="h-8 w-px bg-border hidden md:block" aria-hidden />
+        <div className="h-8 w-px bg-border hidden md:block shrink-0 md:ml-6 lg:ml-8" aria-hidden />
         {/* 모바일: 프로필(이미지) + 우하단 엠블럼 → 드로어 */}
         <Sheet>
           <SheetTrigger asChild>
@@ -74,19 +72,8 @@ export function SiteNav({ user }: SiteNavProps) {
         </Sheet>
       </div>
 
-      {/* 검색 */}
-      <div className="relative flex-1 w-full max-w-md">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50 pointer-events-none" />
-        <Input
-          type="search"
-          placeholder="SEARCH MATCH, PLAYER, DATA..."
-          className="w-full bg-card/80 border-border pl-4 pr-10 py-2 text-xs md:text-sm font-mono focus-visible:ring-primary"
-          aria-label="검색"
-        />
-      </div>
-
-      {/* 메뉴 링크 + 데스크톱 프로필 — 우측 상단 정렬 */}
-      <div className="flex items-center justify-center md:justify-end md:ml-auto gap-4 md:gap-8 text-[10px] md:text-xs font-bold tracking-widest font-mono w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0 shrink-0">
+      {/* 메뉴 링크 — 중앙 균형 배치 */}
+      <div className="flex-1 flex items-center justify-center gap-8 md:gap-12 lg:gap-14 text-xs md:text-sm font-bold tracking-widest font-mono overflow-x-auto no-scrollbar py-2 md:py-0 min-w-0">
         <Link
           href="/about"
           className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
@@ -111,14 +98,16 @@ export function SiteNav({ user }: SiteNavProps) {
         >
           TEAMS
         </Link>
+      </div>
 
-        {/* 데스크톱: 로그인 시 Supporting + 팀(드로어) / 비로그인 시 LOG IN(링크) */}
+      {/* 데스크톱: 로그인 시 Supporting + 팀(드로어) / 비로그인 시 LOG IN(링크) */}
+      <div className="hidden md:flex items-center shrink-0 md:ml-6 lg:ml-8">
         {user ? (
           <Sheet>
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="hidden md:flex items-center gap-3 pl-4 border-l border-border cursor-pointer group"
+                className="hidden md:flex items-center gap-3 pl-6 lg:pl-8 border-l border-border cursor-pointer group"
                 aria-label="마이페이지 열기"
               >
                 <div className="flex flex-col items-end">
@@ -164,7 +153,7 @@ export function SiteNav({ user }: SiteNavProps) {
         ) : (
           <Link
             href="/login"
-            className="hidden md:flex items-center gap-3 pl-4 border-l border-border group text-muted-foreground hover:text-foreground transition-colors"
+            className="hidden md:flex items-center gap-3 pl-6 lg:pl-8 border-l border-border group text-muted-foreground hover:text-foreground transition-colors"
             aria-label="로그인 또는 회원가입"
           >
             <div className="flex flex-col items-end">

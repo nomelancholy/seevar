@@ -92,20 +92,21 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 
 ### C. 도메인 로직
 
-- [ ] **라운드 활성화**  
-       `isFocus` 전환, `activeBetween` 등 서버 헬퍼 (날짜·경기 일정 기준).
 - [x] **경기 상태**  
        SCHEDULED / LIVE / FINISHED — `playedAt` 기준: 경기 일시 전=SCHEDULED, 일시~+3시간=LIVE, 이후=FINISHED. `lib/utils/match-status.ts` 도출 + 배치(cron)로 DB 동기화. 크론 설정은 호스트 무관하게 `docs/CRON.md` 참고 (스크립트+crontab 또는 HTTP 호출).
-- [ ] **심판 통계**  
-       `lib/utils/stats.ts` (또는 `lib/services`)에서 평점·통계 계산, Prisma와 연동.
+- [x] **심판 통계**  
+       평점·통계는 심판 상세(RefereeStats·reviews 기반 평균/역할별), 팀 상세(RefereeTeamStat 또는 경기 기반 배정 집계)에서 Prisma 연동으로 표시. (`lib/utils/stats.ts` 분리는 추후 선택)
 - [x] **Server Actions (모멘트 CRUD)**  
        판정 토론 글 작성/수정/삭제 — 모멘트 생성·수정·삭제 완료. **호각 사용** mutation은 후순위.
 - [x] ** 코멘트 CRUD **  
        모멘트 코멘트: 본인 댓글 수정/삭제, Enter 전송·Shift+Enter 줄바꿈.
-- [ ] ** 심판 평가 **
-      심판 평가 시스템 (별점, 한줄평, 심판 페이지 연동)
+- [x] **심판 평가**  
+       별점(1~5)·한줄평, 경기 종료 시 평점 입력, 커뮤니티/홈·원정·제3자 팬 종합, 심판 상세 페이지 연동 완료.
 
-- [ ] ADMIN 페이지 신설
+- [ ] **ADMIN 페이지 신설**
+      경기 일정, 심판 정보, 경기 결과 등의 데이터 자동화 할 거지만 수정 혹은 수동 추가, 삭제가 필요할 경우, 신고 받은 유저등의 조치가 필요한 경우 컨트롤 할 수 있는 관리자 페이지 신설
+- [ ] **라운드 활성화**  
+       `isFocus` 전환, `activeBetween` 등 서버 헬퍼 (날짜·경기 일정 기준).
 - [ ] **클린봇 도입**  
        모멘트·댓글 등 UGC 자동 검수(욕설/스팸 등), ContentStatus·신고 연동.
 

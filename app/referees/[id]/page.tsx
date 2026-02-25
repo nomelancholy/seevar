@@ -9,7 +9,7 @@ import { RefereeAssignmentYearFilter } from "@/components/referees/RefereeAssign
 
 type Props = {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ year?: string }>
+  searchParams: Promise<{ year?: string; back?: string }>
 }
 
 const ROLE_LABEL: Record<string, string> = {
@@ -107,9 +107,17 @@ export async function generateMetadata({ params }: Props) {
   return { title: `${resolved.referee.name} | REFEREE | See VAR` }
 }
 
+function sanitizeBackUrl(back: string | undefined): string | null {
+  if (!back || typeof back !== "string") return null
+  const decoded = decodeURIComponent(back)
+  if (!decoded.startsWith("/") || decoded.includes("//")) return null
+  return decoded
+}
+
 export default async function RefereeDetailPage({ params, searchParams }: Props) {
   const { id: param } = await params
-  const { year: yearParam } = await searchParams
+  const { year: yearParam, back: backParam } = await searchParams
+  const backHref = sanitizeBackUrl(backParam ?? undefined) ?? "/referees"
   const resolved = await resolveReferee(param)
   if (!resolved) notFound()
   const { referee: rawReferee, byId } = resolved
@@ -122,7 +130,10 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
     reviews: Array<{ matchId: string; user: { name: string | null }; fanTeam: { name: string; emblemPath: string | null } | null; rating: number; comment: string | null }>
   }
 
-  if (byId) redirect(`/referees/${referee.slug}`)
+  if (byId) {
+    const backQuery = backParam ? `?back=${encodeURIComponent(backParam)}` : ""
+    redirect(`/referees/${referee.slug}${backQuery}`)
+  }
 
   const yearsFromStats = referee.stats.map((s) => s.season.year)
   const yearsFromMatches = referee.matchReferees.map(
@@ -201,7 +212,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
     <main className="py-8 md:py-12 max-w-4xl mx-auto">
       <div className="mb-6">
         <Link
-          href="/referees"
+          href={backHref}
           className="flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>

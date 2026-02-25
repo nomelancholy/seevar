@@ -14,7 +14,7 @@ export function AppLayout({
   user: LayoutUser | null
 }) {
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8 md:px-12 lg:px-16">
       <RedirectToOnboardingIfNeeded user={user} />
       <SiteNav user={user} />
       <main className="max-w-7xl mx-auto">{children}</main>

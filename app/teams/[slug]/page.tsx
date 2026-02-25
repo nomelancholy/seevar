@@ -6,7 +6,7 @@ import { TeamDetailSection } from "@/components/teams/TeamDetailSection"
 import { ChevronLeft } from "lucide-react"
 
 type Params = Promise<{ slug: string }>
-type SearchParams = Promise<{ back?: string }>
+type SearchParams = Promise<{ back?: string; year?: string }>
 
 function sanitizeBackUrl(back: string | undefined): string {
   if (!back || typeof back !== "string") return "/teams"
@@ -24,13 +24,27 @@ function paramToSlug(param: string): string {
   return `${league}-${emblemPart}`
 }
 
+async function findTeamForSlug(slug: string) {
+  const teamSlug = paramToSlug(slug)
+  let team = await prisma.team.findFirst({
+    where: slug.includes("-") ? { slug: teamSlug } : { id: slug },
+    include: { leagues: true },
+  })
+  if (!team && slug.includes("-")) {
+    const emblemPart = teamSlug.indexOf("-") >= 0 ? teamSlug.slice(teamSlug.indexOf("-") + 1) : ""
+    if (emblemPart) {
+      team = await prisma.team.findFirst({
+        where: { slug: { endsWith: emblemPart } },
+        include: { leagues: true },
+      })
+    }
+  }
+  return team
+}
+
 export async function generateMetadata({ params }: { params: Params }) {
   const { slug } = await params
-  const teamSlug = paramToSlug(slug)
-  const team = await prisma.team.findFirst({
-    where: slug.includes("-") ? { slug: teamSlug } : { id: slug },
-    select: { name: true },
-  })
+  const team = await findTeamForSlug(slug).then((t) => (t ? { name: t.name } : null))
   if (!team) return { title: "TEAM ANALYSIS | See VAR" }
   return {
     title: `${team.name} | TEAM ANALYSIS | See VAR`,
@@ -46,14 +60,15 @@ export default async function TeamDetailPage({
   searchParams: SearchParams
 }) {
   const { slug } = await params
-  const { back: backParam } = await searchParams
+  const { back: backParam, year: yearParam } = await searchParams
   const backHref = sanitizeBackUrl(backParam)
-  const teamSlug = paramToSlug(slug)
+  const filterYear =
+    yearParam != null && yearParam !== ""
+      ? parseInt(yearParam, 10)
+      : null
+  const isYearValid = filterYear == null || Number.isInteger(filterYear)
 
-  const team = await prisma.team.findFirst({
-    where: slug.includes("-") ? { slug: teamSlug } : { id: slug },
-    include: { leagues: true },
-  })
+  const team = await findTeamForSlug(slug)
   if (!team) notFound()
 
   const teamId = team.id
@@ -66,7 +81,7 @@ export default async function TeamDetailPage({
     prisma.match.findMany({
       where: { OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] },
       orderBy: { playedAt: "desc" },
-      take: 20,
+      take: 50,
       include: {
         homeTeam: true,
         awayTeam: true,
@@ -75,6 +90,50 @@ export default async function TeamDetailPage({
       },
     }),
   ])
+
+  // 배정 집계: 경기 목록(matchList)에서 심판별 배정 횟수·역할 집계 (RefereeTeamStat 미갱신 시에도 실제 경기 기준 표시)
+  const derivedByReferee = new Map<
+    string,
+    { referee: { id: string; slug: string; name: string }; totalAssignments: number; roleCounts: Record<string, number> }
+  >()
+  for (const m of matchList) {
+    for (const mr of m.matchReferees) {
+      const r = mr.referee
+      const cur = derivedByReferee.get(r.id)
+      const roleCounts: Record<string, number> = cur?.roleCounts ? { ...cur.roleCounts } : {}
+      roleCounts[mr.role] = (roleCounts[mr.role] ?? 0) + 1
+      derivedByReferee.set(r.id, {
+        referee: r,
+        totalAssignments: (cur?.totalAssignments ?? 0) + 1,
+        roleCounts,
+      })
+    }
+  }
+  const derivedAssignments = [...derivedByReferee.values()]
+    .sort((a, b) => b.totalAssignments - a.totalAssignments)
+    .map((s) => {
+      const fromStat = teamStats.find((t) => t.refereeId === s.referee.id)
+      return {
+        id: s.referee.id,
+        slug: s.referee.slug,
+        name: s.referee.name,
+        fanAverageRating: fromStat?.fanAverageRating ?? 0,
+        totalAssignments: s.totalAssignments,
+        roleCounts: s.roleCounts as Record<string, number> | null,
+      }
+    })
+
+  const assignments =
+    derivedAssignments.length > 0
+      ? derivedAssignments
+      : teamStats.map((s) => ({
+          id: s.referee.id,
+          slug: s.referee.slug,
+          name: s.referee.name,
+          fanAverageRating: s.fanAverageRating,
+          totalAssignments: s.totalAssignments,
+          roleCounts: s.roleCounts as Record<string, number> | null,
+        }))
 
   const withRating = teamStats.filter((s) => s.fanAverageRating > 0)
   const sortedByRating = [...withRating].sort((a, b) => b.fanAverageRating - a.fanAverageRating)
@@ -102,15 +161,6 @@ export default async function TeamDetailPage({
         : null,
   }
 
-  const assignments = teamStats.map((s) => ({
-    id: s.referee.id,
-    slug: s.referee.slug,
-    name: s.referee.name,
-    fanAverageRating: s.fanAverageRating,
-    totalAssignments: s.totalAssignments,
-    roleCounts: s.roleCounts as Record<string, number> | null,
-  }))
-
   const seenFixture = new Set<string>()
   const uniqueMatchList = matchList.filter((m) => {
     const key = `${m.playedAt?.getTime() ?? 0}-${m.homeTeamId}-${m.awayTeamId}`
@@ -120,7 +170,7 @@ export default async function TeamDetailPage({
   })
 
   const backPath = `/teams`
-  const matches = uniqueMatchList.map((m) => ({
+  const allMatches = uniqueMatchList.map((m) => ({
     id: m.id,
     matchPath: getMatchDetailPathWithBack(m, backPath),
     playedAt: m.playedAt,
@@ -142,6 +192,19 @@ export default async function TeamDetailPage({
       referee: { id: mr.referee.id, slug: mr.referee.slug, name: mr.referee.name },
     })),
   }))
+
+  const availableYears = [...new Set(
+    allMatches
+      .map((m) => m.playedAt != null ? new Date(m.playedAt).getFullYear() : null)
+      .filter((y): y is number => y != null)
+  )]
+  const matches =
+    isYearValid && filterYear != null
+      ? allMatches.filter((m) => {
+          const y = m.playedAt != null ? new Date(m.playedAt).getFullYear() : null
+          return y === filterYear
+        })
+      : allMatches
 
   return (
     <main className="py-8 md:py-12">
@@ -181,6 +244,8 @@ export default async function TeamDetailPage({
         compatibility={compatibility}
         assignments={assignments}
         matches={matches}
+        availableYears={availableYears}
+        currentYear={isYearValid && filterYear != null ? filterYear : null}
       />
     </main>
   )
