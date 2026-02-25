@@ -2,10 +2,11 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { prisma } from "@/lib/prisma"
+import { deriveMatchStatus } from "@/lib/utils/match-status"
 import { shortNameFromSlug } from "@/lib/team-short-names"
 import { ArchiveFilters } from "@/components/matches/ArchiveFilters"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
-import { getMatchDetailPath, type MatchForPath } from "@/lib/match-url"
+import { getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
 
 export const metadata = {
   title: "MATCH CENTER | See VAR",
@@ -254,7 +255,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
             matches.map((m) => (
               <Link
                 key={m.id}
-                href={getMatchDetailPath(m as unknown as MatchForPath)}
+                href={getMatchDetailPathWithBack(m as unknown as MatchForPath, `/matches/archive/${yearStr}/${leagueSlug}/${roundSlug}`)}
                 className="grid grid-cols-12 p-4 md:p-6 items-center match-row group"
               >
                 <div className="col-span-2">
@@ -294,25 +295,28 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                     )}
                   </div>
                   <div className="flex flex-col items-center shrink-0">
-                    {m.status === "LIVE" && m.scoreHome != null && m.scoreAway != null ? (
-                      <>
-                        <span className="text-xl md:text-2xl font-black italic tracking-tighter">
-                          {m.scoreHome} : {m.scoreAway}
-                        </span>
-                        <span className="font-mono text-[8px] text-primary font-bold">LIVE</span>
-                      </>
-                    ) : m.status === "FINISHED" && m.scoreHome != null && m.scoreAway != null ? (
-                      <>
-                        <span className="text-xl md:text-2xl font-black italic tracking-tighter">
-                          {m.scoreHome} : {m.scoreAway}
-                        </span>
-                        <span className="font-mono text-[8px] text-muted-foreground font-bold uppercase">
-                          Finished
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">VS</span>
-                    )}
+                    {(() => {
+                      const status = deriveMatchStatus(m.playedAt, { storedStatus: m.status })
+                      return status === "LIVE" && m.scoreHome != null && m.scoreAway != null ? (
+                        <>
+                          <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                            {m.scoreHome} : {m.scoreAway}
+                          </span>
+                          <span className="font-mono text-[8px] text-primary font-bold">LIVE</span>
+                        </>
+                      ) : status === "FINISHED" && m.scoreHome != null && m.scoreAway != null ? (
+                        <>
+                          <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                            {m.scoreHome} : {m.scoreAway}
+                          </span>
+                          <span className="font-mono text-[8px] text-muted-foreground font-bold uppercase">
+                            Finished
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">VS</span>
+                      )
+                    })()}
                   </div>
                   <div className="flex items-center gap-2 md:gap-3 flex-1 justify-start">
                     {(m.awayTeam as unknown as { emblemPath: string | null }).emblemPath && (

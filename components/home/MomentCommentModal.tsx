@@ -36,6 +36,7 @@ type CommentAuthor = { id: string; name: string | null }
 type CommentRow = {
   id: string
   content: string
+  mediaUrl?: string | null
   createdAt: string
   author: CommentAuthor
   replies?: CommentRow[]
@@ -49,6 +50,7 @@ type MomentDetail = {
   endMinute: number | null
   seeVarCount: number
   commentCount: number
+  author?: { id: string; name: string | null }
   match: {
     homeTeam: { name: string; emblemPath: string | null }
     awayTeam: { name: string; emblemPath: string | null }
@@ -189,9 +191,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
     setLoading(true)
     fetch(`/api/moments/${moment.momentId}`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        setDetail(data)
-      })
+      .then((data) => setDetail(data))
       .finally(() => setLoading(false))
   }, [open, moment?.momentId])
 
@@ -231,7 +231,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
               <X className="size-6" />
             </button>
           </div>
-          <div className="mt-4 flex justify-end items-center gap-4">
+          <div className="mt-4 flex flex-wrap justify-end items-center gap-3">
             <div className="text-right">
               <span className="font-mono text-[10px] text-primary font-bold block">
                 CURRENT SEE VAR
@@ -280,6 +280,25 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                       <p className="text-xs md:text-sm mt-1 text-muted-foreground leading-relaxed whitespace-pre-wrap">
                         {c.content}
                       </p>
+                      {c.mediaUrl && (
+                        <div className="mt-2 rounded overflow-hidden border border-border max-w-[280px]">
+                          {c.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={c.mediaUrl}
+                              alt=""
+                              className="w-full max-h-48 object-cover"
+                            />
+                          ) : (
+                            <video
+                              src={c.mediaUrl}
+                              controls
+                              className="w-full max-h-48"
+                              preload="metadata"
+                            />
+                          )}
+                        </div>
+                      )}
                       {c.replies && c.replies.length > 0 && (
                         <div className="mt-3 pl-4 border-l-2 border-border space-y-2">
                           {c.replies.map((r) => (

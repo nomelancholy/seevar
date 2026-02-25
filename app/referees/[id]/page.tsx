@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { prisma } from "@/lib/prisma"
-import { getMatchDetailPath } from "@/lib/match-url"
+import { getMatchDetailPathWithBack } from "@/lib/match-url"
 import { RefereeTeamRatingsExpand } from "@/components/referees/RefereeTeamRatingsExpand"
 import { RefereeMatchRow } from "@/components/referees/RefereeMatchRow"
 import { RefereeAssignmentYearFilter } from "@/components/referees/RefereeAssignmentYearFilter"
@@ -353,16 +353,19 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
               matchReviews.length > 0
                 ? matchReviews.reduce((s, r) => s + r.rating, 0) / matchReviews.length
                 : null
-            const matchPath = getMatchDetailPath({
-              roundOrder: m.roundOrder,
-              round: {
-                slug: m.round.slug,
-                league: {
-                  slug: m.round.league.slug,
-                  season: { year: m.round.league.season.year },
+            const matchPath = getMatchDetailPathWithBack(
+              {
+                roundOrder: m.roundOrder,
+                round: {
+                  slug: m.round.slug,
+                  league: {
+                    slug: m.round.league.slug,
+                    season: { year: m.round.league.season.year },
+                  },
                 },
               },
-            })
+              `/referees/${param}`
+            )
             const dateStr = m.playedAt
               ? new Date(m.playedAt).toLocaleDateString("ko-KR", {
                   year: "numeric",

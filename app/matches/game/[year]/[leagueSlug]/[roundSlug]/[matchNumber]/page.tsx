@@ -2,9 +2,11 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { prisma } from "@/lib/prisma"
+import { deriveMatchStatus } from "@/lib/utils/match-status"
+import { sortMomentsByStartThenDuration } from "@/lib/utils/sort-moments"
 import { MatchMomentCards } from "@/components/matches/MatchMomentCards"
 import { SeeVarButtonWithModal } from "@/components/matches/SeeVarButtonWithModal"
-import { getMatchDetailPath, getMatchMomentsPath } from "@/lib/match-url"
+import { getMatchDetailPath } from "@/lib/match-url"
 
 type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string; matchNumber: string }>
 
@@ -50,7 +52,7 @@ async function resolveMatchBySlug(
       awayTeam: true,
       round: { include: { league: { include: { season: true } } } },
       matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
-      moments: { orderBy: { seeVarCount: "desc" }, take: 5 },
+      moments: { orderBy: { startMinute: "asc" } },
     },
   }).catch((e: { code?: string }) => {
     if (e?.code === "P2021") return null
@@ -70,17 +72,34 @@ async function resolveMatchBySlug(
   return { ...(match ?? fallback), moments: match?.moments ?? [] }
 }
 
-export default async function MatchDetailBySlugPage({ params }: { params: Params }) {
+type SearchParams = Promise<{ back?: string }>
+
+function sanitizeBackUrl(back: string | undefined): string {
+  if (!back || typeof back !== "string") return "/matches"
+  const decoded = decodeURIComponent(back)
+  if (!decoded.startsWith("/") || decoded.includes("//")) return "/matches"
+  return decoded
+}
+
+export default async function MatchDetailBySlugPage({
+  params,
+  searchParams,
+}: {
+  params: Params
+  searchParams: SearchParams
+}) {
   const { year, leagueSlug, roundSlug, matchNumber } = await params
+  const { back: backParam } = await searchParams
   const match = await resolveMatchBySlug(year, leagueSlug, roundSlug, matchNumber)
   if (!match) notFound()
 
   const matchPath = getMatchDetailPath(match)
-  const momentsPath = getMatchMomentsPath(match)
+  const backHref = sanitizeBackUrl(backParam)
 
-  const isUpcoming = match.status === "SCHEDULED"
-  const isLive = match.status === "LIVE"
-  const isFinished = match.status === "FINISHED"
+  const status = deriveMatchStatus(match.playedAt, { storedStatus: match.status })
+  const isUpcoming = status === "SCHEDULED"
+  const isLive = status === "LIVE"
+  const isFinished = status === "FINISHED"
   const dateStr = match.playedAt
     ? new Date(match.playedAt).toLocaleDateString("ko-KR", {
         year: "numeric",
@@ -99,12 +118,13 @@ export default async function MatchDetailBySlugPage({ params }: { params: Params
   const refereeByRole = Object.fromEntries(
     match.matchReferees.map((mr) => [mr.role, mr.referee])
   )
+  const sortedMoments = sortMomentsByStartThenDuration(match.moments ?? [])
 
   return (
     <main className="py-8 md:py-12">
       <div className="mb-6">
         <Link
-          href="/matches"
+          href={backHref}
           className="flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -268,30 +288,23 @@ export default async function MatchDetailBySlugPage({ params }: { params: Params
         </div>
       </section>
 
-      {(isLive || isFinished) && match.moments.length > 0 && (
+      {(isLive || isFinished) && sortedMoments.length > 0 && (
         <section className="mb-8 md:mb-12">
           <div className="flex justify-between items-end mb-6">
             <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase">
-              {isLive ? "LIVE HOT MOMENTS" : "MATCH HOT MOMENTS"}
+              MATCH MOMENTS
             </h2>
           </div>
           <MatchMomentCards
-            moments={match.moments.slice(0, 5)}
+            moments={sortedMoments}
             match={{
               homeTeam: match.homeTeam,
               awayTeam: match.awayTeam,
               round: match.round,
             }}
             matchId={match.id}
-            showRank
             variant="hot"
           />
-          <Link
-            href={momentsPath}
-            className="inline-block mt-4 text-sm font-mono text-primary hover:underline"
-          >
-            모멘트 게시판 전체 보기 →
-          </Link>
         </section>
       )}
 

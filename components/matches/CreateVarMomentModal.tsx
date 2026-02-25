@@ -1,7 +1,10 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { X, ImageIcon, Video } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Loader2, X, ImageIcon, Video } from "lucide-react"
+import { createMoment } from "@/lib/actions/moments"
+import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
 
 type Props = {
   open: boolean
@@ -20,12 +23,16 @@ function parseMinuteValue(s: string): number | null {
 }
 
 export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
+  const router = useRouter()
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
   const [description, setDescription] = useState("")
-  const [attachedFileName, setAttachedFileName] = useState<string | null>(null)
+  const [attachedFile, setAttachedFile] = useState<File | null>(null)
+  const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [timeError, setTimeError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
 
@@ -37,13 +44,28 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
     }
   }, [open])
 
+  // 첨부 파일 미리보기용 object URL 정리
+  useEffect(() => {
+    return () => {
+      if (attachedPreviewUrl) URL.revokeObjectURL(attachedPreviewUrl)
+    }
+  }, [attachedPreviewUrl])
+
   if (!open) return null
 
   const setFileFrom = (file: File) => {
     const isImage = file.type.startsWith("image/")
     const isVideo = file.type.startsWith("video/")
-    if (isImage) setAttachedFileName(`IMAGE: ${file.name}`)
-    else if (isVideo) setAttachedFileName(`VIDEO: ${file.name}`)
+    if (!isImage && !isVideo) return
+    if (attachedPreviewUrl) URL.revokeObjectURL(attachedPreviewUrl)
+    setAttachedFile(file)
+    setAttachedPreviewUrl(URL.createObjectURL(file))
+  }
+
+  const clearAttachment = () => {
+    if (attachedPreviewUrl) URL.revokeObjectURL(attachedPreviewUrl)
+    setAttachedFile(null)
+    setAttachedPreviewUrl(null)
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: "image" | "video") => {
@@ -78,10 +100,16 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
     }
   }
 
+  const MAX_DURATION = 15
   const startValue = parseMinuteValue(startTime)
   const endValue = parseMinuteValue(endTime)
   const endBeforeStart =
     startValue != null && endValue != null && endValue <= startValue
+  const overDuration =
+    startValue != null &&
+    endValue != null &&
+    endValue > startValue &&
+    endValue - startValue > MAX_DURATION
 
   const validateTime = () => {
     if (startValue == null && endValue == null) {
@@ -92,22 +120,66 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
       setTimeError("종료 시간은 시작 시간보다 늦어야 합니다")
       return
     }
+    if (overDuration) {
+      setTimeError(`모멘트 구간은 최대 ${MAX_DURATION}분까지 가능합니다`)
+      return
+    }
     setTimeError(null)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (startTime.trim() && startValue == null) {
+      setTimeError("시작 시간 형식이 올바르지 않습니다 (예: 47 또는 45+2)")
+      return
+    }
+    if (endTime.trim() && endValue == null) {
+      setTimeError("종료 시간 형식이 올바르지 않습니다 (예: 54 또는 45+4)")
+      return
+    }
     if (endBeforeStart) {
       setTimeError("종료 시간은 시작 시간보다 늦어야 합니다")
       return
     }
-    // TODO: server action to create moment (matchId, startTime, endTime, description, media)
-    onClose()
-    setStartTime("")
-    setEndTime("")
-    setDescription("")
-    setAttachedFileName(null)
-    setTimeError(null)
+    if (overDuration) {
+      setTimeError(`모멘트 구간은 최대 ${MAX_DURATION}분까지 가능합니다`)
+      return
+    }
+    setSubmitError(null)
+    setPending(true)
+    try {
+      let mediaUrl: string | null = null
+      if (attachedFile) {
+        const formData = new FormData()
+        formData.set("file", attachedFile)
+        const uploadResult = await uploadMomentMedia(formData)
+        if (!uploadResult.ok) {
+          setSubmitError(uploadResult.error)
+          setPending(false)
+          return
+        }
+        mediaUrl = uploadResult.url
+      }
+      const result = await createMoment(matchId, {
+        description: description.trim() || null,
+        startMinute: startValue ?? null,
+        endMinute: endValue ?? null,
+        mediaUrl,
+      })
+      if (result.ok) {
+        setStartTime("")
+        setEndTime("")
+        setDescription("")
+        clearAttachment()
+        setTimeError(null)
+        onClose()
+        router.refresh()
+      } else {
+        setSubmitError(result.error)
+      }
+    } finally {
+      setPending(false)
+    }
   }
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -175,7 +247,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
                   setTimeError(null)
                 }}
                 onBlur={validateTime}
-                className={`w-full bg-[#1c1f24] border text-foreground px-3 py-2.5 font-mono text-sm focus:outline-none focus:border-primary ${endBeforeStart ? "border-destructive" : "border-border"}`}
+                className={`w-full bg-[#1c1f24] border text-foreground px-3 py-2.5 font-mono text-sm focus:outline-none focus:border-primary ${endBeforeStart || overDuration ? "border-destructive" : "border-border"}`}
                 required
               />
               {timeError && (
@@ -237,17 +309,56 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
               className="hidden"
               onChange={(e) => handleFileSelect(e, "video")}
             />
-            {attachedFileName && (
-              <p className="text-[10px] font-mono text-primary mt-1">{attachedFileName}</p>
+            {attachedFile && attachedPreviewUrl && (
+              <div className="mt-3 flex items-start gap-3 p-3 rounded border border-border bg-muted/30">
+                <div className="shrink-0 w-20 h-20 rounded overflow-hidden bg-black border border-border">
+                  {attachedFile.type.startsWith("image/") ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={attachedPreviewUrl}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : attachedFile.type.startsWith("video/") ? (
+                    <video
+                      src={attachedPreviewUrl}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                      preload="metadata"
+                    />
+                  ) : null}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-mono text-primary truncate">
+                    {attachedFile.type.startsWith("image/") ? "IMAGE" : "VIDEO"}: {attachedFile.name}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={clearAttachment}
+                    className="mt-1 text-[10px] font-mono text-muted-foreground hover:text-destructive"
+                  >
+                    첨부 제거
+                  </button>
+                </div>
+              </div>
             )}
           </div>
+
+          {submitError && (
+            <p className="text-[10px] font-mono text-destructive" role="alert">
+              {submitError}
+            </p>
+          )}
 
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full border border-border bg-primary text-primary-foreground font-black py-3 text-sm tracking-tighter italic hover:scale-[1.02] transition-transform"
+              disabled={pending}
+              className="w-full border border-border bg-primary text-primary-foreground font-black py-3 text-sm tracking-tighter italic hover:scale-[1.02] transition-transform disabled:opacity-70 inline-flex items-center justify-center gap-2"
             >
-              SEE VAR
+              {pending && <Loader2 className="size-4 shrink-0 animate-spin" />}
+              {pending ? "등록 중…" : "SEE VAR"}
             </button>
           </div>
         </form>

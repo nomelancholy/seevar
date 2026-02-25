@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import { deleteAccount } from "@/app/my/actions"
 
 export function MyInformationDangerZone() {
@@ -37,8 +38,9 @@ export function MyInformationDangerZone() {
         type="button"
         onClick={handleDelete}
         disabled={pending}
-        className="border border-destructive text-destructive px-6 py-2.5 text-[9px] md:text-[10px] font-black italic font-mono hover:bg-destructive hover:text-destructive-foreground transition-all disabled:opacity-50"
+        className="border border-destructive text-destructive px-6 py-2.5 text-[9px] md:text-[10px] font-black italic font-mono hover:bg-destructive hover:text-destructive-foreground transition-all disabled:opacity-50 inline-flex items-center gap-2"
       >
+        {pending && <Loader2 className="size-3.5 shrink-0 animate-spin" />}
         {pending
           ? "처리 중…"
           : confirm

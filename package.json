@@ -14,7 +14,8 @@
     "db:migrate:resolve": "tsx scripts/with-db-url.ts migrate resolve --applied 20260206000000_init",
     "db:studio": "prisma studio",
     "db:seed": "npx tsx prisma/seed.ts",
-    "db:backfill-team-slug": "npx tsx scripts/backfill-team-slug.ts"
+    "db:backfill-team-slug": "npx tsx scripts/backfill-team-slug.ts",
+    "cron:match-status": "npx tsx scripts/run-update-match-status.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

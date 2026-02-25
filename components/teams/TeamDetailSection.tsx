@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { deriveMatchStatus } from "@/lib/utils/match-status"
 
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "MAIN",
@@ -210,11 +211,14 @@ export function TeamDetailSection({
                         <span className="font-black italic text-base md:text-xl uppercase">{m.homeTeam.name}</span>
                       </div>
                       <span className="text-2xl md:text-4xl font-black italic tracking-tighter">
-                        {m.status === "LIVE" && m.scoreHome != null && m.scoreAway != null
-                          ? `${m.scoreHome} : ${m.scoreAway}`
-                          : m.status === "FINISHED" && m.scoreHome != null && m.scoreAway != null
+                        {(() => {
+                          const status = deriveMatchStatus(m.playedAt, { storedStatus: m.status })
+                          return status === "LIVE" && m.scoreHome != null && m.scoreAway != null
                             ? `${m.scoreHome} : ${m.scoreAway}`
-                            : "VS"}
+                            : status === "FINISHED" && m.scoreHome != null && m.scoreAway != null
+                              ? `${m.scoreHome} : ${m.scoreAway}`
+                              : "VS"
+                        })()}
                       </span>
                       <div className="flex items-center gap-2 md:gap-3">
                         {m.awayTeam.emblemPath && (

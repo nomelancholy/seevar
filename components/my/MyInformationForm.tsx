@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import { updateProfile, uploadProfileImage } from "@/app/my/actions"
 
 type Team = { id: string; name: string; emblemPath: string | null }
@@ -135,7 +136,12 @@ export function MyInformationForm({
               <circle cx="12" cy="7" r="4" />
             </svg>
           )}
-          <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div
+            className={`absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 transition-opacity ${imagePending ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+          >
+            {imagePending ? (
+              <Loader2 className="size-6 text-white animate-spin shrink-0" />
+            ) : null}
             <span className="text-[7px] md:text-[8px] font-black font-mono uppercase text-white">
               {imagePending ? "업로드 중…" : "사진 변경"}
             </span>
@@ -215,8 +221,9 @@ export function MyInformationForm({
         <button
           type="submit"
           disabled={pending}
-          className="w-full md:w-auto border border-border bg-primary text-primary-foreground px-8 md:px-12 py-3 text-[10px] md:text-xs font-black italic tracking-tighter uppercase hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50"
+          className="w-full md:w-auto border border-border bg-primary text-primary-foreground px-8 md:px-12 py-3 text-[10px] md:text-xs font-black italic tracking-tighter uppercase hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50 inline-flex items-center justify-center gap-2"
         >
+          {pending && <Loader2 className="size-4 shrink-0 animate-spin" />}
           {pending ? "저장 중…" : "SAVE CHANGES"}
         </button>
       </div>

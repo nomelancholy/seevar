@@ -8,6 +8,7 @@ export async function GET(_request: Request, { params }: { params: Params }) {
   const moment = await prisma.moment.findUnique({
     where: { id: momentId },
     include: {
+      author: { select: { id: true, name: true } },
       match: {
         include: {
           homeTeam: true,

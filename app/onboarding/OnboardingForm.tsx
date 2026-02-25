@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -96,9 +97,10 @@ export function OnboardingForm({ teams }: Props) {
 
       <Button
         type="submit"
-        className="w-full mt-8 font-black text-sm py-6"
+        className="w-full mt-8 font-black text-sm py-6 gap-2"
         disabled={pending}
       >
+        {pending && <Loader2 className="size-5 shrink-0 animate-spin" />}
         {pending ? "저장 중..." : "START SEE VAR"}
       </Button>
     </form>

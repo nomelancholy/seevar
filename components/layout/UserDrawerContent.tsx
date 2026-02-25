@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { User, X } from "lucide-react"
+import { Loader2, User, X } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { SheetClose } from "@/components/ui/sheet"
 import {
@@ -25,10 +25,15 @@ type UserDrawerContentProps = {
 
 export function UserDrawerContent({ user, onClose }: UserDrawerContentProps) {
   const [signOutOpen, setSignOutOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
 
   async function handleSignOut() {
-    setSignOutOpen(false)
-    await signOut({ callbackUrl: "/" })
+    setSigningOut(true)
+    try {
+      await signOut({ callbackUrl: "/" })
+    } finally {
+      setSigningOut(false)
+    }
   }
 
   if (!user) {
@@ -198,10 +203,12 @@ export function UserDrawerContent({ user, onClose }: UserDrawerContentProps) {
               </Button>
               <Button
                 type="button"
-                className="font-mono text-[10px] font-black uppercase bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="font-mono text-[10px] font-black uppercase bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"
                 onClick={handleSignOut}
+                disabled={signingOut}
               >
-                로그아웃
+                {signingOut && <Loader2 className="size-4 shrink-0 animate-spin" />}
+                {signingOut ? "로그아웃 중…" : "로그아웃"}
               </Button>
             </DialogFooter>
           </DialogContent>

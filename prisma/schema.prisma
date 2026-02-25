@@ -316,6 +316,8 @@ model Moment {
   description   String?        @db.Text
   startMinute   Int?
   endMinute     Int?
+  /** 구간 길이(분). 정렬·검증용. endMinute - startMinute, 최대 15 */
+  duration      Int            @default(0)
   mediaUrl      String?
 
   comments      Comment[]
@@ -333,6 +335,7 @@ model Moment {
 model Comment {
   id            String         @id @default(cuid())
   content       String         @db.Text
+  mediaUrl      String?        // 첨부 사진·영상 URL (첫 댓글 등)
   momentId      String
   moment        Moment         @relation(fields: [momentId], references: [id], onDelete: Cascade)
   userId        String

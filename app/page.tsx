@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { shortNameFromSlug } from "@/lib/team-short-names"
-import { getMatchDetailPath } from "@/lib/match-url"
+import { getMatchDetailPathWithBack } from "@/lib/match-url"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { LeagueMatchesSection } from "@/components/home/LeagueMatchesSection"
 import { HomeEmptyState } from "@/components/home/HomeEmptyState"
@@ -64,7 +64,7 @@ export default async function HomePage() {
       : ""
     return {
       id: m.id,
-      matchPath: getMatchDetailPath(m),
+      matchPath: getMatchDetailPathWithBack(m, "/"),
       date: dateStr,
       timeStr,
       venue: m.venue ?? "",

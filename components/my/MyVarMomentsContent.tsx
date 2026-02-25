@@ -12,7 +12,7 @@ export type MomentForMy = {
   createdAt: string
   matchTitle: string
   leagueRound: string
-  momentsPath: string
+  matchDetailPath: string
   isArchived: boolean
 }
 
@@ -119,7 +119,7 @@ export function MyVarMomentsContent({
                 </span>
               </div>
               <Link
-                href={mom.momentsPath}
+                href={mom.matchDetailPath}
                 className="text-primary font-black italic flex items-center gap-1 hover:underline"
               >
                 DETAILS

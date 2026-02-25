@@ -60,8 +60,6 @@ type Props = {
   moments: MomentForCard[]
   match: MatchInfoForCards
   matchId: string
-  /** Match detail: show rank badge and hot-moment-card style */
-  showRank?: boolean
   /** Moments list page: grid + description */
   variant?: "hot" | "list"
 }
@@ -70,7 +68,6 @@ export function MatchMomentCards({
   moments,
   match,
   matchId,
-  showRank = false,
   variant = "hot",
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
@@ -82,6 +79,14 @@ export function MatchMomentCards({
   }
 
   if (moments.length === 0) return null
+
+  // SEE VAR 수 상위 5개 id (hot variant에서 HOT 태그용)
+  const hotMomentIds = new Set(
+    [...moments]
+      .sort((a, b) => (b.seeVarCount ?? 0) - (a.seeVarCount ?? 0))
+      .slice(0, 5)
+      .map((m) => m.id)
+  )
 
   const gridClass =
     variant === "list"
@@ -97,6 +102,7 @@ export function MatchMomentCards({
             variant === "list"
               ? "ledger-surface p-4 rounded-md border border-border hover:border-primary transition-colors text-left cursor-pointer w-full"
               : "hot-moment-card block w-full text-left cursor-pointer"
+          const isHot = variant === "hot" && hotMomentIds.has(mom.id)
 
           return (
             <button
@@ -105,7 +111,6 @@ export function MatchMomentCards({
               onClick={() => openModal(item)}
               className={cardClass}
             >
-              {showRank && <div className="rank-badge">{i + 1}</div>}
               {variant === "list" && (
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-mono text-primary font-bold">
@@ -120,13 +125,22 @@ export function MatchMomentCards({
               )}
               {variant === "hot" && (
                 <>
-                  <div className="font-black italic text-xs md:text-sm mb-1">
-                    {mom.title ?? `${mom.startMinute ?? 0}' ~ ${mom.endMinute ?? 0}'`}
+                  {isHot && (
+                    <div className="absolute -top-2.5 -left-2.5 bg-primary text-primary-foreground font-black italic px-2 py-0.5 text-[10px] z-10">
+                      HOT
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-xs md:text-sm font-mono font-semibold text-foreground mb-1.5">
+                    <span>SEE VAR {mom.seeVarCount.toLocaleString()}</span>
+                    <span className="flex items-center gap-1.5">
+                      <MessageCircle className="size-4" />
+                      {mom.commentCount}
+                    </span>
                   </div>
-                  <div className="text-primary font-bold font-mono text-[10px] md:text-xs mb-2 md:mb-3">
+                  <div className="text-primary font-bold font-mono text-[10px] md:text-xs">
                     {mom.startMinute != null && mom.endMinute != null
                       ? `${mom.startMinute}' ~ ${mom.endMinute}'`
-                      : mom.title}
+                      : mom.title ?? "—"}
                   </div>
                 </>
               )}
@@ -135,33 +149,15 @@ export function MatchMomentCards({
                   {mom.description}
                 </p>
               )}
-              <div
-                className={
-                  variant === "list"
-                    ? "flex justify-between items-center text-[10px] font-mono text-muted-foreground"
-                    : "flex justify-between items-center"
-                }
-              >
-                <span
-                  className={
-                    variant === "list"
-                      ? ""
-                      : "text-[8px] md:text-[10px] font-mono text-muted-foreground"
-                  }
-                >
-                  SEE VAR {mom.seeVarCount.toLocaleString()}
-                </span>
-                <span
-                  className={
-                    variant === "list"
-                      ? "flex items-center gap-1"
-                      : "text-[8px] md:text-[10px] font-mono text-muted-foreground"
-                  }
-                >
-                  <MessageCircle className="size-3" />
-                  {mom.commentCount}
-                </span>
-              </div>
+              {variant === "list" && (
+                <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground">
+                  <span>SEE VAR {mom.seeVarCount.toLocaleString()}</span>
+                  <span className="flex items-center gap-1">
+                    <MessageCircle className="size-3" />
+                    {mom.commentCount}
+                  </span>
+                </div>
+              )}
             </button>
           )
         })}

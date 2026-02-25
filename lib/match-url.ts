@@ -15,6 +15,9 @@ export function getMatchDetailPath(match: MatchForPath): string {
   return `/matches/game/${year}/${leagueSlug}/${roundSlug}/${match.roundOrder}`
 }
 
-export function getMatchMomentsPath(match: MatchForPath): string {
-  return `${getMatchDetailPath(match)}/moments`
+/** 경기 상세 링크 + 이전 페이지로 돌아가기용 back 쿼리 (진입 경로별 뒤로가기용) */
+export function getMatchDetailPathWithBack(match: MatchForPath, backPath: string): string {
+  const path = getMatchDetailPath(match)
+  const safe = backPath.startsWith("/") && !backPath.includes("//") ? backPath : "/matches"
+  return `${path}?back=${encodeURIComponent(safe)}`
 }

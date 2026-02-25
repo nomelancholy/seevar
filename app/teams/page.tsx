@@ -2,7 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { getMatchDetailPath } from "@/lib/match-url"
+import { getMatchDetailPathWithBack } from "@/lib/match-url"
 import { TeamDetailSection } from "@/components/teams/TeamDetailSection"
 
 export const metadata = {
@@ -56,7 +56,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Search
     high: null,
     low: null,
   }
-  let assignments: { id: string; name: string; fanAverageRating: number; totalAssignments: number; roleCounts: Record<string, number> | null }[] = []
+  let assignments: { id: string; slug: string; name: string; fanAverageRating: number; totalAssignments: number; roleCounts: Record<string, number> | null }[] = []
   let matches: {
     id: string
     matchPath: string
@@ -139,7 +139,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Search
 
       matches = uniqueMatchList.map((m) => ({
         id: m.id,
-        matchPath: getMatchDetailPath(m),
+        matchPath: getMatchDetailPathWithBack(m, teamParam ? `/teams?team=${encodeURIComponent(teamParam)}` : "/teams"),
         playedAt: m.playedAt,
         status: m.status,
         scoreHome: m.scoreHome,

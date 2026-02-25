@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { getMatchMomentsPath } from "@/lib/match-url"
+import { getMatchDetailPathWithBack } from "@/lib/match-url"
 import { MyVarMomentsContent } from "@/components/my/MyVarMomentsContent"
 
 type MomentWithMatch = {
@@ -86,16 +86,19 @@ export default async function MyVarMomentsPage() {
     createdAt: m.createdAt.toISOString(),
     matchTitle: `${m.match.homeTeam.name} vs ${m.match.awayTeam.name}`,
     leagueRound: `${m.match.round.league.name} | ROUND ${m.match.round.number}`,
-    momentsPath: getMatchMomentsPath({
-      roundOrder: m.match.roundOrder,
-      round: {
-        slug: m.match.round.slug,
-        league: {
-          slug: m.match.round.league.slug,
-          season: { year: m.match.round.league.season.year },
+    matchDetailPath: getMatchDetailPathWithBack(
+      {
+        roundOrder: m.match.roundOrder,
+        round: {
+          slug: m.match.round.slug,
+          league: {
+            slug: m.match.round.league.slug,
+            season: { year: m.match.round.league.season.year },
+          },
         },
       },
-    }),
+      "/my/var-moments"
+    ),
     isArchived: m.match.playedAt
       ? new Date(m.match.playedAt) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       : false,
@@ -109,16 +112,19 @@ export default async function MyVarMomentsPage() {
     createdAt: m.createdAt.toISOString(),
     matchTitle: `${m.match.homeTeam.name} vs ${m.match.awayTeam.name}`,
     leagueRound: `${m.match.round.league.name} | ROUND ${m.match.round.number}`,
-    momentsPath: getMatchMomentsPath({
-      roundOrder: m.match.roundOrder,
-      round: {
-        slug: m.match.round.slug,
-        league: {
-          slug: m.match.round.league.slug,
-          season: { year: m.match.round.league.season.year },
+    matchDetailPath: getMatchDetailPathWithBack(
+      {
+        roundOrder: m.match.roundOrder,
+        round: {
+          slug: m.match.round.slug,
+          league: {
+            slug: m.match.round.league.slug,
+            season: { year: m.match.round.league.season.year },
+          },
         },
       },
-    }),
+      "/my/var-moments"
+    ),
     isArchived: m.match.playedAt
       ? new Date(m.match.playedAt) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       : false,

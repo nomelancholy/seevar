@@ -30,22 +30,22 @@
 
 `_reference_ui/` 에 있는 HTML을 Next.js 페이지/기능으로 이전하는 기준입니다.
 
-| Reference 파일          | 예상 경로/기능           | 비고                                              |
-| ----------------------- | ------------------------ | ------------------------------------------------- |
-| `index.html`            | `/` (홈)                 | FOCUS ROUND, HOT MOMENTS, 네비·프로필·유저 드로어 |
-| `about.html`            | `/about`                 | 소개                                              |
-| `login.html`            | `/login`                 | 로그인                                            |
-| `onboarding.html`       | `/onboarding`            | 온보딩                                            |
-| `matches.html`          | `/matches`               | 경기 목록(아카이브)                               |
-| `match_upcoming.html`   | `/matches/[id]` (예정)   | 경기 상세 — 예정                                  |
-| `match_live.html`       | `/matches/[id]` (라이브) | 경기 상세 — 라이브                                |
-| `match_finished.html`   | `/matches/[id]` (종료)   | 경기 상세 — 종료                                  |
-| `referee_list.html`     | `/referees`              | 심판 목록                                         |
-| `referee.html`          | `/referees/[id]`         | 심판 상세·통계                                    |
-| `teams.html`            | `/teams`                 | 팀 목록                                           |
-| `supporters.html`       | 서포터즈 관련            | 필요 시 라우트 추가                               |
-| `my_information.html`   | 마이페이지 / 설정        | 유저 드로어 또는 `/my`                            |
-| `my_var_moments.html`   | 내 VAR 모멘트            | 마이페이지 내                                     |
+| Reference 파일          | 예상 경로/기능           | 비고                                                |
+| ----------------------- | ------------------------ | --------------------------------------------------- |
+| `index.html`            | `/` (홈)                 | FOCUS ROUND, HOT MOMENTS, 네비·프로필·유저 드로어   |
+| `about.html`            | `/about`                 | 소개                                                |
+| `login.html`            | `/login`                 | 로그인                                              |
+| `onboarding.html`       | `/onboarding`            | 온보딩                                              |
+| `matches.html`          | `/matches`               | 경기 목록(아카이브)                                 |
+| `match_upcoming.html`   | `/matches/[id]` (예정)   | 경기 상세 — 예정                                    |
+| `match_live.html`       | `/matches/[id]` (라이브) | 경기 상세 — 라이브                                  |
+| `match_finished.html`   | `/matches/[id]` (종료)   | 경기 상세 — 종료                                    |
+| `referee_list.html`     | `/referees`              | 심판 목록                                           |
+| `referee.html`          | `/referees/[id]`         | 심판 상세·통계                                      |
+| `teams.html`            | `/teams`                 | 팀 목록                                             |
+| `supporters.html`       | 서포터즈 관련            | 필요 시 라우트 추가                                 |
+| `my_information.html`   | 마이페이지 / 설정        | 유저 드로어 또는 `/my`                              |
+| `my_var_moments.html`   | 내 VAR 모멘트            | 마이페이지 내                                       |
 | `whistle_recharge.html` | 호각 충전                | **후순위** — 일산 호각(결제) 연동 시 추가 개발 예정 |
 
 ---
@@ -66,16 +66,16 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 ### A. 기반 작업
 
 - [x] **Prisma 스키마 보강**  
-      Referee, MatchReferee, User 도메인 모델 추가. `MatchStatus`(SCHEDULED/LIVE/FINISHED), `RefereeRole` enum. Round `isFocus` (메인 노출 여부), Match `status` → enum 적용. `prisma generate` 완료.
+       Referee, MatchReferee, User 도메인 모델 추가. `MatchStatus`(SCHEDULED/LIVE/FINISHED), `RefereeRole` enum. Round `isFocus` (메인 노출 여부), Match `status` → enum 적용. `prisma generate` 완료.
 - [x] Docker Compose 활용해 PostgreSQL DB 생성
 - [x] **DB 시드**  
-      `prisma/seed.ts`: 리그(K1/K2), 라운드(5라운드 isFocus=true, 1라운드 isFocus=false), 팀(**TEAM_LIST.md** 순서·정확한 팀명+엠블럼), 경기 3건, 심판(**REFEREE_LINK.md** 파싱, name+**link** 나무위키), MatchReferee 샘플. Referee에 **link** 컬럼 추가. `npm run db:seed` (DB 연결 후 `npx prisma db push` 선행).
+       `prisma/seed.ts`: 리그(K1/K2), 라운드(5라운드 isFocus=true, 1라운드 isFocus=false), 팀(**TEAM_LIST.md** 순서·정확한 팀명+엠블럼), 경기 3건, 심판(**REFEREE_LINK.md** 파싱, name+**link** 나무위키), MatchReferee 샘플. Referee에 **link** 컬럼 추가. `npm run db:seed` (DB 연결 후 `npx prisma db push` 선행).
 - [x] **Shadcn UI 도입**  
-      `components/ui` 원자 컴포넌트(Button, Input, Sheet), reference 디자인 토큰(ledger)을 Shadcn CSS 변수에 매핑.
+       `components/ui` 원자 컴포넌트(Button, Input, Sheet), reference 디자인 토큰(ledger)을 Shadcn CSS 변수에 매핑.
 - [x] **공통 레이아웃**  
-      네비게이션(SiteNav), 검색, 프로필 트리거, 유저 드로어(Supporting 팀·My Information/VAR Moments·로그아웃). **호각·Whistle Recharge**는 후순위로 비노출.
+       네비게이션(SiteNav), 검색, 프로필 트리거, 유저 드로어(Supporting 팀·My Information/VAR Moments·로그아웃). **호각·Whistle Recharge**는 후순위로 비노출.
 - [x] **인증 준비**  
-      NextAuth.js(v4) + 네이버 로그인, Prisma 어댑터(Account/Session). 로그인 → 온보딩 연동, `/onboarding` 비로그인 시 `/login` 리다이렉트. `.env`에 `AUTH_SECRET`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 필요.
+       NextAuth.js(v4) + 네이버 로그인, Prisma 어댑터(Account/Session). 로그인 → 온보딩 연동, `/onboarding` 비로그인 시 `/login` 리다이렉트. `.env`에 `AUTH_SECRET`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 필요.
 
 ### B. 페이지 이전 (Reference UI → App Router)
 
@@ -93,52 +93,48 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 ### C. 도메인 로직
 
 - [ ] **라운드 활성화**  
-      `isFocus` 전환, `activeBetween` 등 서버 헬퍼 (날짜·경기 일정 기준).
-- [ ] **경기 상태**  
-      SCHEDULED / LIVE / FINISHED enum 및 표시 로직.
+       `isFocus` 전환, `activeBetween` 등 서버 헬퍼 (날짜·경기 일정 기준).
+- [x] **경기 상태**  
+       SCHEDULED / LIVE / FINISHED — `playedAt` 기준: 경기 일시 전=SCHEDULED, 일시~+3시간=LIVE, 이후=FINISHED. `lib/utils/match-status.ts` 도출 + 배치(cron)로 DB 동기화. 크론 설정은 호스트 무관하게 `docs/CRON.md` 참고 (스크립트+crontab 또는 HTTP 호출).
 - [ ] **심판 통계**  
-      `lib/utils/stats.ts` (또는 `lib/services`)에서 평점·통계 계산, Prisma와 연동.
-- [ ] **Server Actions**  
-      판정 토론 글 작성/수정/삭제. **호각 사용** mutation은 후순위.
+       `lib/utils/stats.ts` (또는 `lib/services`)에서 평점·통계 계산, Prisma와 연동.
+- [x] **Server Actions (모멘트 CRUD)**  
+       판정 토론 글 작성/수정/삭제 — 모멘트 생성·수정·삭제 완료. **호각 사용** mutation은 후순위.
+- [ ] ** 코멘트 CRUD **  
+       코멘트 CRUD
 
-### D. AI (See VAR)
-
-- [ ] **Gemini 연동**  
-      `lib/ai/gemini.ts` (또는 동일 목적 모듈).
-- [ ] **판정 분석 서비스**  
-      AiDecisionAnalysisService, IFAB 규정 번호·카테고리 포함 프롬프트.
-- [ ] **서버 액션 연동**  
-      분석 요청을 서버 액션에서 호출.
+- [ ] **클린봇 도입**  
+       모멘트·댓글 등 UGC 자동 검수(욕설/스팸 등), ContentStatus·신고 연동.
 
 ### E. 데이터·보안
 
 - [ ] **Zod 스키마**  
-      폼·API 요청 검증.
+       폼·API 요청 검증.
 - [ ] **에러 처리**  
-      `error.tsx`, try-catch, 검증 실패 시 사용자 메시지.
+       `error.tsx`, try-catch, 검증 실패 시 사용자 메시지.
 - [ ] **이미지**  
-      팀 로고·하이라이트 `next/image` 최적화.
+       팀 로고·하이라이트 `next/image` 최적화.
 
 ### F. 성능·운영
 
 - [ ] **캐싱**  
-      `unstable_cache`, `revalidatePath` 적절히 사용.
+       `unstable_cache`, `revalidatePath` 적절히 사용.
 - [ ] **Prisma**  
-      `lib/prisma.ts` 싱글톤 유지, N+1 방지 `include` 사용.
+       `lib/prisma.ts` 싱글톤 유지, N+1 방지 `include` 사용.
 
 ---
 
 ## 6. 데이터 소스 (DB 시드 vs Fallback)
 
-| 화면/섹션 | 데이터 출처 | 비고 |
-|-----------|-------------|------|
-| **홈 — K1/K2 라운드 경기** | DB 시드 | `round number: 1` + matches. 시드에서 K1 1라운드 6경기, K2 1라운드 8경기 생성. **DB에 라운드/경기 없으면** → `LeagueMatchesSection`의 **K1_FALLBACK / K2_FALLBACK** 하드코딩 표시. |
-| **홈 — HOT MOMENTS** | DB 시드 | `prisma.moment.findMany`. **Moment 테이블 없거나 비어 있으면** → `HotMomentsSection`의 **FALLBACK_MOMENTS** 하드코딩(서울vs울산 등, `matchId` 빈 문자열 → 클릭 시 `/matches`로 이동). |
-| **아카이브** (`/matches`) | DB 시드 | `prisma.match.findMany` + moments. 전부 DB. |
-| **경기 상세** (`/matches/[id]`) | DB 시드 | `prisma.match.findUnique` + matchReferees, moments. |
-| **모멘트 게시판** (`/matches/[id]/moments`) | DB 시드 | 해당 경기의 `match.moments`. |
-| **심판 목록/상세** (`/referees`, `/referees/[id]`) | DB 시드 | `prisma.referee` (시드: REFEREE_LINK.md 파싱). |
-| **팀 목록** (`/teams`) | DB 시드 | `prisma.team.findMany`. |
+| 화면/섹션                                          | 데이터 출처 | 비고                                                                                                                                                                                  |
+| -------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **홈 — K1/K2 라운드 경기**                         | DB 시드     | `round number: 1` + matches. 시드에서 K1 1라운드 6경기, K2 1라운드 8경기 생성. **DB에 라운드/경기 없으면** → `LeagueMatchesSection`의 **K1_FALLBACK / K2_FALLBACK** 하드코딩 표시.    |
+| **홈 — HOT MOMENTS**                               | DB 시드     | `prisma.moment.findMany`. **Moment 테이블 없거나 비어 있으면** → `HotMomentsSection`의 **FALLBACK_MOMENTS** 하드코딩(서울vs울산 등, `matchId` 빈 문자열 → 클릭 시 `/matches`로 이동). |
+| **아카이브** (`/matches`)                          | DB 시드     | `prisma.match.findMany` + moments. 전부 DB.                                                                                                                                           |
+| **경기 상세** (`/matches/[id]`)                    | DB 시드     | `prisma.match.findUnique` + matchReferees, moments.                                                                                                                                   |
+| **모멘트 게시판** (`/matches/[id]/moments`)        | DB 시드     | 해당 경기의 `match.moments`.                                                                                                                                                          |
+| **심판 목록/상세** (`/referees`, `/referees/[id]`) | DB 시드     | `prisma.referee` (시드: REFEREE_LINK.md 파싱).                                                                                                                                        |
+| **팀 목록** (`/teams`)                             | DB 시드     | `prisma.team.findMany`.                                                                                                                                                               |
 
 **인증(네이버 로그인) 설정**
 
@@ -165,12 +161,18 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 
 일산 호각(결제) 관련 기능은 추후 연동 시 구현합니다.
 
-| 항목 | 비고 |
-|------|------|
-| **호각 잔액 표시** | 유저 드로어·마이페이지 내 호각 배지 — 현재 비노출 |
-| **Whistle Recharge** | `/my/whistle-recharge` 페이지·드로어 메뉴 — 현재 비노출 |
-| **호각 결제/충전** | 결제 연동 후 개발 |
-| **호각 사용 mutation** | Server Actions 내 호각 차감 등 — 후순위 |
+| 항목                   | 비고                                                    |
+| ---------------------- | ------------------------------------------------------- |
+| **호각 잔액 표시**     | 유저 드로어·마이페이지 내 호각 배지 — 현재 비노출       |
+| **Whistle Recharge**   | `/my/whistle-recharge` 페이지·드로어 메뉴 — 현재 비노출 |
+| **호각 결제/충전**     | 결제 연동 후 개발                                       |
+| **호각 사용 mutation** | Server Actions 내 호각 차감 등 — 후순위                 |
+
+**AI (See VAR)** — 후순위
+
+- [ ] **Gemini 연동** — `lib/ai/gemini.ts` (또는 동일 목적 모듈).
+- [ ] **판정 분석 서비스** — AiDecisionAnalysisService, IFAB 규정 번호·카테고리 포함 프롬프트.
+- [ ] **서버 액션 연동** — 분석 요청을 서버 액션에서 호출.
 
 ---
 
@@ -182,7 +184,7 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 | 2026-02-20 | Prisma 스키마 보강: MatchStatus/RefereeRole enum, Referee, MatchReferee, User 모델 추가. League–Team 관계, Round unique(leagueId, number) 등 보완.                                |
 | 2026-02-20 | DB 시드: prisma/seed.ts 작성. K League 1/2, 팀(엠블럼 경로), 라운드 5, 경기 3종, 심판 3명·MatchReferee. Team.slug 추가. package.json에 db:seed, prisma.seed 설정.                 |
 | 2026-02-20 | 시드·스키마 정리: 팀명 TEAM_LIST.md 기준으로 수정(전북 현대 모터스, 제주 SK FC, 충북 청주 FC 등). Referee.link(나무위키) 추가, REFEREE_LINK.md 파싱으로 심판 전원 name+link 시드. |
-| 2026-02-06 | 데이터 소스 정리: 홈 K1/K2·HOT MOMENTS는 DB 비었을 때 Fallback 하드코딩 사용. progress.md §6 데이터 소스 표 추가.                                                                  |
+| 2026-02-06 | 데이터 소스 정리: 홈 K1/K2·HOT MOMENTS는 DB 비었을 때 Fallback 하드코딩 사용. progress.md §6 데이터 소스 표 추가.                                                                 |
 
 ---
 
