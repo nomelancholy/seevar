@@ -54,6 +54,13 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     >
   >[number]
 
+  const ROLE_LABEL: Record<string, string> = {
+    MAIN: "MAIN",
+    ASSISTANT: "ASST",
+    VAR: "VAR",
+    WAITING: "4TH",
+  }
+
   type MatchWithRound = Awaited<
     ReturnType<
       typeof prisma.match.findMany<{
@@ -61,6 +68,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           homeTeam: true
           awayTeam: true
           round: { include: { league: true } }
+          matchReferees: { include: { referee: true }; orderBy: { role: "asc" } }
         }
       }>
     >
@@ -136,6 +144,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           homeTeam: true,
           awayTeam: true,
           round: { include: { league: { include: { season: true } } } },
+          matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
         },
       }),
       prisma.moment
@@ -281,55 +290,68 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                         : "K2"}
                   </span>
                 </div>
-                <div className="col-span-7 flex items-center justify-center gap-4 md:gap-8">
-                  <div className="flex items-center gap-2 md:gap-3 flex-1 justify-end">
-                    <span className="font-black italic text-sm md:text-lg uppercase truncate">
-                      {m.homeTeam.name}
-                    </span>
-                    {(m.homeTeam as unknown as { emblemPath: string | null }).emblemPath && (
-                      <img
-                        src={(m.homeTeam as unknown as { emblemPath: string | null }).emblemPath!}
-                        alt=""
-                        className="w-6 h-6 md:w-8 md:h-8 shrink-0"
-                      />
-                    )}
+                <div className="col-span-7 flex flex-col gap-2">
+                  <div className="flex items-center justify-center gap-4 md:gap-8">
+                    <div className="flex items-center gap-2 md:gap-3 flex-1 justify-end">
+                      <span className="font-black italic text-sm md:text-lg uppercase truncate">
+                        {m.homeTeam.name}
+                      </span>
+                      {(m.homeTeam as unknown as { emblemPath: string | null }).emblemPath && (
+                        <img
+                          src={(m.homeTeam as unknown as { emblemPath: string | null }).emblemPath!}
+                          alt=""
+                          className="w-6 h-6 md:w-8 md:h-8 shrink-0"
+                        />
+                      )}
+                    </div>
+                    <div className="flex flex-col items-center shrink-0">
+                      {(() => {
+                        const status = deriveMatchStatus(m.playedAt, { storedStatus: m.status })
+                        return status === "LIVE" && m.scoreHome != null && m.scoreAway != null ? (
+                          <>
+                            <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                              {m.scoreHome} : {m.scoreAway}
+                            </span>
+                            <span className="font-mono text-[8px] text-primary font-bold">LIVE</span>
+                          </>
+                        ) : status === "FINISHED" && m.scoreHome != null && m.scoreAway != null ? (
+                          <>
+                            <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                              {m.scoreHome} : {m.scoreAway}
+                            </span>
+                            <span className="font-mono text-[8px] text-muted-foreground font-bold uppercase">
+                              Finished
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">VS</span>
+                        )
+                      })()}
+                    </div>
+                    <div className="flex items-center gap-2 md:gap-3 flex-1 justify-start">
+                      {(m.awayTeam as unknown as { emblemPath: string | null }).emblemPath && (
+                        <img
+                          src={(m.awayTeam as unknown as { emblemPath: string | null }).emblemPath!}
+                          alt=""
+                          className="w-6 h-6 md:w-8 md:h-8 shrink-0"
+                        />
+                      )}
+                      <span className="font-black italic text-sm md:text-lg uppercase truncate">
+                        {m.awayTeam.name}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-center shrink-0">
-                    {(() => {
-                      const status = deriveMatchStatus(m.playedAt, { storedStatus: m.status })
-                      return status === "LIVE" && m.scoreHome != null && m.scoreAway != null ? (
-                        <>
-                          <span className="text-xl md:text-2xl font-black italic tracking-tighter">
-                            {m.scoreHome} : {m.scoreAway}
-                          </span>
-                          <span className="font-mono text-[8px] text-primary font-bold">LIVE</span>
-                        </>
-                      ) : status === "FINISHED" && m.scoreHome != null && m.scoreAway != null ? (
-                        <>
-                          <span className="text-xl md:text-2xl font-black italic tracking-tighter">
-                            {m.scoreHome} : {m.scoreAway}
-                          </span>
-                          <span className="font-mono text-[8px] text-muted-foreground font-bold uppercase">
-                            Finished
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">VS</span>
-                      )
-                    })()}
-                  </div>
-                  <div className="flex items-center gap-2 md:gap-3 flex-1 justify-start">
-                    {(m.awayTeam as unknown as { emblemPath: string | null }).emblemPath && (
-                      <img
-                        src={(m.awayTeam as unknown as { emblemPath: string | null }).emblemPath!}
-                        alt=""
-                        className="w-6 h-6 md:w-8 md:h-8 shrink-0"
-                      />
-                    )}
-                    <span className="font-black italic text-sm md:text-lg uppercase truncate">
-                      {m.awayTeam.name}
-                    </span>
-                  </div>
+                  {"matchReferees" in m && Array.isArray(m.matchReferees) && m.matchReferees.length > 0 && (
+                    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-mono text-[9px] md:text-[10px] text-muted-foreground">
+                      {m.matchReferees.map((mr: { role: string; referee: { name: string } }) => (
+                        <span key={`${mr.role}-${mr.referee.name}`}>
+                          <span className="uppercase font-bold text-foreground/80">{ROLE_LABEL[mr.role] ?? mr.role}</span>
+                          <span className="mx-1">·</span>
+                          <span>{mr.referee.name}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="col-span-2 text-right">
                   <span className="border border-border px-4 py-2 text-[10px] font-bold font-mono group-hover:bg-foreground group-hover:text-background transition-all inline-block">

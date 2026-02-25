@@ -40,15 +40,14 @@ export function SiteNav({ user }: SiteNavProps) {
             <button
               type="button"
               className="md:hidden relative shrink-0 rounded-full border border-border bg-card overflow-visible p-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              aria-label={user ? "마이페이지 열기" : "로그인"}
+              aria-label={user ? "마이페이지 열기" : "네이버 로그인 또는 회원가입"}
             >
               <div className="w-9 h-9 rounded-full overflow-hidden bg-card flex items-center justify-center">
                 {user?.image ? (
-                  <Image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={user.image}
                     alt=""
-                    width={36}
-                    height={36}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -133,11 +132,10 @@ export function SiteNav({ user }: SiteNavProps) {
                 <div className="relative shrink-0">
                   <div className="w-11 h-11 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center group-hover:border-foreground transition-colors relative">
                     {user.image ? (
-                      <Image
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         src={user.image}
                         alt=""
-                        width={44}
-                        height={44}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -167,14 +165,14 @@ export function SiteNav({ user }: SiteNavProps) {
           <Link
             href="/login"
             className="hidden md:flex items-center gap-3 pl-4 border-l border-border group text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="로그인"
+            aria-label="로그인 또는 회원가입"
           >
             <div className="flex flex-col items-end">
-              <span className="text-[9px] leading-none mb-1 uppercase">
-                Account
+              <span className="text-[9px] leading-none mb-0.5 uppercase text-muted-foreground">
+                LOG IN ·
               </span>
-              <span className="text-[10px] leading-none font-black italic">
-                LOG IN
+              <span className="text-[9px] leading-none uppercase text-muted-foreground">
+                SIGN UP
               </span>
             </div>
             <div className="w-11 h-11 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center group-hover:border-foreground transition-colors shrink-0">

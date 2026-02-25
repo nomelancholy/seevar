@@ -57,8 +57,11 @@ export function UserDrawerContent({ user, onClose }: UserDrawerContentProps) {
           <div className="w-20 h-20 rounded-full border border-border bg-muted/50 flex items-center justify-center mb-6">
             <User className="size-10 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground text-sm mb-8">
-            로그인하면 마이페이지와 응원 팀을 이용할 수 있습니다.
+          <p className="text-muted-foreground text-sm mb-2">
+            로그인 · 회원가입 모두 네이버 계정으로 진행합니다.
+          </p>
+          <p className="text-muted-foreground text-xs mb-8">
+            마이페이지와 응원 팀을 이용하려면 로그인하세요.
           </p>
           <SheetClose asChild>
             <Link
@@ -99,11 +102,10 @@ export function UserDrawerContent({ user, onClose }: UserDrawerContentProps) {
         <div className="relative">
           <div className="w-16 h-16 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center shrink-0">
             {user.image ? (
-              <Image
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
                 src={user.image}
                 alt=""
-                width={64}
-                height={64}
                 className="w-full h-full object-cover"
               />
             ) : (

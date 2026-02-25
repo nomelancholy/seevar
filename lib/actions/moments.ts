@@ -1,12 +1,16 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import type { ReactionType } from "@prisma/client"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 export type CreateMomentResult = { ok: true; momentId: string } | { ok: false; error: string }
 export type UpdateMomentResult = { ok: true } | { ok: false; error: string }
 export type DeleteMomentResult = { ok: true } | { ok: false; error: string }
+export type ToggleMomentSeeVarResult =
+  | { ok: true; seeVarCount: number; alreadyClicked: boolean }
+  | { ok: false; error: string }
 
 const MAX_MOMENT_DURATION_MINUTES = 15
 
@@ -109,4 +113,46 @@ export async function updateMoment(
 /** 모멘트는 모두의 게시판이므로 삭제 불가 (작성자 포함) */
 export async function deleteMoment(_momentId: string): Promise<DeleteMomentResult> {
   return { ok: false, error: "모멘트 삭제는 지원하지 않습니다." }
+}
+
+/** 모멘트 SEE VAR 버튼: 로그인 사용자가 한 번만 카운트되도록 Reaction(SEE_VAR)으로 기록 후 seeVarCount +1 */
+export async function toggleMomentSeeVar(momentId: string): Promise<ToggleMomentSeeVarResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+
+  const moment = await prisma.moment.findUnique({
+    where: { id: momentId },
+    select: { id: true, seeVarCount: true },
+  })
+  if (!moment) return { ok: false, error: "모멘트를 찾을 수 없습니다." }
+
+  const existing = await prisma.reaction.findFirst({
+    where: {
+      userId: user.id,
+      momentId,
+      commentId: null,
+      type: "SEE_VAR" as ReactionType,
+    },
+  })
+  if (existing) {
+    return { ok: true, seeVarCount: moment.seeVarCount, alreadyClicked: true }
+  }
+
+  await prisma.$transaction([
+    prisma.reaction.create({
+      data: {
+        userId: user.id,
+        momentId,
+        commentId: null,
+        type: "SEE_VAR" as ReactionType,
+      },
+    }),
+    prisma.moment.update({
+      where: { id: momentId },
+      data: { seeVarCount: { increment: 1 } },
+    }),
+  ])
+  revalidatePath("/")
+  revalidatePath("/matches")
+  return { ok: true, seeVarCount: moment.seeVarCount + 1, alreadyClicked: false }
 }

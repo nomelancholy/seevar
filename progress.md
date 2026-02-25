@@ -100,9 +100,12 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
        `lib/utils/stats.ts` (또는 `lib/services`)에서 평점·통계 계산, Prisma와 연동.
 - [x] **Server Actions (모멘트 CRUD)**  
        판정 토론 글 작성/수정/삭제 — 모멘트 생성·수정·삭제 완료. **호각 사용** mutation은 후순위.
-- [ ] ** 코멘트 CRUD **  
-       코멘트 CRUD
+- [x] ** 코멘트 CRUD **  
+       모멘트 코멘트: 본인 댓글 수정/삭제, Enter 전송·Shift+Enter 줄바꿈.
+- [ ] ** 심판 평가 **
+      심판 평가 시스템 (별점, 한줄평, 심판 페이지 연동)
 
+- [ ] ADMIN 페이지 신설
 - [ ] **클린봇 도입**  
        모멘트·댓글 등 UGC 자동 검수(욕설/스팸 등), ContentStatus·신고 연동.
 

@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { deriveMatchStatus } from "@/lib/utils/match-status"
 import { sortMomentsByStartThenDuration } from "@/lib/utils/sort-moments"
+import { MatchDetailBackLink } from "@/components/matches/MatchDetailBackLink"
 import { MatchMomentCards } from "@/components/matches/MatchMomentCards"
 import { SeeVarButtonWithModal } from "@/components/matches/SeeVarButtonWithModal"
 import { getMatchDetailPath } from "@/lib/match-url"
@@ -81,6 +82,14 @@ function sanitizeBackUrl(back: string | undefined): string {
   return decoded
 }
 
+/** 팀 상세 URL: slug가 있으면 _ → - 로, 없으면 id. back 있으면 쿼리로 붙여 진입 전 경로로 복귀 가능 */
+function teamDetailHref(team: { id: string; slug?: string | null }, backPath: string): string {
+  const segment = team.slug ? team.slug.replace(/_/g, "-") : team.id
+  const base = `/teams/${segment}`
+  if (!backPath.startsWith("/") || backPath.includes("//")) return base
+  return `${base}?back=${encodeURIComponent(backPath)}`
+}
+
 export default async function MatchDetailBySlugPage({
   params,
   searchParams,
@@ -94,7 +103,7 @@ export default async function MatchDetailBySlugPage({
   if (!match) notFound()
 
   const matchPath = getMatchDetailPath(match)
-  const backHref = sanitizeBackUrl(backParam)
+  const backHref = sanitizeBackUrl(backParam ?? undefined) ?? "/matches"
 
   const status = deriveMatchStatus(match.playedAt, { storedStatus: match.status })
   const isUpcoming = status === "SCHEDULED"
@@ -123,15 +132,7 @@ export default async function MatchDetailBySlugPage({
   return (
     <main className="py-8 md:py-12">
       <div className="mb-6">
-        <Link
-          href={backHref}
-          className="flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          BACK TO LIST
-        </Link>
+        <MatchDetailBackLink backHref={String(backHref)} />
       </div>
 
       <header className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -168,7 +169,7 @@ export default async function MatchDetailBySlugPage({
         <div className="grid grid-cols-1 lg:grid-cols-3 items-center gap-8 md:gap-12">
           <div className="flex flex-col items-center gap-4 md:gap-6">
             <Link
-              href="/teams"
+              href={teamDetailHref(match.homeTeam, matchPath)}
               className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors"
             >
               {match.homeTeam.emblemPath && (
@@ -242,6 +243,14 @@ export default async function MatchDetailBySlugPage({
                           {ref.name}
                           <ChevronRight className="size-3" />
                         </a>
+                      ) : (ref as { slug?: string }).slug ? (
+                        <Link
+                          href={`/referees/${(ref as { slug: string }).slug}`}
+                          className={`font-bold hover:text-primary transition-colors flex items-center gap-1 ${isVar ? "text-primary" : ""}`}
+                        >
+                          {ref.name}
+                          <ChevronRight className="size-3" />
+                        </Link>
                       ) : (
                         <p className={`font-bold ${isVar ? "text-primary" : ""}`}>
                           {ref.name}
@@ -270,7 +279,7 @@ export default async function MatchDetailBySlugPage({
 
           <div className="flex flex-col items-center gap-4 md:gap-6">
             <Link
-              href="/teams"
+              href={teamDetailHref(match.awayTeam, matchPath)}
               className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors"
             >
               {match.awayTeam.emblemPath && (

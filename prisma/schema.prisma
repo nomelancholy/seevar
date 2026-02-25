@@ -45,6 +45,7 @@ enum ReportReason {
 enum ReactionType {
   LIKE
   DISLIKE
+  SEE_VAR  // 모멘트 SEE VAR 버튼 (momentId만 사용, commentId null)
 }
 
 enum NotificationType {
