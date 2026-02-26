@@ -17,7 +17,8 @@
     "db:seed:supercup-referees": "npx tsx scripts/seed-supercup-2026-referees.ts",
     "db:backfill-team-slug": "npx tsx scripts/backfill-team-slug.ts",
     "db:backfill-referee-slug": "npx tsx scripts/backfill-referee-slug.ts",
-    "cron:match-status": "npx tsx scripts/run-update-match-status.ts"
+    "cron:match-status": "npx tsx scripts/run-update-match-status.ts",
+    "cron:round-focus": "npx tsx scripts/run-update-round-focus.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
