@@ -72,7 +72,7 @@ export default async function TeamDetailPage({
   if (!team) notFound()
 
   const teamId = team.id
-  const [teamStats, matchList] = await Promise.all([
+  const [teamStats, matchList, teamFanReviews] = await Promise.all([
     prisma.refereeTeamStat.findMany({
       where: { teamId },
       include: { referee: true },
@@ -89,7 +89,37 @@ export default async function TeamDetailPage({
         matchReferees: { include: { referee: true } },
       },
     }),
+    prisma.refereeReview.findMany({
+      where: { fanTeamId: teamId, status: "VISIBLE" },
+      select: { refereeId: true, rating: true, referee: { select: { id: true, slug: true, name: true } } },
+    }),
   ])
+
+  // 이 팀 팬이 심판에게 준 평점 집계 (RefereeReview 기준 → RefereeTeamStat 비어 있어도 표시)
+  const byRefereeFromReviews = new Map<
+    string,
+    { referee: { id: string; slug: string; name: string }; ratings: number[] }
+  >()
+  for (const r of teamFanReviews) {
+    const cur = byRefereeFromReviews.get(r.refereeId)
+    const ref = r.referee
+    if (cur) {
+      cur.ratings.push(r.rating)
+    } else {
+      byRefereeFromReviews.set(r.refereeId, {
+        referee: { id: ref.id, slug: ref.slug, name: ref.name },
+        ratings: [r.rating],
+      })
+    }
+  }
+  const fanRatingsPerReferee = [...byRefereeFromReviews.entries()].map(([, v]) => ({
+    id: v.referee.id,
+    slug: v.referee.slug,
+    name: v.referee.name,
+    fanAverageRating: v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length,
+    totalAssignments: v.ratings.length,
+    roleCounts: null as Record<string, number> | null,
+  }))
 
   // 배정 집계: 경기 목록(matchList)에서 심판별 배정 횟수·역할 집계 (RefereeTeamStat 미갱신 시에도 실제 경기 기준 표시)
   const derivedByReferee = new Map<
@@ -113,11 +143,12 @@ export default async function TeamDetailPage({
     .sort((a, b) => b.totalAssignments - a.totalAssignments)
     .map((s) => {
       const fromStat = teamStats.find((t) => t.refereeId === s.referee.id)
+      const fromReviews = fanRatingsPerReferee.find((f) => f.id === s.referee.id)
       return {
         id: s.referee.id,
         slug: s.referee.slug,
         name: s.referee.name,
-        fanAverageRating: fromStat?.fanAverageRating ?? 0,
+        fanAverageRating: fromStat?.fanAverageRating ?? fromReviews?.fanAverageRating ?? 0,
         totalAssignments: s.totalAssignments,
         roleCounts: s.roleCounts as Record<string, number> | null,
       }
@@ -135,28 +166,52 @@ export default async function TeamDetailPage({
           roleCounts: s.roleCounts as Record<string, number> | null,
         }))
 
-  const withRating = teamStats.filter((s) => s.fanAverageRating > 0)
-  const sortedByRating = [...withRating].sort((a, b) => b.fanAverageRating - a.fanAverageRating)
+  // REFEREE COMPATIBILITY: RefereeTeamStat 우선, 없으면 이 팀 팬 리뷰(RefereeReview) 집계 사용
+  const withRatingFromStats = teamStats.filter((s) => s.fanAverageRating > 0)
+  const withRatingFromReviews = fanRatingsPerReferee.filter((r) => r.fanAverageRating > 0)
+  const combinedForCompatibility = [
+    ...withRatingFromStats.map((s) => ({
+      id: s.referee.id,
+      slug: s.referee.slug,
+      name: s.referee.name,
+      fanAverageRating: s.fanAverageRating,
+      totalAssignments: s.totalAssignments,
+      roleCounts: s.roleCounts as Record<string, number> | null,
+    })),
+    ...withRatingFromReviews.filter(
+      (r) => !withRatingFromStats.some((s) => s.refereeId === r.id)
+    ).map((r) => ({
+      id: r.id,
+      slug: r.slug,
+      name: r.name,
+      fanAverageRating: r.fanAverageRating,
+      totalAssignments: r.totalAssignments,
+      roleCounts: r.roleCounts,
+    })),
+  ]
+  const sortedByRating = [...combinedForCompatibility].sort(
+    (a, b) => b.fanAverageRating - a.fanAverageRating
+  )
   const compatibility = {
     high: sortedByRating[0]
       ? {
-          id: sortedByRating[0].referee.id,
-          slug: sortedByRating[0].referee.slug,
-          name: sortedByRating[0].referee.name,
+          id: sortedByRating[0].id,
+          slug: sortedByRating[0].slug,
+          name: sortedByRating[0].name,
           fanAverageRating: sortedByRating[0].fanAverageRating,
           totalAssignments: sortedByRating[0].totalAssignments,
-          roleCounts: sortedByRating[0].roleCounts as Record<string, number> | null,
+          roleCounts: sortedByRating[0].roleCounts,
         }
       : null,
     low:
       sortedByRating.length >= 2
         ? {
-            id: sortedByRating[sortedByRating.length - 1].referee.id,
-            slug: sortedByRating[sortedByRating.length - 1].referee.slug,
-            name: sortedByRating[sortedByRating.length - 1].referee.name,
+            id: sortedByRating[sortedByRating.length - 1].id,
+            slug: sortedByRating[sortedByRating.length - 1].slug,
+            name: sortedByRating[sortedByRating.length - 1].name,
             fanAverageRating: sortedByRating[sortedByRating.length - 1].fanAverageRating,
             totalAssignments: sortedByRating[sortedByRating.length - 1].totalAssignments,
-            roleCounts: sortedByRating[sortedByRating.length - 1].roleCounts as Record<string, number> | null,
+            roleCounts: sortedByRating[sortedByRating.length - 1].roleCounts,
           }
         : null,
   }
@@ -214,7 +269,7 @@ export default async function TeamDetailPage({
           className="inline-flex items-center gap-1 font-mono text-[10px] md:text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="size-4" />
-          {backHref !== "/teams" ? "BACK" : "BACK TO LIST"}
+          BACK
         </Link>
       </div>
       <header className="mb-8 md:mb-12">
@@ -241,6 +296,7 @@ export default async function TeamDetailPage({
       <TeamDetailSection
         teamName={team.name}
         teamId={team.id}
+        refereeBackPath={`/teams/${slug}`}
         compatibility={compatibility}
         assignments={assignments}
         matches={matches}

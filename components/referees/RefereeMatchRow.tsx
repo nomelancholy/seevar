@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronRight, User } from "lucide-react"
 
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "Main Referee",
@@ -13,6 +13,7 @@ const ROLE_LABEL: Record<string, string> = {
 
 type ReviewItem = {
   userName: string | null
+  userImage: string | null
   fanTeamName: string | null
   fanTeamEmblem: string | null
   rating: number
@@ -128,11 +129,18 @@ export function RefereeMatchRow({
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2 md:gap-3">
-                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-border bg-muted flex items-center justify-center overflow-hidden">
-                        {r.fanTeamEmblem ? (
-                          <img src={r.fanTeamEmblem} alt="" className="w-full h-full object-contain" />
-                        ) : (
-                          <span className="text-muted-foreground text-xs">?</span>
+                      <div className="relative shrink-0">
+                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-border bg-muted flex items-center justify-center overflow-hidden">
+                          {r.userImage ? (
+                            <img src={r.userImage} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="size-3.5 md:size-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        {r.fanTeamEmblem && (
+                          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow z-10 overflow-hidden">
+                            <img src={r.fanTeamEmblem} alt="" className="w-full h-full object-contain" />
+                          </div>
                         )}
                       </div>
                       <div className="flex flex-col">

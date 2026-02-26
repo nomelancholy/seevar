@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.AUTH_SECRET,
+  trustHost: true,
   providers: [
     NaverProvider({
       clientId: process.env.NAVER_CLIENT_ID ?? "",

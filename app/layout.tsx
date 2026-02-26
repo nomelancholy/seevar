@@ -2,6 +2,7 @@
 import "./globals.css"
 import type { Metadata, Viewport } from "next"
 import { getCurrentUser } from "@/lib/auth"
+import { getUnreadNotificationCount } from "@/lib/notifications"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { SessionProvider } from "@/components/auth/SessionProvider"
 
@@ -33,6 +34,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const user = await getCurrentUser()
+  const unreadNotificationCount = user ? await getUnreadNotificationCount(user.id) : 0
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
@@ -46,7 +48,9 @@ export default async function RootLayout({
       </head>
       <body className="antialiased min-h-screen bg-background text-foreground font-sans" suppressHydrationWarning>
         <SessionProvider>
-          <AppLayout user={user}>{children}</AppLayout>
+          <AppLayout user={user} unreadNotificationCount={unreadNotificationCount}>
+            {children}
+          </AppLayout>
         </SessionProvider>
       </body>
     </html>

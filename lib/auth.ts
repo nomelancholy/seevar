@@ -18,3 +18,13 @@ export async function getCurrentUser() {
   })
   return user
 }
+
+/** 운영자 여부. ADMIN_USER_IDS 또는 ADMIN_EMAILS에 포함되면 true */
+export function getIsAdmin(user: { id?: string; email?: string | null } | null): boolean {
+  if (!user) return false
+  const ids = process.env.ADMIN_USER_IDS?.trim().split(/[\s,]+/).filter(Boolean) ?? []
+  if (user.id && ids.includes(user.id)) return true
+  if (!user.email) return false
+  const emails = process.env.ADMIN_EMAILS?.trim().split(/[\s,]+/).filter(Boolean) ?? []
+  return emails.includes(user.email)
+}

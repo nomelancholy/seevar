@@ -83,6 +83,8 @@ model User {
   reports           Report[]        // 내가 한 신고들
   notifications     Notification[]
   reactions         Reaction[]
+  notices           Notice[]        // 운영자 공지 작성
+  noticeComments    NoticeComment[]
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -389,12 +391,39 @@ model Reaction {
 }
 
 model Notification {
-  id          String           @id @default(cuid())
-  userId      String
-  user        User             @relation(fields: [userId], references: [id])
-  type        NotificationType
-  content     String
-  link        String?
-  isRead      Boolean          @default(false)
-  createdAt   DateTime         @default(now())
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id])
+  type          NotificationType
+  content       String
+  link          String?
+  /** 답글 알림일 때 달린 답글 내용 미리보기 */
+  replyContent  String?            @db.Text
+  /** 해당 모멘트로 바로 열기용 (link에 openMoment 쿼리와 함께 사용) */
+  momentId      String?
+  isRead        Boolean            @default(false)
+  createdAt     DateTime          @default(now())
+}
+
+model Notice {
+  id            String           @id @default(cuid())
+  number        Int              @unique // URL용 순번 (1, 2, 3, ...)
+  title         String
+  content       String           @db.Text
+  authorId      String
+  author        User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  allowComments Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  comments      NoticeComment[]
+}
+
+model NoticeComment {
+  id        String   @id @default(cuid())
+  noticeId  String
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  createdAt DateTime @default(now())
 }

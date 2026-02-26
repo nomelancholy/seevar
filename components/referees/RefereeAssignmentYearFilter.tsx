@@ -7,9 +7,18 @@ import { ChevronDown, Check } from "lucide-react"
 type Props = {
   availableYears: number[]
   currentYear: number | null
+  /** 연도만 선택 (MATCH ASSIGNMENTS) vs 전체+연도 (ASSIGNMENT STATISTICS) */
+  paramKey?: "year" | "stats"
+  /** true면 "전체" 옵션 표시 (ASSIGNMENT STATISTICS용) */
+  showAllOption?: boolean
 }
 
-export function RefereeAssignmentYearFilter({ availableYears, currentYear }: Props) {
+export function RefereeAssignmentYearFilter({
+  availableYears,
+  currentYear,
+  paramKey = "year",
+  showAllOption = false,
+}: Props) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
@@ -17,7 +26,7 @@ export function RefereeAssignmentYearFilter({ availableYears, currentYear }: Pro
   const panelRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
 
-  const label = currentYear == null ? "전체" : `${currentYear}년`
+  const label = currentYear == null ? (showAllOption ? "전체" : "—") : `${currentYear}년`
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -38,10 +47,14 @@ export function RefereeAssignmentYearFilter({ availableYears, currentYear }: Pro
 
   function handleSelect(value: number | null) {
     const next = new URLSearchParams(searchParams.toString())
-    if (value == null) {
-      next.delete("year")
+    if (paramKey === "stats") {
+      if (value == null) {
+        next.set("stats", "all")
+      } else {
+        next.set("stats", String(value))
+      }
     } else {
-      next.set("year", String(value))
+      if (value != null) next.set("year", String(value))
     }
     const q = next.toString()
     router.push(q ? `${pathname}?${q}` : pathname)
@@ -76,22 +89,24 @@ export function RefereeAssignmentYearFilter({ availableYears, currentYear }: Pro
         }`}
       >
         <div className="py-1">
-          <button
-            type="button"
-            role="option"
-            aria-selected={currentYear === null}
-            onClick={() => handleSelect(null)}
-            className={`flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-[9px] md:text-[10px] uppercase tracking-widest transition-colors hover:bg-muted/80 hover:text-foreground ${
-              currentYear === null
-                ? "bg-primary/10 text-primary border-l-2 border-primary"
-                : "text-muted-foreground"
-            }`}
-          >
-            <span className="flex w-4 shrink-0 items-center justify-center">
-              {currentYear === null ? <Check className="size-3 text-primary" /> : null}
-            </span>
-            <span>전체</span>
-          </button>
+          {showAllOption && (
+            <button
+              type="button"
+              role="option"
+              aria-selected={currentYear === null}
+              onClick={() => handleSelect(null)}
+              className={`flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-[9px] md:text-[10px] uppercase tracking-widest transition-colors hover:bg-muted/80 hover:text-foreground ${
+                currentYear === null
+                  ? "bg-primary/10 text-primary border-l-2 border-primary"
+                  : "text-muted-foreground"
+              }`}
+            >
+              <span className="flex w-4 shrink-0 items-center justify-center">
+                {currentYear === null ? <Check className="size-3 text-primary" /> : null}
+              </span>
+              <span>전체</span>
+            </button>
+          )}
           {availableYears.map((y) => (
             <button
               key={y}

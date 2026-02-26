@@ -50,6 +50,7 @@ export async function createRefereeReview(
         rating: r,
         comment: commentTrimmed,
         role,
+        fanTeamId: user.supportingTeamId ?? undefined,
       },
       create: {
         matchId,
@@ -61,11 +62,51 @@ export async function createRefereeReview(
         role,
       },
     })
+
+    const fanTeamId = review.fanTeamId ?? user.supportingTeamId ?? null
+    if (fanTeamId) {
+      await syncRefereeTeamStatForRefereeAndTeam(refereeId, fanTeamId)
+    }
+
     revalidatePath("/matches")
     revalidatePath("/referees")
+    revalidatePath("/teams")
     return { ok: true, reviewId: review.id }
   } catch (e) {
     console.error("createRefereeReview:", e)
     return { ok: false, error: "평가 저장에 실패했습니다." }
   }
+}
+
+/**
+ * (refereeId, teamId)에 대한 RefereeTeamStat을 해당 팀 팬들의 리뷰(RefereeReview) 기준으로 갱신.
+ * 평점 제출/수정 시 호출하여 팀별 팬 평점·평가 수가 바로 반영되도록 함.
+ */
+async function syncRefereeTeamStatForRefereeAndTeam(
+  refereeId: string,
+  teamId: string
+): Promise<void> {
+  const reviews = await prisma.refereeReview.findMany({
+    where: { refereeId, fanTeamId: teamId, status: "VISIBLE" },
+    select: { rating: true },
+  })
+  const count = reviews.length
+  const fanAverageRating =
+    count > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / count : 0
+
+  await prisma.refereeTeamStat.upsert({
+    where: {
+      refereeId_teamId: { refereeId, teamId },
+    },
+    update: {
+      fanAverageRating,
+      totalAssignments: count,
+    },
+    create: {
+      refereeId,
+      teamId,
+      fanAverageRating,
+      totalAssignments: count,
+    },
+  })
 }

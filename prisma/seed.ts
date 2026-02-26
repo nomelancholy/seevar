@@ -342,6 +342,10 @@ async function main() {
     console.warn("REFEREE_LINK.md not found or unreadable, skipping referees:", e)
   }
 
+  const { makeUniqueRefereeSlug } = await import("@/lib/referee-slug")
+  const existingSlugs = new Set(
+    (await prisma.referee.findMany({ select: { slug: true } })).map((r) => r.slug)
+  )
   let refCount = 0
   for (const { name, link } of refereeList) {
     const existing = await prisma.referee.findFirst({ where: { name } })
@@ -351,17 +355,15 @@ async function main() {
         data: { link },
       })
     } else {
-      const created = await prisma.referee.create({
-        data: { name, link, slug: `ref-${refCount}-${Date.now()}` } as { name: string; link: string | null; slug: string },
+      const slug = makeUniqueRefereeSlug(name, existingSlugs)
+      existingSlugs.add(slug)
+      await prisma.referee.create({
+        data: { name, link, slug } as { name: string; link: string | null; slug: string },
       })
-      await prisma.referee.update({
-        where: { id: created.id },
-        data: { slug: created.id } as { slug: string },
-      })
+      refCount++
     }
-    refCount++
   }
-  console.log("Referees:", refCount, "from REFEREE_LINK.md (name + link)")
+  console.log("Referees:", refCount, "new from REFEREE_LINK.md (name + link, name-based slug)")
 
   // -------------------------------------------------------------------------
   // MatchReferee (샘플: LIVE/FINISHED 경기에 심판 배정, REFEREE_LINK에 있는 이름 사용)

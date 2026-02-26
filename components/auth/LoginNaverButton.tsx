@@ -12,8 +12,10 @@ export function LoginNaverButton() {
   async function handleNaverLogin() {
     setLoading(true)
     try {
-      await signIn("naver", { callbackUrl: "/onboarding" })
+      // OAuth는 브라우저 리다이렉트로 진행되며, 성공 시 callbackUrl로 전체 로드됨
+      await signIn("naver", { callbackUrl: "/onboarding", redirect: true })
     } finally {
+      // 리다이렉트되면 페이지가 바뀌어 실행되지 않음; 에러/취소 시에만 로딩 해제
       setLoading(false)
     }
   }

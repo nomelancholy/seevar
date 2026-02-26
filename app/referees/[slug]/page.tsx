@@ -3,25 +3,18 @@ import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPathWithBack } from "@/lib/match-url"
-import { RefereeTeamRatingsExpand } from "@/components/referees/RefereeTeamRatingsExpand"
+import { RefereeRatingSection } from "@/components/referees/RefereeRatingSection"
 import { RefereeMatchRow } from "@/components/referees/RefereeMatchRow"
 import { RefereeAssignmentYearFilter } from "@/components/referees/RefereeAssignmentYearFilter"
 
 type Props = {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
   searchParams: Promise<{ year?: string; back?: string }>
-}
-
-const ROLE_LABEL: Record<string, string> = {
-  MAIN: "주심",
-  ASSISTANT: "부심",
-  VAR: "VAR",
-  WAITING: "대기심",
 }
 
 async function resolveReferee(param: string) {
   const bySlug = await prisma.referee.findUnique({
-    where: { slug: param } as unknown as Parameters<typeof prisma.referee.findUnique>[0]["where"],
+    where: { slug: param },
     include: {
       stats: { include: { season: { select: { year: true } } } },
       teamStats: {
@@ -32,7 +25,7 @@ async function resolveReferee(param: string) {
       matchReferees: {
         take: 30,
         include: {
-            match: {
+          match: {
             include: {
               homeTeam: true,
               awayTeam: true,
@@ -54,7 +47,7 @@ async function resolveReferee(param: string) {
         include: {
           match: { select: { id: true } },
           fanTeam: true,
-          user: { select: { name: true } },
+          user: { select: { name: true, image: true } },
         },
       },
     },
@@ -91,7 +84,7 @@ async function resolveReferee(param: string) {
         include: {
           match: { select: { id: true } },
           fanTeam: true,
-          user: { select: { name: true } },
+          user: { select: { name: true, image: true } },
         },
       },
     },
@@ -101,7 +94,7 @@ async function resolveReferee(param: string) {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const { id: param } = await params
+  const { slug: param } = await params
   const resolved = await resolveReferee(param)
   if (!resolved) return { title: "심판 없음 | See VAR" }
   return { title: `${resolved.referee.name} | REFEREE | See VAR` }
@@ -115,8 +108,8 @@ function sanitizeBackUrl(back: string | undefined): string | null {
 }
 
 export default async function RefereeDetailPage({ params, searchParams }: Props) {
-  const { id: param } = await params
-  const { year: yearParam, back: backParam } = await searchParams
+  const { slug: param } = await params
+  const { year: yearParam, stats: statsParam, back: backParam } = await searchParams
   const backHref = sanitizeBackUrl(backParam ?? undefined) ?? "/referees"
   const resolved = await resolveReferee(param)
   if (!resolved) notFound()
@@ -125,9 +118,9 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
     id: string
     slug: string
     stats: Array<{ season: { year: number }; role: string; matchCount: number; avgRating: number }>
-    teamStats: Array<{ team: { name: string; emblemPath: string | null }; fanAverageRating: number; totalAssignments: number }>
+    teamStats: Array<{ team: { id: string; name: string; emblemPath: string | null }; fanAverageRating: number; totalAssignments: number }>
     matchReferees: Array<{ id: string; match: { id: string; playedAt: Date | null; roundOrder: number; homeTeam: { name: string; emblemPath: string | null }; awayTeam: { name: string; emblemPath: string | null }; round: { slug: string; league: { slug: string; season: { year: number } } } }; role: string }>
-    reviews: Array<{ matchId: string; user: { name: string | null }; fanTeam: { name: string; emblemPath: string | null } | null; rating: number; comment: string | null }>
+    reviews: Array<{ matchId: string; user: { name: string | null; image: string | null }; fanTeam: { id: string; name: string; emblemPath: string | null } | null; rating: number; comment: string | null }>
   }
 
   if (byId) {
@@ -142,23 +135,42 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
   const availableYears = [...new Set([...yearsFromStats, ...yearsFromMatches])].sort(
     (a, b) => b - a
   )
-  const assignmentYear =
+  const latestYear = availableYears[0] ?? null
+  const yearFromParam =
     yearParam != null && yearParam !== ""
       ? parseInt(yearParam, 10)
       : null
-  const isYearValid =
-    assignmentYear == null || (Number.isInteger(assignmentYear) && availableYears.includes(assignmentYear))
+  const assignmentYear =
+    yearFromParam != null && Number.isInteger(yearFromParam) && availableYears.includes(yearFromParam)
+      ? yearFromParam
+      : latestYear
+  const isYearValid = assignmentYear != null
 
-  const totalMatches = referee.stats.reduce((sum, s) => sum + s.matchCount, 0)
-  const weightedSum = referee.stats.reduce((sum, s) => sum + s.avgRating * s.matchCount, 0)
-  const averageRating = totalMatches > 0 ? weightedSum / totalMatches : null
+  const statsYear =
+    statsParam === "all" || statsParam == null || statsParam === ""
+      ? null
+      : (() => {
+          const n = parseInt(statsParam, 10)
+          return Number.isInteger(n) && availableYears.includes(n) ? n : null
+        })()
+
+  // Global Rating: 유저 제출 리뷰(RefereeReview) 기준으로 집계. 리뷰가 없을 때만 RefereeStats 사용
+  const reviews = referee.reviews as Array<{ rating: number; role: string }>
+  const totalVotes = reviews.length
+  const averageRatingFromReviews =
+    totalVotes > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalVotes : null
+  const totalMatchesFromStats = referee.stats.reduce((sum, s) => sum + s.matchCount, 0)
+  const weightedSumFromStats = referee.stats.reduce((sum, s) => sum + s.avgRating * s.matchCount, 0)
+  const averageRating =
+    averageRatingFromReviews ??
+    (totalMatchesFromStats > 0 ? weightedSumFromStats / totalMatchesFromStats : null)
 
   const roleCounts = await prisma.matchReferee.groupBy({
     by: ["role"],
     where: {
       refereeId: referee.id,
-      ...(isYearValid && assignmentYear != null
-        ? { match: { round: { league: { season: { year: assignmentYear } } } } }
+      ...(statsYear != null
+        ? { match: { round: { league: { season: { year: statsYear } } } } }
         : {}),
     },
     _count: { id: true },
@@ -168,24 +180,61 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
   ) as Record<string, number>
   const totalAssignments = Object.values(countByRole).reduce((a, b) => a + b, 0)
 
-  // Per-role weighted average rating from stats
+  // 역할별 평점: 리뷰 기준. 없으면 RefereeStats 폴백
   const ratingByRole: Record<string, number> = {}
   const roles = ["MAIN", "ASSISTANT", "VAR", "WAITING"] as const
   for (const role of roles) {
-    const roleStats = referee.stats.filter((s) => s.role === role)
-    const total = roleStats.reduce((s, r) => s + r.matchCount, 0)
-    if (total > 0) {
-      const sum = roleStats.reduce((s, r) => s + r.avgRating * r.matchCount, 0)
-      ratingByRole[role] = sum / total
+    const roleReviews = reviews.filter((r) => r.role === role)
+    if (roleReviews.length > 0) {
+      ratingByRole[role] = roleReviews.reduce((s, r) => s + r.rating, 0) / roleReviews.length
+    } else {
+      const roleStats = referee.stats.filter((s) => s.role === role)
+      const total = roleStats.reduce((s, r) => s + r.matchCount, 0)
+      if (total > 0) {
+        const sum = roleStats.reduce((s, r) => s + r.avgRating * r.matchCount, 0)
+        ratingByRole[role] = sum / total
+      }
     }
   }
 
-  const teamStatsForExpand = referee.teamStats.map((ts) => ({
+  // 팀별 팬 평점: RefereeTeamStat 있으면 사용, 없으면 리뷰(RefereeReview)에서 팀별 집계 (어떤 팀 팬이 어떤 평점 줬는지)
+  const byTeamIdFromReviews = new Map<
+    string,
+    { teamName: string; emblemPath: string | null; ratings: number[] }
+  >()
+  for (const r of referee.reviews) {
+    const teamId = r.fanTeam?.id ?? "_unknown"
+    const cur = byTeamIdFromReviews.get(teamId)
+    const name = r.fanTeam?.name ?? "알 수 없음"
+    const emblem = r.fanTeam?.emblemPath ?? null
+    if (cur) {
+      cur.ratings.push(r.rating)
+    } else {
+      byTeamIdFromReviews.set(teamId, { teamName: name, emblemPath: emblem, ratings: [r.rating] })
+    }
+  }
+  const fromReviews = [...byTeamIdFromReviews.entries()].map(([, v]) => ({
+    teamName: v.teamName,
+    emblemPath: v.emblemPath,
+    fanAverageRating: v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length,
+    totalAssignments: v.ratings.length,
+  }))
+  const fromStats = referee.teamStats.map((ts) => ({
     teamName: ts.team.name,
-    emblemPath: (ts.team as unknown as { emblemPath: string | null }).emblemPath,
+    emblemPath: ts.team.emblemPath,
     fanAverageRating: ts.fanAverageRating,
     totalAssignments: ts.totalAssignments,
   }))
+  const statsByTeamName = new Map<string, { teamName: string; emblemPath: string | null; fanAverageRating: number; totalAssignments: number }>()
+  for (const t of fromReviews) {
+    statsByTeamName.set(t.teamName, t)
+  }
+  for (const t of fromStats) {
+    if (!statsByTeamName.has(t.teamName)) statsByTeamName.set(t.teamName, t)
+  }
+  const teamStatsForExpand = [...statsByTeamName.values()].sort(
+    (a, b) => b.fanAverageRating - a.fanAverageRating
+  )
 
   const reviewsByMatchId = new Map<string, typeof referee.reviews>()
   for (const r of referee.reviews) {
@@ -194,17 +243,17 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
     reviewsByMatchId.set(r.matchId, list)
   }
 
-  const recentMatchReferees = [...referee.matchReferees]
-    .sort((a, b) => {
-      const ta = a.match.playedAt ? new Date(a.match.playedAt).getTime() : 0
-      const tb = b.match.playedAt ? new Date(b.match.playedAt).getTime() : 0
-      return tb - ta
-    })
-    .slice(0, 20)
-
-  const rating = averageRating ?? 0
-  const isTop = rating >= 3.5
-  const isLow = rating > 0 && rating < 2.5
+  const sortedMatchReferees = [...referee.matchReferees].sort((a, b) => {
+    const ta = a.match.playedAt ? new Date(a.match.playedAt).getTime() : 0
+    const tb = b.match.playedAt ? new Date(b.match.playedAt).getTime() : 0
+    return tb - ta
+  })
+  const matchAssignmentsList =
+    isYearValid && assignmentYear != null
+      ? sortedMatchReferees.filter(
+          (mr) => mr.match.round.league.season.year === assignmentYear
+        )
+      : sortedMatchReferees
 
   const formatCount = (n: number) => (n === 0 ? "—" : String(n))
 
@@ -244,52 +293,12 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
               )}
             </div>
 
-            <div className="mt-6 md:mt-8 border-t border-border pt-4 md:pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4 md:gap-6">
-                  <div className="flex flex-col">
-                    <div className="text-[8px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-                      Global Rating
-                    </div>
-                    <div className="text-[7px] md:text-[9px] font-mono text-primary opacity-70">
-                      TOTAL VOTES: {totalMatches > 0 ? (totalMatches * 85).toLocaleString() : "—"}
-                    </div>
-                  </div>
-                  <div className="flex items-end gap-1 md:gap-2">
-                    <span
-                      className={`text-3xl md:text-4xl font-black italic ${
-                        isTop ? "text-primary" : isLow ? "text-destructive" : "text-foreground"
-                      }`}
-                    >
-                      {averageRating != null ? averageRating.toFixed(1) : "—"}
-                    </span>
-                    <span className="text-muted-foreground font-bold mb-0.5 md:mb-1 text-xs md:text-base">
-                      / 5.0
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <RefereeTeamRatingsExpand teamStats={teamStatsForExpand} />
-            </div>
-
-            {/* Role-based rating cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 md:mt-8 border-t border-border pt-4 md:pt-6">
-              {roles.map((role) => (
-                <div
-                  key={role}
-                  className="bg-card/30 p-3 md:p-4 border border-border/50 text-center"
-                >
-                  <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-1 md:mb-2">
-                    {ROLE_LABEL[role]}
-                  </p>
-                  <p className="text-2xl md:text-3xl font-black italic font-mono">
-                    {ratingByRole[role] != null ? `${ratingByRole[role].toFixed(1)}` : "—"}
-                  </p>
-                  <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">/ 5.0</p>
-                </div>
-              ))}
-            </div>
+            <RefereeRatingSection
+              averageRating={averageRating}
+              totalVotes={totalVotes}
+              ratingByRole={ratingByRole}
+              teamStats={teamStatsForExpand}
+            />
           </div>
         </div>
       </section>
@@ -302,7 +311,9 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           {availableYears.length > 0 && (
             <RefereeAssignmentYearFilter
               availableYears={availableYears}
-              currentYear={isYearValid ? assignmentYear : null}
+              currentYear={statsYear}
+              paramKey="stats"
+              showAllOption
             />
           )}
         </div>
@@ -353,11 +364,20 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
       </section>
 
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
-        <h3 className="font-mono text-xs md:text-sm font-bold tracking-widest text-muted-foreground uppercase mb-6 md:mb-8">
-          Recent Match Assignments
-        </h3>
+        <div className="flex justify-between items-end mb-6 md:mb-8 gap-4 flex-wrap">
+          <h3 className="font-mono text-xs md:text-sm font-bold tracking-widest text-muted-foreground uppercase">
+            Match Assignments
+          </h3>
+          {availableYears.length > 0 && (
+            <RefereeAssignmentYearFilter
+              availableYears={availableYears}
+              currentYear={assignmentYear}
+              paramKey="year"
+            />
+          )}
+        </div>
         <div className="space-y-3 md:space-y-4">
-          {recentMatchReferees.map((mr) => {
+          {matchAssignmentsList.map((mr) => {
             const m = mr.match
             const matchReviews = reviewsByMatchId.get(m.id) ?? []
             const matchAvg =
@@ -375,7 +395,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
                   },
                 },
               },
-              `/referees/${param}`
+              `/referees/${referee.slug}`
             )
             const dateStr = m.playedAt
               ? new Date(m.playedAt).toLocaleDateString("ko-KR", {
@@ -397,6 +417,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
                 matchPath={matchPath}
                 reviews={matchReviews.map((rev) => ({
                   userName: rev.user.name,
+                  userImage: rev.user.image ?? null,
                   fanTeamName: rev.fanTeam?.name ?? null,
                   fanTeamEmblem: (rev.fanTeam as unknown as { emblemPath: string | null } | null)?.emblemPath ?? null,
                   rating: rev.rating,
@@ -406,7 +427,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
             )
           })}
         </div>
-        {recentMatchReferees.length === 0 && (
+        {matchAssignmentsList.length === 0 && (
           <p className="font-mono text-[10px] text-muted-foreground">배정된 경기가 없습니다.</p>
         )}
       </section>

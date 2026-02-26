@@ -30,7 +30,14 @@ export function UserDrawerContent({ user, onClose }: UserDrawerContentProps) {
   async function handleSignOut() {
     setSigningOut(true)
     try {
-      await signOut({ callbackUrl: "/" })
+      // redirect: false로 세션만 서버에서 제거한 뒤, 전체 새로고침으로 이동해
+      // 레이아웃(서버 컴포넌트)이 갱신되도록 함
+      await signOut({ redirect: false })
+      window.location.href = "/"
+      return
+    } catch {
+      // 실패 시에도 홈으로 보냄
+      window.location.href = "/"
     } finally {
       setSigningOut(false)
     }

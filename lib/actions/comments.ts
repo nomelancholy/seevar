@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getMatchDetailPath } from "@/lib/match-url"
 
 export type CreateCommentResult = { ok: true; commentId: string } | { ok: false; error: string }
 export type UpdateCommentResult = { ok: true } | { ok: false; error: string }
@@ -46,6 +47,60 @@ export async function createComment(
       where: { id: momentId },
       data: { commentCount: { increment: 1 } },
     })
+
+    if (input.parentId) {
+      const parent = await prisma.comment.findUnique({
+        where: { id: input.parentId },
+        select: { userId: true, momentId: true },
+      })
+      if (parent && parent.userId !== user.id) {
+        const momentWithMatch = await prisma.moment.findUnique({
+          where: { id: parent.momentId },
+          select: {
+            match: {
+              select: {
+                roundOrder: true,
+                round: {
+                  select: {
+                    slug: true,
+                    league: {
+                      select: {
+                        slug: true,
+                        season: { select: { year: true } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        })
+        const basePath =
+          momentWithMatch?.match != null
+            ? getMatchDetailPath({
+                roundOrder: momentWithMatch.match.roundOrder,
+                round: momentWithMatch.match.round as { slug: string; league: { slug: string; season: { year: number } } },
+              })
+            : null
+        const link =
+          basePath != null
+            ? `${basePath}${basePath.includes("?") ? "&" : "?"}openMoment=${encodeURIComponent(parent.momentId)}`
+            : null
+        const authorName = user.name?.trim() || "누군가"
+        const replyPreview = (content || "").slice(0, 300)
+        await prisma.notification.create({
+          data: {
+            userId: parent.userId,
+            type: "REPLY",
+            content: `${authorName}님이 회원님의 댓글에 답글을 남겼습니다.`,
+            link: link ?? undefined,
+            replyContent: replyPreview || undefined,
+            momentId: parent.momentId,
+          },
+        })
+      }
+    }
+
     revalidatePath("/")
     revalidatePath("/matches")
     return { ok: true, commentId: comment.id }

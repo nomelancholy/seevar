@@ -10,6 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { UserDrawerContent } from "./UserDrawerContent"
+import { NotificationModal } from "./NotificationModal"
 
 export type NavUser = {
   id: string
@@ -19,9 +20,9 @@ export type NavUser = {
   supportingTeam: { id: string; name: string; emblemPath: string | null } | null
 }
 
-type SiteNavProps = { user: NavUser | null }
+type SiteNavProps = { user: NavUser | null; unreadNotificationCount?: number }
 
-export function SiteNav({ user }: SiteNavProps) {
+export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
   return (
     <nav className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 mb-8 md:mb-12 border-b border-border pb-6 w-full">
       <div className="flex items-center justify-between w-full md:w-auto gap-4 shrink-0 md:min-w-0">
@@ -32,6 +33,14 @@ export function SiteNav({ user }: SiteNavProps) {
           SEE <span className="text-primary">VAR</span>
         </Link>
         <div className="h-8 w-px bg-border hidden md:block shrink-0 md:ml-6 lg:ml-8" aria-hidden />
+        {user ? (
+          <NotificationModal
+            unreadCount={unreadNotificationCount}
+            compact
+            className="md:hidden relative p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            ariaLabel={unreadNotificationCount > 0 ? `알림 ${unreadNotificationCount}건` : "알림"}
+          />
+        ) : null}
         {/* 모바일: 프로필(이미지) + 우하단 엠블럼 → 드로어 */}
         <Sheet>
           <SheetTrigger asChild>
@@ -81,6 +90,12 @@ export function SiteNav({ user }: SiteNavProps) {
           ABOUT
         </Link>
         <Link
+          href="/notice"
+          className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
+        >
+          NOTICE
+        </Link>
+        <Link
           href="/matches"
           className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
         >
@@ -100,9 +115,15 @@ export function SiteNav({ user }: SiteNavProps) {
         </Link>
       </div>
 
-      {/* 데스크톱: 로그인 시 Supporting + 팀(드로어) / 비로그인 시 LOG IN(링크) */}
-      <div className="hidden md:flex items-center shrink-0 md:ml-6 lg:ml-8">
+      {/* 데스크톱: 알림 + 로그인 시 Supporting / 비로그인 시 LOG IN */}
+      <div className="hidden md:flex items-center shrink-0 md:ml-6 lg:ml-8 gap-4">
         {user ? (
+          <>
+            <NotificationModal
+              unreadCount={unreadNotificationCount}
+              className="relative p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+              ariaLabel={unreadNotificationCount > 0 ? `알림 ${unreadNotificationCount}건` : "알림"}
+            />
           <Sheet>
             <SheetTrigger asChild>
               <button
@@ -150,6 +171,7 @@ export function SiteNav({ user }: SiteNavProps) {
               <UserDrawerContent user={user} onClose={() => {}} />
             </SheetContent>
           </Sheet>
+          </>
         ) : (
           <Link
             href="/login"

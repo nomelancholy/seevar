@@ -182,6 +182,11 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
   const [replyPending, setReplyPending] = useState(false)
   const [seeVarPending, setSeeVarPending] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [reportCommentId, setReportCommentId] = useState<string | null>(null)
+  const [reportReason, setReportReason] = useState("ABUSE")
+  const [reportDescription, setReportDescription] = useState("")
+  const [reportPending, setReportPending] = useState(false)
+  const [reportError, setReportError] = useState<string | null>(null)
   const submitLockRef = useRef(false)
   const replyLockRef = useRef(false)
   const replyPreviewUrlRef = useRef<string | null>(null)
@@ -335,20 +340,39 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
     [detail?.id, detail?.currentUserId]
   )
 
-  const handleReport = useCallback(
-    async (commentId: string) => {
-      if (!detail?.currentUserId) return
-      const reason = "ABUSE"
-      if (!confirm("이 댓글을 신고할까요?")) return
-      setActionError(null)
-      const result = await reportComment(commentId, reason)
+  const openReportForm = useCallback((commentId: string) => {
+    if (!detail?.currentUserId) return
+    setReportCommentId(commentId)
+    setReportReason("ABUSE")
+    setReportDescription("")
+    setReportError(null)
+  }, [detail?.currentUserId])
+
+  const closeReportForm = useCallback(() => {
+    setReportCommentId(null)
+    setReportError(null)
+  }, [])
+
+  const handleSubmitReport = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault()
+      if (!reportCommentId || !detail?.id) return
+      setReportError(null)
+      setReportPending(true)
+      const result = await reportComment(
+        reportCommentId,
+        reportReason,
+        reportDescription.trim() || null
+      )
+      setReportPending(false)
       if (result.ok) {
-        if (detail?.id) refetchDetail(detail.id, setDetail)
+        setReportCommentId(null)
+        refetchDetail(detail.id, setDetail)
       } else {
-        setActionError(result.error)
+        setReportError(result.error)
       }
     },
-    [detail?.id, detail?.currentUserId]
+    [reportCommentId, reportReason, reportDescription, detail?.id]
   )
 
   const handleReplyFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -575,7 +599,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleReport(c.id)}
+                              onClick={() => openReportForm(c.id)}
                               className="p-1 text-muted-foreground hover:text-foreground rounded"
                               aria-label="신고"
                             >
@@ -751,6 +775,70 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                           )}
                         </div>
                       )}
+                      {reportCommentId === c.id && (
+                        <form
+                          onSubmit={handleSubmitReport}
+                          className="mt-3 p-3 bg-muted/30 border border-border rounded space-y-3"
+                        >
+                          <p className="font-mono text-[10px] font-bold uppercase text-muted-foreground">
+                            신고 사유 선택
+                          </p>
+                          <div className="space-y-2">
+                            {[
+                              { value: "ABUSE", label: "욕설 및 비하" },
+                              { value: "SPAM", label: "도배 및 광고" },
+                              { value: "INAPPROPRIATE", label: "부적절한 게시물 (정치·혐오 등)" },
+                              { value: "FALSE_INFO", label: "허위 사실 유포" },
+                            ].map((opt) => (
+                              <label
+                                key={opt.value}
+                                className="flex items-center gap-2 cursor-pointer font-mono text-xs"
+                              >
+                                <input
+                                  type="radio"
+                                  name={`reportReason-${c.id}`}
+                                  value={opt.value}
+                                  checked={reportReason === opt.value}
+                                  onChange={() => setReportReason(opt.value)}
+                                  className="rounded border-border"
+                                />
+                                {opt.label}
+                              </label>
+                            ))}
+                          </div>
+                          <div>
+                            <label className="block font-mono text-[10px] text-muted-foreground mb-1">
+                              상세 설명 (선택)
+                            </label>
+                            <textarea
+                              value={reportDescription}
+                              onChange={(e) => setReportDescription(e.target.value.slice(0, 500))}
+                              placeholder="추가로 전달할 내용이 있으면 입력해 주세요."
+                              rows={2}
+                              className="w-full bg-background border border-border px-2 py-1.5 text-xs font-mono rounded focus:border-primary outline-none resize-none"
+                            />
+                          </div>
+                          {reportError && (
+                            <p className="text-destructive text-[10px] font-mono">{reportError}</p>
+                          )}
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={closeReportForm}
+                              className="px-3 py-1.5 border border-border text-[10px] font-mono rounded hover:bg-muted/50"
+                            >
+                              취소
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={reportPending}
+                              className="px-3 py-1.5 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50"
+                            >
+                              {reportPending ? "처리 중..." : "신고하기"}
+                            </button>
+                          </div>
+                        </form>
+                      )}
                       {flattenReplies(c.replies).length > 0 && (
                         <div className="mt-3 pl-4 border-l-2 border-border space-y-3">
                           {flattenReplies(c.replies).map((r) => {
@@ -845,7 +933,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                                         )}
                                         <button
                                           type="button"
-                                          onClick={() => handleReport(r.id)}
+                                          onClick={() => openReportForm(r.id)}
                                           className="p-1 text-muted-foreground hover:text-foreground rounded"
                                           aria-label="신고"
                                         >
@@ -955,6 +1043,67 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                                       </button>
                                     )}
                                   </div>
+                                )}
+                                {reportCommentId === r.id && (
+                                  <form
+                                    onSubmit={handleSubmitReport}
+                                    className="mt-2 p-3 bg-muted/30 border border-border rounded space-y-2"
+                                  >
+                                    <p className="font-mono text-[10px] font-bold uppercase text-muted-foreground">
+                                      신고 사유
+                                    </p>
+                                    <div className="space-y-1.5">
+                                      {[
+                                        { value: "ABUSE", label: "욕설 및 비하" },
+                                        { value: "SPAM", label: "도배 및 광고" },
+                                        { value: "INAPPROPRIATE", label: "부적절한 게시물" },
+                                        { value: "FALSE_INFO", label: "허위 사실 유포" },
+                                      ].map((opt) => (
+                                        <label
+                                          key={opt.value}
+                                          className="flex items-center gap-2 cursor-pointer font-mono text-[10px]"
+                                        >
+                                          <input
+                                            type="radio"
+                                            name={`reportReason-reply-${r.id}`}
+                                            value={opt.value}
+                                            checked={reportReason === opt.value}
+                                            onChange={() => setReportReason(opt.value)}
+                                            className="rounded border-border"
+                                          />
+                                          {opt.label}
+                                        </label>
+                                      ))}
+                                    </div>
+                                    <div>
+                                      <textarea
+                                        value={reportDescription}
+                                        onChange={(e) => setReportDescription(e.target.value.slice(0, 500))}
+                                        placeholder="상세 설명 (선택)"
+                                        rows={2}
+                                        className="w-full bg-background border border-border px-2 py-1.5 text-[10px] font-mono rounded focus:border-primary outline-none resize-none"
+                                      />
+                                    </div>
+                                    {reportError && (
+                                      <p className="text-destructive text-[10px] font-mono">{reportError}</p>
+                                    )}
+                                    <div className="flex gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={closeReportForm}
+                                        className="px-2 py-1 border border-border text-[10px] font-mono rounded hover:bg-muted/50"
+                                      >
+                                        취소
+                                      </button>
+                                      <button
+                                        type="submit"
+                                        disabled={reportPending}
+                                        className="px-2 py-1 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50"
+                                      >
+                                        {reportPending ? "처리 중..." : "신고하기"}
+                                      </button>
+                                    </div>
+                                  </form>
                                 )}
                               </div>
                             )

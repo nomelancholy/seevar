@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { Pencil } from "lucide-react"
 import { createRefereeReview } from "@/lib/actions/referee-reviews"
 
 const STAR_CLIP =
@@ -125,14 +126,20 @@ export function MatchRefereeRatingSection({
   const [comment, setComment] = useState("")
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
   const router = useRouter()
   const reviews = initialReviews
 
   useEffect(() => {
-    setRating(0)
-    setComment("")
+    const sel = matchReferees[selectedIdx]
+    const refId = sel?.referee.id
+    const selReviews = refId ? initialReviews.filter((r) => r.refereeId === refId) : []
+    const mine = currentUserId ? selReviews.find((r) => r.userId === currentUserId) : null
+    setRating(mine?.rating ?? 0)
+    setComment(mine?.comment ?? "")
     setError(null)
-  }, [selectedIdx])
+    setIsEditing(false)
+  }, [selectedIdx, matchReferees, initialReviews, currentUserId])
 
   const selected = matchReferees[selectedIdx]
   const selectedRefereeId = selected?.referee.id
@@ -183,8 +190,12 @@ export function MatchRefereeRatingSection({
     )
     setPending(false)
     if (result.ok) {
-      setRating(0)
-      setComment("")
+      if (!myReview) {
+        setRating(0)
+        setComment("")
+      } else {
+        setIsEditing(false)
+      }
       router.refresh()
     } else {
       setError(result.error)
@@ -273,15 +284,29 @@ export function MatchRefereeRatingSection({
                   </div>
                 </div>
               )}
-              {currentUserId && myReview && (
+              {currentUserId && myReview && !isEditing && (
                 <div className="bg-muted/30 border border-border p-4 md:p-6">
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-[10px] font-black font-mono text-blue-500 uppercase">
                       My Rating
                     </span>
-                    <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[8px] font-mono">
-                      SUBMITTED
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[8px] font-mono">
+                        SUBMITTED
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRating(myReview.rating)
+                          setComment(myReview.comment ?? "")
+                          setIsEditing(true)
+                        }}
+                        className="flex items-center gap-1.5 border border-border hover:border-primary bg-card px-2.5 py-1.5 text-[8px] md:text-[9px] font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <Pencil className="size-3" aria-hidden />
+                        Edit
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <p className="text-[10px] text-muted-foreground font-mono">
@@ -291,6 +316,55 @@ export function MatchRefereeRatingSection({
                     {myReview.comment && (
                       <p className="text-sm text-muted-foreground italic">&quot;{myReview.comment}&quot;</p>
                     )}
+                  </div>
+                </div>
+              )}
+              {currentUserId && myReview && isEditing && (
+                <div className="bg-muted/30 border border-border p-4 md:p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-[9px] md:text-[10px] font-black font-mono text-primary uppercase">
+                      Edit Rating
+                    </span>
+                  </div>
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase font-mono mb-2">
+                        {ROLE_LABEL[selected.role]}: {selected.referee.name}
+                      </p>
+                      <StarRatingInput value={rating} onChange={setRating} />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] md:text-[9px] text-muted-foreground uppercase font-mono mb-2">
+                        Short Review
+                      </label>
+                      <textarea
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value.slice(0, 100))}
+                        rows={3}
+                        placeholder="한줄평을 입력해주세요 (예: 판정이 공정했습니다)"
+                        className="w-full bg-background border border-border p-3 text-[10px] md:text-xs font-mono focus:border-primary outline-none resize-none"
+                      />
+                    </div>
+                    {error && (
+                      <p className="text-destructive text-[10px] font-mono">{error}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="flex-1 border border-border py-3 text-[9px] md:text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:bg-muted/50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={pending || rating < 1}
+                        className="flex-1 border border-primary bg-primary text-primary-foreground font-black py-3 text-[9px] md:text-[10px] tracking-tighter italic uppercase hover:opacity-90 disabled:opacity-50"
+                      >
+                        {pending ? "저장 중..." : "UPDATE RATING"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

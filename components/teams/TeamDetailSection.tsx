@@ -33,6 +33,8 @@ type MatchRow = {
 type Props = {
   teamName: string
   teamId: string
+  /** 심판 상세에서 BACK 시 돌아갈 URL (팀 상세 등) */
+  refereeBackPath: string
   compatibility: { high: RefereeStat | null; low: RefereeStat | null }
   assignments: RefereeStat[]
   matches: MatchRow[]
@@ -54,9 +56,17 @@ function getRoleCount(roleCounts: Record<string, number> | null, role: string): 
   return Number(roleCounts[role]) || 0
 }
 
+function refereeHref(slug: string, backPath: string): string {
+  const back = backPath.startsWith("/") && !backPath.includes("//")
+    ? `?back=${encodeURIComponent(backPath)}`
+    : ""
+  return `/referees/${slug}${back}`
+}
+
 export function TeamDetailSection({
   teamName,
   teamId,
+  refereeBackPath,
   compatibility,
   assignments,
   matches,
@@ -87,29 +97,24 @@ export function TeamDetailSection({
                 High Compatibility
               </p>
               {compatibility.high ? (
-                <div className="bg-card/50 border border-border p-3 md:p-4 flex items-center gap-3 md:gap-4">
-                  <div className="w-10 h-10 md:w-12 md:h-12 bg-muted flex items-center justify-center shrink-0">
-                    <span className="text-muted-foreground text-lg font-black">👤</span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/referees/${compatibility.high.slug}`}
-                      className="text-base md:text-lg font-black italic uppercase leading-none mb-1 hover:text-primary transition-colors flex items-center gap-1"
-                    >
-                      {compatibility.high.name}
-                      <span className="text-[10px]">→</span>
-                    </Link>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 md:w-20 h-1.5 bg-muted rounded-full overflow-hidden flex-1 max-w-[80px]">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${Math.min(100, (compatibility.high.fanAverageRating / 5) * 100)}%` }}
-                        />
-                      </div>
-                      <span className="font-mono text-[10px] md:text-xs font-bold text-primary">
-                        {compatibility.high.fanAverageRating.toFixed(1)}
-                      </span>
+                <div className="bg-card/50 border border-border p-3 md:p-4">
+                  <Link
+                    href={refereeHref(compatibility.high.slug, refereeBackPath)}
+                    className="text-base md:text-lg font-black italic uppercase leading-none mb-2 hover:text-primary transition-colors flex items-center gap-1"
+                  >
+                    {compatibility.high.name}
+                    <span className="text-[10px]">→</span>
+                  </Link>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 md:w-20 h-1.5 bg-muted rounded-full overflow-hidden flex-1 max-w-[80px]">
+                      <div
+                        className="h-full bg-primary"
+                        style={{ width: `${Math.min(100, (compatibility.high.fanAverageRating / 5) * 100)}%` }}
+                      />
                     </div>
+                    <span className="font-mono text-[10px] md:text-xs font-bold text-primary">
+                      {compatibility.high.fanAverageRating.toFixed(1)}
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -121,29 +126,24 @@ export function TeamDetailSection({
                 Low Compatibility
               </p>
               {compatibility.low ? (
-                <div className="bg-card/50 border border-border p-3 md:p-4 flex items-center gap-3 md:gap-4">
-                  <div className="w-10 h-10 md:w-12 md:h-12 bg-muted flex items-center justify-center shrink-0">
-                    <span className="text-muted-foreground text-lg font-black">👤</span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/referees/${compatibility.low.slug}`}
-                      className="text-base md:text-lg font-black italic uppercase leading-none mb-1 hover:text-primary transition-colors flex items-center gap-1"
-                    >
-                      {compatibility.low.name}
-                      <span className="text-[10px]">→</span>
-                    </Link>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 md:w-20 h-1.5 bg-muted rounded-full overflow-hidden flex-1 max-w-[80px]">
-                        <div
-                          className="h-full bg-destructive"
-                          style={{ width: `${Math.min(100, (compatibility.low.fanAverageRating / 5) * 100)}%` }}
-                        />
-                      </div>
-                      <span className="font-mono text-[10px] md:text-xs font-bold text-destructive">
-                        {compatibility.low.fanAverageRating.toFixed(1)}
-                      </span>
+                <div className="bg-card/50 border border-border p-3 md:p-4">
+                  <Link
+                    href={refereeHref(compatibility.low.slug, refereeBackPath)}
+                    className="text-base md:text-lg font-black italic uppercase leading-none mb-2 hover:text-primary transition-colors flex items-center gap-1"
+                  >
+                    {compatibility.low.name}
+                    <span className="text-[10px]">→</span>
+                  </Link>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 md:w-20 h-1.5 bg-muted rounded-full overflow-hidden flex-1 max-w-[80px]">
+                      <div
+                        className="h-full bg-destructive"
+                        style={{ width: `${Math.min(100, (compatibility.low.fanAverageRating / 5) * 100)}%` }}
+                      />
                     </div>
+                    <span className="font-mono text-[10px] md:text-xs font-bold text-destructive">
+                      {compatibility.low.fanAverageRating.toFixed(1)}
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -170,7 +170,7 @@ export function TeamDetailSection({
                   }`}
                 >
                   <Link
-                    href={`/referees/${ref.slug}`}
+                    href={refereeHref(ref.slug, refereeBackPath)}
                     className="text-[10px] md:text-xs font-bold italic uppercase hover:text-primary transition-colors flex items-center gap-1"
                   >
                     {idx + 1}. {ref.name}
@@ -253,7 +253,7 @@ export function TeamDetailSection({
                           {ROLE_LABEL[mr.role] ?? mr.role}
                         </span>
                         <Link
-                          href={`/referees/${mr.referee.slug}`}
+                          href={refereeHref(mr.referee.slug, refereeBackPath)}
                           className="font-mono text-[10px] md:text-xs font-bold hover:text-primary transition-colors flex items-center gap-1"
                         >
                           {mr.referee.name}

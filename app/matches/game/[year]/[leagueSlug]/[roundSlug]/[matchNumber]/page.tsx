@@ -78,7 +78,7 @@ async function resolveMatchBySlug(
   return { ...(match ?? fallback), moments: match?.moments ?? [] }
 }
 
-type SearchParams = Promise<{ back?: string }>
+type SearchParams = Promise<{ back?: string; openMoment?: string }>
 
 function sanitizeBackUrl(back: string | undefined): string {
   if (!back || typeof back !== "string") return "/matches"
@@ -103,7 +103,7 @@ export default async function MatchDetailBySlugPage({
   searchParams: SearchParams
 }) {
   const { year, leagueSlug, roundSlug, matchNumber } = await params
-  const { back: backParam } = await searchParams
+  const { back: backParam, openMoment: openMomentId } = await searchParams
   const [match, currentUser] = await Promise.all([
     resolveMatchBySlug(year, leagueSlug, roundSlug, matchNumber),
     getCurrentUser(),
@@ -344,6 +344,7 @@ export default async function MatchDetailBySlugPage({
             }}
             matchId={match.id}
             variant="hot"
+            initialOpenMomentId={openMomentId ?? undefined}
           />
         </section>
       )}

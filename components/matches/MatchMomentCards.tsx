@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { MessageCircle } from "lucide-react"
 import { MomentCommentModal } from "@/components/home/MomentCommentModal"
 
@@ -33,6 +33,9 @@ type HotMomentItem = {
   commentCount: number
 }
 
+/** useRef 제네릭의 >> 가 JSX로 파싱되지 않도록 별칭 사용 */
+type CardRefsMap = Record<string, HTMLButtonElement | null>
+
 function toHotMomentItem(
   mom: MomentForCard,
   matchId: string,
@@ -62,6 +65,8 @@ type Props = {
   matchId: string
   /** Moments list page: grid + description */
   variant?: "hot" | "list"
+  /** 알림 등에서 진입 시 이 모멘트 카드 열기 + 스크롤 */
+  initialOpenMomentId?: string
 }
 
 export function MatchMomentCards({
@@ -69,14 +74,31 @@ export function MatchMomentCards({
   match,
   matchId,
   variant = "hot",
+  initialOpenMomentId,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [selected, setSelected] = useState<HotMomentItem | null>(null)
+  const cardRefs = useRef<CardRefsMap>({})
 
   const openModal = (item: HotMomentItem) => {
     setSelected(item)
     setModalOpen(true)
   }
+
+  const didOpenInitial = useRef(false)
+  useEffect(() => {
+    if (!initialOpenMomentId || moments.length === 0 || didOpenInitial.current) return
+    const mom = moments.find((m) => m.id === initialOpenMomentId)
+    if (!mom) return
+    didOpenInitial.current = true
+    const item = toHotMomentItem(mom, matchId, match)
+    setSelected(item)
+    setModalOpen(true)
+    requestAnimationFrame(() => {
+      const el = cardRefs.current[initialOpenMomentId]
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" })
+    })
+  }, [initialOpenMomentId, moments, matchId, match])
 
   if (moments.length === 0) return null
 
@@ -107,6 +129,9 @@ export function MatchMomentCards({
           return (
             <button
               key={mom.id}
+              ref={(el) => {
+                cardRefs.current[mom.id] = el
+              }}
               type="button"
               onClick={() => openModal(item)}
               className={cardClass}
