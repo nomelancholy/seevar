@@ -25,8 +25,7 @@ export default async function MatchesIndexPage() {
   }
 
   const round = await prisma.round.findFirst({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    where: { leagueId: league.id, isFocus: false } as any,
+    where: { leagueId: league.id },
     orderBy: { number: "asc" },
   })
   if (!round) {

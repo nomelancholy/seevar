@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { ChevronDown, ChevronRight, User } from "lucide-react"
+import { EmblemImage } from "@/components/ui/EmblemImage"
 
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "Main Referee",
@@ -69,12 +70,12 @@ export function RefereeMatchRow({
           <div className="font-mono text-[10px] md:text-xs text-muted-foreground">{matchDate}</div>
           <div className="flex items-center gap-3 md:gap-4">
             <div className="flex items-center gap-1.5 md:gap-2">
-              {homeEmblem && <img src={homeEmblem} alt="" className="w-5 h-5 md:w-6 md:h-6" />}
+              <EmblemImage src={homeEmblem} width={24} height={24} className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
               <span className="font-bold text-sm md:text-lg uppercase">{homeName}</span>
             </div>
             <span className="text-muted-foreground italic text-xs md:text-base">VS</span>
             <div className="flex items-center gap-1.5 md:gap-2">
-              {awayEmblem && <img src={awayEmblem} alt="" className="w-5 h-5 md:w-6 md:h-6" />}
+              <EmblemImage src={awayEmblem} width={24} height={24} className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
               <span className="font-bold text-sm md:text-lg uppercase">{awayName}</span>
             </div>
           </div>
@@ -139,7 +140,7 @@ export function RefereeMatchRow({
                         </div>
                         {r.fanTeamEmblem && (
                           <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow z-10 overflow-hidden">
-                            <img src={r.fanTeamEmblem} alt="" className="w-full h-full object-contain" />
+                            <EmblemImage src={r.fanTeamEmblem} width={20} height={20} className="w-full h-full object-contain" />
                           </div>
                         )}
                       </div>

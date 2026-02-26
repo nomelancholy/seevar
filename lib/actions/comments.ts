@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
+import { createCommentSchema, updateCommentSchema, reportCommentSchema } from "@/lib/schemas/comment"
 
 export type CreateCommentResult = { ok: true; commentId: string } | { ok: false; error: string }
 export type UpdateCommentResult = { ok: true } | { ok: false; error: string }
@@ -21,25 +22,28 @@ export async function createComment(
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
 
+  const parsed = createCommentSchema.safeParse({ momentId, ...input })
+  if (!parsed.success) {
+    const msg = parsed.error.flatten().formErrors[0] ?? parsed.error.message
+    return { ok: false, error: msg }
+  }
+
   const moment = await prisma.moment.findUnique({
-    where: { id: momentId },
+    where: { id: parsed.data.momentId },
     select: { id: true },
   })
   if (!moment) return { ok: false, error: "모멘트를 찾을 수 없습니다." }
 
-  const content = input.content?.trim() ?? ""
-  if (!content && !input.mediaUrl?.trim()) {
-    return { ok: false, error: "내용을 입력해 주세요." }
-  }
+  const content = parsed.data.content || " "
 
   try {
     const comment = await prisma.comment.create({
       data: {
-        momentId,
+        momentId: parsed.data.momentId,
         userId: user.id,
-        content: content || " ",
-        mediaUrl: input.mediaUrl?.trim() || null,
-        parentId: input.parentId || null,
+        content,
+        mediaUrl: parsed.data.mediaUrl ?? null,
+        parentId: parsed.data.parentId ?? null,
         status: "VISIBLE",
       } as Parameters<typeof prisma.comment.create>[0]["data"],
     })
@@ -48,14 +52,14 @@ export async function createComment(
       data: { commentCount: { increment: 1 } },
     })
 
-    if (input.parentId) {
+    if (parsed.data.parentId) {
       const parent = await prisma.comment.findUnique({
-        where: { id: input.parentId },
+        where: { id: parsed.data.parentId },
         select: { userId: true, momentId: true },
       })
       if (parent && parent.userId !== user.id) {
         const momentWithMatch = await prisma.moment.findUnique({
-          where: { id: parent.momentId },
+          where: { id: parent.momentId as string },
           select: {
             match: {
               select: {
@@ -114,20 +118,23 @@ export async function updateComment(commentId: string, content: string): Promise
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
 
+  const parsed = updateCommentSchema.safeParse({ commentId, content })
+  if (!parsed.success) {
+    const msg = parsed.error.flatten().formErrors[0] ?? parsed.error.message
+    return { ok: false, error: msg }
+  }
+
   const comment = await prisma.comment.findUnique({
-    where: { id: commentId },
+    where: { id: parsed.data.commentId },
     select: { id: true, userId: true },
   })
   if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
   if (comment.userId !== user.id) return { ok: false, error: "본인이 작성한 댓글만 수정할 수 있습니다." }
 
-  const trimmed = content?.trim() ?? ""
-  if (!trimmed) return { ok: false, error: "내용을 입력해 주세요." }
-
   try {
     await prisma.comment.update({
-      where: { id: commentId },
-      data: { content: trimmed },
+      where: { id: parsed.data.commentId },
+      data: { content: parsed.data.content },
     })
     revalidatePath("/")
     revalidatePath("/matches")
@@ -239,18 +246,20 @@ export async function reportComment(
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
 
-  if (!REPORT_REASONS.includes(reason as ReportReasonValue)) {
-    return { ok: false, error: "유효하지 않은 신고 사유입니다." }
+  const parsed = reportCommentSchema.safeParse({ commentId, reason, description })
+  if (!parsed.success) {
+    const msg = parsed.error.flatten().formErrors[0] ?? parsed.error.message
+    return { ok: false, error: msg }
   }
 
   const comment = await prisma.comment.findUnique({
-    where: { id: commentId },
+    where: { id: parsed.data.commentId },
     select: { id: true },
   })
   if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
 
   const already = await prisma.report.findFirst({
-    where: { reporterId: user.id, commentId },
+    where: { reporterId: user.id, commentId: parsed.data.commentId },
   })
   if (already) return { ok: false, error: "이미 신고한 댓글입니다." }
 
@@ -258,13 +267,13 @@ export async function reportComment(
     await prisma.report.create({
       data: {
         reporterId: user.id,
-        reason: reason as ReportReasonValue,
-        description: description?.trim() || null,
-        commentId,
+        reason: parsed.data.reason,
+        description: parsed.data.description ?? null,
+        commentId: parsed.data.commentId,
       },
     })
     await prisma.comment.update({
-      where: { id: commentId },
+      where: { id: parsed.data.commentId },
       data: { reportCount: { increment: 1 } },
     })
     revalidatePath("/")

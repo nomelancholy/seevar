@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { EmblemImage } from "@/components/ui/EmblemImage"
 
 export const metadata = {
   title: "TEAM ANALYSIS | See VAR",
@@ -43,7 +44,7 @@ export default async function TeamsPage() {
               >
                 <div className="w-16 h-16 bg-card border border-border flex items-center justify-center overflow-hidden rounded">
                   {t.emblemPath ? (
-                    <img src={t.emblemPath} alt="" className="w-12 h-12 object-contain" />
+                    <EmblemImage src={t.emblemPath} width={48} height={48} className="w-12 h-12 object-contain" />
                   ) : (
                     <span className="text-muted-foreground text-xs">—</span>
                   )}

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPathWithBack } from "@/lib/match-url"
+import { EmblemImage } from "@/components/ui/EmblemImage"
 import { TeamDetailSection } from "@/components/teams/TeamDetailSection"
 import { ChevronLeft } from "lucide-react"
 
@@ -279,7 +280,7 @@ export default async function TeamDetailPage({
         <div className="flex items-center gap-4 md:gap-6">
           <div className="w-16 h-16 md:w-24 md:h-24 bg-card border border-border flex items-center justify-center overflow-hidden rounded-lg shrink-0">
             {team.emblemPath ? (
-              <img src={team.emblemPath} alt="" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
+              <EmblemImage src={team.emblemPath} width={64} height={64} className="w-12 h-12 md:w-16 md:h-16 object-contain" />
             ) : (
               <span className="text-muted-foreground text-2xl font-black">—</span>
             )}

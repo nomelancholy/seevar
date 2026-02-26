@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { ChevronDown } from "lucide-react"
+import { EmblemImage } from "@/components/ui/EmblemImage"
 
 type TeamStat = {
   teamName: string
@@ -36,9 +37,7 @@ export function RefereeTeamRatingsExpand({ teamStats }: Props) {
             className="bg-muted/50 p-3 md:p-4 border border-border flex justify-between items-center"
           >
             <div className="flex items-center gap-2 md:gap-3">
-              {t.emblemPath && (
-                <img src={t.emblemPath} alt="" className="w-5 h-5 md:w-6 md:h-6" />
-              )}
+              <EmblemImage src={t.emblemPath} width={24} height={24} className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
               <div className="flex flex-col">
                 <span className="font-mono text-[10px] md:text-xs uppercase">{t.teamName}</span>
                 <span className="font-mono text-[8px] md:text-[9px] text-muted-foreground">

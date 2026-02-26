@@ -141,6 +141,7 @@ export async function createSeason(year: number): Promise<CreateSeasonResult> {
     const season = await prisma.season.create({ data: { year: y } })
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
     revalidatePath("/matches")
     return { ok: true, seasonId: season.id, year: season.year }
   } catch (e) {
@@ -180,6 +181,7 @@ export async function createLeague(data: {
     })
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
     revalidatePath("/matches")
     return { ok: true, leagueId: league.id, slug: league.slug }
   } catch (e) {
@@ -227,11 +229,253 @@ export async function createRound(data: {
     })
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
     revalidatePath("/matches")
     return { ok: true, roundId: round.id, slug: round.slug }
   } catch (e) {
     console.error("createRound:", e)
     return { ok: false, error: "라운드 추가에 실패했습니다." }
+  }
+}
+
+export type SetRoundFocusResult = { ok: true } | { ok: false; error: string }
+
+/** 같은 리그 내에서 한 라운드만 포커스. true로 설정 시 해당 리그의 다른 라운드는 모두 false */
+export async function setRoundFocus(roundId: string, isFocus: boolean): Promise<SetRoundFocusResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const round = await prisma.round.findUnique({
+    where: { id: roundId },
+    select: { id: true, leagueId: true },
+  })
+  if (!round) return { ok: false, error: "라운드를 찾을 수 없습니다." }
+
+  try {
+    if (isFocus) {
+      await prisma.round.updateMany({
+        where: { leagueId: round.leagueId },
+        data: { isFocus: false },
+      })
+    }
+    await prisma.round.update({
+      where: { id: roundId },
+      data: { isFocus },
+    })
+    revalidatePath("/admin")
+    revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
+    revalidatePath("/matches")
+    revalidatePath("/")
+    return { ok: true }
+  } catch (e) {
+    console.error("setRoundFocus:", e)
+    return { ok: false, error: "포커스 설정에 실패했습니다." }
+  }
+}
+
+// --- 시즌·리그·라운드 수정/삭제 (구조 관리 페이지용) ---
+
+export type UpdateSeasonResult = { ok: true } | { ok: false; error: string }
+export type UpdateLeagueResult = { ok: true } | { ok: false; error: string }
+export type UpdateRoundResult = { ok: true } | { ok: false; error: string }
+export type DeleteSeasonResult = { ok: true } | { ok: false; error: string }
+export type DeleteLeagueResult = { ok: true } | { ok: false; error: string }
+export type DeleteRoundResult = { ok: true } | { ok: false; error: string }
+
+export async function updateSeason(seasonId: string, year: number): Promise<UpdateSeasonResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const y = Number(year)
+  if (!Number.isInteger(y) || y < 1990 || y > 2100) {
+    return { ok: false, error: "연도는 1990~2100 정수로 입력해 주세요." }
+  }
+
+  const existing = await prisma.season.findUnique({ where: { id: seasonId }, select: { id: true } })
+  if (!existing) return { ok: false, error: "시즌을 찾을 수 없습니다." }
+
+  const duplicate = await prisma.season.findUnique({ where: { year: y }, select: { id: true } })
+  if (duplicate && duplicate.id !== seasonId) return { ok: false, error: "이미 존재하는 시즌(연도)입니다." }
+
+  try {
+    await prisma.season.update({ where: { id: seasonId }, data: { year: y } })
+    revalidatePath("/admin")
+    revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
+    revalidatePath("/matches")
+    return { ok: true }
+  } catch (e) {
+    console.error("updateSeason:", e)
+    return { ok: false, error: "시즌 수정에 실패했습니다." }
+  }
+}
+
+export async function updateLeague(
+  leagueId: string,
+  data: { name: string; slug: string }
+): Promise<UpdateLeagueResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const name = data.name?.trim()
+  const slug = data.slug?.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || ""
+  if (!name) return { ok: false, error: "리그 이름을 입력해 주세요." }
+  if (!slug) return { ok: false, error: "리그 슬러그를 입력해 주세요." }
+
+  const league = await prisma.league.findUnique({
+    where: { id: leagueId },
+    select: { id: true, seasonId: true },
+  })
+  if (!league) return { ok: false, error: "리그를 찾을 수 없습니다." }
+
+  const duplicate = await prisma.league.findFirst({
+    where: {
+      seasonId: league.seasonId,
+      slug,
+      id: { not: leagueId },
+    },
+  })
+  if (duplicate) return { ok: false, error: "같은 시즌에 이미 존재하는 리그 슬러그입니다." }
+
+  try {
+    await prisma.league.update({
+      where: { id: leagueId },
+      data: { name, slug },
+    })
+    revalidatePath("/admin")
+    revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
+    revalidatePath("/matches")
+    return { ok: true }
+  } catch (e) {
+    console.error("updateLeague:", e)
+    return { ok: false, error: "리그 수정에 실패했습니다." }
+  }
+}
+
+export async function updateRound(roundId: string, number: number): Promise<UpdateRoundResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const num = Number(number)
+  if (!Number.isInteger(num) || num < 1) {
+    return { ok: false, error: "라운드 번호는 1 이상 정수로 입력해 주세요." }
+  }
+
+  const round = await prisma.round.findUnique({
+    where: { id: roundId },
+    select: { id: true, leagueId: true },
+  })
+  if (!round) return { ok: false, error: "라운드를 찾을 수 없습니다." }
+
+  const duplicate = await prisma.round.findUnique({
+    where: { leagueId_number: { leagueId: round.leagueId, number: num } },
+  })
+  if (duplicate && duplicate.id !== roundId) {
+    return { ok: false, error: "이미 존재하는 라운드 번호입니다." }
+  }
+
+  const slug = `round-${num}`
+
+  try {
+    await prisma.round.update({
+      where: { id: roundId },
+      data: { number: num, slug },
+    })
+    revalidatePath("/admin")
+    revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
+    revalidatePath("/matches")
+    return { ok: true }
+  } catch (e) {
+    console.error("updateRound:", e)
+    return { ok: false, error: "라운드 수정에 실패했습니다." }
+  }
+}
+
+export async function deleteRound(roundId: string): Promise<DeleteRoundResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const round = await prisma.round.findUnique({
+    where: { id: roundId },
+    include: { _count: { select: { matches: true } } },
+  })
+  if (!round) return { ok: false, error: "라운드를 찾을 수 없습니다." }
+  if (round._count.matches > 0) {
+    return { ok: false, error: "경기가 있는 라운드는 삭제할 수 없습니다. 먼저 경기를 삭제하세요." }
+  }
+
+  try {
+    await prisma.round.delete({ where: { id: roundId } })
+    revalidatePath("/admin")
+    revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
+    revalidatePath("/matches")
+    return { ok: true }
+  } catch (e) {
+    console.error("deleteRound:", e)
+    return { ok: false, error: "라운드 삭제에 실패했습니다." }
+  }
+}
+
+export async function deleteLeague(leagueId: string): Promise<DeleteLeagueResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const league = await prisma.league.findUnique({
+    where: { id: leagueId },
+    include: { _count: { select: { rounds: true } } },
+  })
+  if (!league) return { ok: false, error: "리그를 찾을 수 없습니다." }
+  if (league._count.rounds > 0) {
+    return { ok: false, error: "라운드가 있는 리그는 삭제할 수 없습니다. 먼저 라운드를 삭제하세요." }
+  }
+
+  try {
+    await prisma.league.delete({ where: { id: leagueId } })
+    revalidatePath("/admin")
+    revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
+    revalidatePath("/matches")
+    return { ok: true }
+  } catch (e) {
+    console.error("deleteLeague:", e)
+    return { ok: false, error: "리그 삭제에 실패했습니다." }
+  }
+}
+
+export async function deleteSeason(seasonId: string): Promise<DeleteSeasonResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const season = await prisma.season.findUnique({
+    where: { id: seasonId },
+    include: { _count: { select: { leagues: true } } },
+  })
+  if (!season) return { ok: false, error: "시즌을 찾을 수 없습니다." }
+  if (season._count.leagues > 0) {
+    return { ok: false, error: "리그가 있는 시즌은 삭제할 수 없습니다. 먼저 리그를 삭제하세요." }
+  }
+
+  try {
+    await prisma.season.delete({ where: { id: seasonId } })
+    revalidatePath("/admin")
+    revalidatePath("/admin/matches")
+    revalidatePath("/admin/structure")
+    revalidatePath("/matches")
+    return { ok: true }
+  } catch (e) {
+    console.error("deleteSeason:", e)
+    return { ok: false, error: "시즌 삭제에 실패했습니다." }
   }
 }
 

@@ -7,12 +7,22 @@ import { HomeEmptyState } from "@/components/home/HomeEmptyState"
 
 type RoundWithMatches = Awaited<
   ReturnType<
-    typeof prisma.round.findUnique<{
-      where: { leagueId_number: { leagueId: string; number: number } }
-      include: { league: true; matches: { include: { homeTeam: true; awayTeam: true }; orderBy: { playedAt: "asc" } } }
+    typeof prisma.round.findMany<{
+      where: { isFocus: true }
+      include: {
+        league: true
+        matches: {
+          include: {
+            homeTeam: true
+            awayTeam: true
+            round: { include: { league: { include: { season: true } } } }
+          }
+          orderBy: { playedAt: "asc" }
+        }
+      }
     }>
   >
->
+>[number] | null
 
 export default async function HomePage() {
   // 메인에는 isFocus === true 인 라운드만 표시 (없으면 Focus Round 섹션 비표시)
@@ -33,8 +43,11 @@ export default async function HomePage() {
         },
       },
     })
-    k1Round1 = focusRounds.find((r) => r.league.slug === "kleague1") ?? null
-    k2Round1 = focusRounds.find((r) => r.league.slug === "kleague2") ?? null
+    // K리그1/2 슬러그: kleague1, k-league1 등 모두 허용
+    const k1Slugs = ["kleague1", "k-league1", "k-league-1"]
+    const k2Slugs = ["kleague2", "k-league2", "k-league-2"]
+    k1Round1 = focusRounds.find((r) => k1Slugs.includes(r.league.slug)) ?? null
+    k2Round1 = focusRounds.find((r) => k2Slugs.includes(r.league.slug)) ?? null
   } catch (e: unknown) {
     const err = e as { code?: string }
     if (err?.code === "P2022") {
@@ -56,11 +69,14 @@ export default async function HomePage() {
     awayTeam: { slug: string | null; emblemPath: string | null }
   }) => {
     const d = m.playedAt ? new Date(m.playedAt) : null
+    const tz = "Asia/Seoul"
     const dateStr = d
-      ? `${d.getUTCFullYear()}/${String(d.getUTCMonth() + 1).padStart(2, "0")}/${String(d.getUTCDate()).padStart(2, "0")}`
+      ? new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" })
+          .format(d)
+          .replace(/-/g, "/")
       : ""
     const timeStr = d
-      ? `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`
+      ? new Intl.DateTimeFormat("ko-KR", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(d)
       : ""
     return {
       id: m.id,
@@ -77,10 +93,14 @@ export default async function HomePage() {
 
   const k1Matches = k1Round1?.matches?.map(toCard) ?? []
   const k2Matches = k2Round1?.matches?.map(toCard) ?? []
-  const hasFocusRound = k1Matches.length > 0 || k2Matches.length > 0
+  // 포커스 라운드가 DB에 설정되어 있으면 표시 (경기 개수와 무관)
+  const hasFocusRound = k1Round1 !== null || k2Round1 !== null
 
-  // Hot moments: top by seeVarCount (isFocus 있을 때만 표시)
-  // If Moment table does not exist (e.g. migration not run), use empty array.
+  // Hot moments: 포커스 라운드에 속한 경기의 모멘트만, seeVarCount 기준 상위
+  const focusMatchIds = [
+    ...(k1Round1?.matches?.map((m) => m.id) ?? []),
+    ...(k2Round1?.matches?.map((m) => m.id) ?? []),
+  ]
   let hotMoments: Array<{
     rank: number
     momentId: string
@@ -94,36 +114,39 @@ export default async function HomePage() {
     varCount: number
     commentCount: number
   }> = []
-  try {
-    const rows = await prisma.moment.findMany({
-      take: 10,
-      orderBy: { seeVarCount: "desc" },
-      include: {
-        match: {
-          include: {
-            homeTeam: true,
-            awayTeam: true,
-            round: { include: { league: true } },
+  if (focusMatchIds.length > 0) {
+    try {
+      const rows = await prisma.moment.findMany({
+        where: { matchId: { in: focusMatchIds } },
+        take: 10,
+        orderBy: { seeVarCount: "desc" },
+        include: {
+          match: {
+            include: {
+              homeTeam: true,
+              awayTeam: true,
+              round: { include: { league: true } },
+            },
           },
         },
-      },
-    })
-    hotMoments = rows.map((mom, i) => ({
-      rank: i + 1,
-      momentId: mom.id,
-      matchId: mom.matchId,
-      league: mom.match.round.league.name.toUpperCase(),
-      homeName: shortNameFromSlug(mom.match.homeTeam.slug),
-      awayName: shortNameFromSlug(mom.match.awayTeam.slug),
-      homeEmblem: mom.match.homeTeam.emblemPath ?? "",
-      awayEmblem: mom.match.awayTeam.emblemPath ?? "",
-      time: mom.title ?? `${mom.startMinute ?? 0}' ~ ${mom.endMinute ?? 0}'`,
-      varCount: mom.seeVarCount,
-      commentCount: mom.commentCount,
-    }))
-  } catch (e: unknown) {
-    const err = e as { code?: string }
-    if (err?.code !== "P2021") throw e
+      })
+      hotMoments = rows.map((mom, i) => ({
+        rank: i + 1,
+        momentId: mom.id,
+        matchId: mom.matchId,
+        league: mom.match.round.league.name.toUpperCase(),
+        homeName: shortNameFromSlug(mom.match.homeTeam.slug),
+        awayName: shortNameFromSlug(mom.match.awayTeam.slug),
+        homeEmblem: mom.match.homeTeam.emblemPath ?? "",
+        awayEmblem: mom.match.awayTeam.emblemPath ?? "",
+        time: mom.title ?? `${mom.startMinute ?? 0}' ~ ${mom.endMinute ?? 0}'`,
+        varCount: mom.seeVarCount,
+        commentCount: mom.commentCount,
+      }))
+    } catch (e: unknown) {
+      const err = e as { code?: string }
+      if (err?.code !== "P2021") throw e
+    }
   }
 
   return (
@@ -131,7 +154,12 @@ export default async function HomePage() {
       {hasFocusRound ? (
         <>
           <HotMomentsSection hotMoments={hotMoments} />
-          <LeagueMatchesSection k1Matches={k1Matches} k2Matches={k2Matches} />
+          <LeagueMatchesSection
+            k1Matches={k1Matches}
+            k2Matches={k2Matches}
+            hasK1Focus={k1Round1 !== null}
+            hasK2Focus={k2Round1 !== null}
+          />
         </>
       ) : (
         <HomeEmptyState />

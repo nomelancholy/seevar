@@ -113,12 +113,12 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 
 ### E. 데이터·보안
 
-- [ ] **Zod 스키마**  
-       폼·API 요청 검증.
-- [ ] **에러 처리**  
-       `error.tsx`, try-catch, 검증 실패 시 사용자 메시지.
-- [ ] **이미지**  
-       팀 로고·하이라이트 `next/image` 최적화.
+- [x] **Zod 스키마**  
+       `lib/schemas/common.ts`, `comment.ts`, `profile.ts` 추가. 댓글 생성/수정/신고, 프로필 수정 서버 액션에 `safeParse` 검증 적용.
+- [x] **에러 처리**  
+       `app/error.tsx` 추가(오류 메시지 + 다시 시도/홈으로). 서버 액션은 try-catch + 검증 실패 시 사용자 메시지 반환.
+- [x] **이미지**  
+       `components/ui/EmblemImage.tsx`(next/image 래퍼) 추가. 홈·경기·팀·심판 영역 팀 로고/엠블럼을 `next/image`로 통일.
 
 ### F. 성능·운영
 

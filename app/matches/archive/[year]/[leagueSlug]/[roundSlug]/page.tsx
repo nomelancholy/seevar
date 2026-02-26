@@ -32,15 +32,13 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   const round =
     league &&
     (await prisma.round.findFirst({
-      where: { leagueId: league.id, slug: roundSlug, isFocus: false } as { leagueId: string; slug: string; isFocus: boolean },
+      where: { leagueId: league.id, slug: roundSlug },
       include: { league: { include: { season: true } } },
     }))
 
   const seasonId = season.id
   const leagueId = league?.id
   const roundId = round?.id
-  const playedAtYearStart = new Date(Date.UTC(year, 0, 1))
-  const playedAtYearEnd = new Date(Date.UTC(year + 1, 0, 1))
 
   type MomentWithMatch = Awaited<
     ReturnType<
@@ -80,50 +78,29 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   let matches: MatchWithRound[] = []
   let rawHotMoments: MomentWithMatch[] = []
 
-  // 필터 연동: 시즌(리그 있는 것만) → 리그(해당 연도에 경기 있는 아카이브 라운드만) → 라운드(해당 리그만). 리그/라운드 없으면 빈 목록.
+  // 필터: 시즌 → 해당 시즌의 모든 리그 → 해당 리그의 모든 라운드 (경기 일자와 무관하게 시즌 구조 기준으로 노출)
   const [seasonsRes, leaguesRes] = await Promise.all([
     prisma.season.findMany({
       where: { leagues: { some: {} } },
       orderBy: { year: "desc" },
     }),
     prisma.league.findMany({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: {
-        seasonId,
-        rounds: {
-          some: {
-            isFocus: false,
-            matches: {
-              some: {
-                playedAt: { gte: playedAtYearStart, lt: playedAtYearEnd },
-              },
-            },
-          },
-        },
-      } as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      orderBy: { slug: "asc" } as any,
+      where: { seasonId },
+      orderBy: { slug: "asc" },
+      select: { slug: true, name: true },
     }),
   ])
   seasons = seasonsRes.map((s) => ({ year: s.year, name: String(s.year) }))
-  leagues = leaguesRes.map((l) => ({ slug: (l as unknown as { slug: string }).slug, name: l.name }))
+  leagues = leaguesRes.map((l) => ({ slug: l.slug, name: l.name }))
 
   let roundsRes: { slug: string; number: number }[] = []
   if (leagueId) {
     const rows = await prisma.round.findMany({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: {
-        isFocus: false,
-        leagueId,
-        matches: {
-          some: {
-            playedAt: { gte: playedAtYearStart, lt: playedAtYearEnd },
-          },
-        },
-      } as any,
+      where: { leagueId },
       orderBy: { number: "asc" },
+      select: { slug: true, number: true },
     })
-    roundsRes = rows.map((r) => ({ slug: (r as unknown as { slug: string }).slug, number: r.number }))
+    roundsRes = rows
   }
   roundsForFilter = roundsRes
 
@@ -133,10 +110,6 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         where: {
           roundId,
           round: { league: { seasonId } },
-          playedAt: {
-            gte: playedAtYearStart,
-            lt: playedAtYearEnd,
-          },
         },
         take: 100,
         orderBy: { playedAt: "desc" },
@@ -153,10 +126,6 @@ export default async function MatchesArchivePage({ params }: { params: Params })
             match: {
               roundId,
               round: { league: { seasonId } },
-              playedAt: {
-                gte: playedAtYearStart,
-                lt: playedAtYearEnd,
-              },
             },
           },
           take: 10,

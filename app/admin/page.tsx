@@ -1,6 +1,7 @@
 import Link from "next/link"
 import {
   Calendar,
+  Layers,
   UserCheck,
   Trophy,
   Flag,
@@ -8,6 +9,13 @@ import {
 } from "lucide-react"
 
 const sections = [
+  {
+    title: "시즌·리그·라운드 관리",
+    description: "시즌(연도), 리그, 라운드 추가 및 구조 관리",
+    href: "/admin/structure",
+    icon: Layers,
+    comingSoon: false,
+  },
   {
     title: "경기 일정",
     description: "경기 일정 수정, 수동 추가·삭제",

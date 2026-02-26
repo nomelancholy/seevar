@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { ChevronDown } from "lucide-react"
+import { EmblemImage } from "@/components/ui/EmblemImage"
 
 export type FocusMatchItem = {
   id: string
@@ -57,7 +58,12 @@ function LeagueBlock({
       </button>
       <div className={`league-content ${open ? "open" : ""}`}>
         <div className="match-slider-container">
-          {matches.map((m, i) => (
+          {matches.length === 0 ? (
+            <p className="text-muted-foreground font-mono text-xs py-6 px-4">
+              등록된 경기가 없습니다.
+            </p>
+          ) : (
+          matches.map((m, i) => (
             <Link
               key={m.id}
               href={m.matchPath}
@@ -68,9 +74,9 @@ function LeagueBlock({
                 {m.date}
               </div>
               <div className="flex items-center gap-3 md:gap-4 w-full justify-between">
-                <img src={m.homeEmblem} alt="" className="w-6 h-6 md:w-8 md:h-8" />
+                <EmblemImage src={m.homeEmblem} width={32} height={32} className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
                 <span className="text-muted-foreground text-[10px]">vs</span>
-                <img src={m.awayEmblem} alt="" className="w-6 h-6 md:w-8 md:h-8" />
+                <EmblemImage src={m.awayEmblem} width={32} height={32} className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
               </div>
               <div className="text-[10px] font-mono text-center">
                 {m.homeName} vs {m.awayName}
@@ -81,7 +87,7 @@ function LeagueBlock({
                 </div>
               )}
             </Link>
-          ))}
+          )))}
         </div>
       </div>
     </div>
@@ -91,21 +97,26 @@ function LeagueBlock({
 type Props = {
   k1Matches?: FocusMatchItem[]
   k2Matches?: FocusMatchItem[]
+  hasK1Focus?: boolean
+  hasK2Focus?: boolean
 }
 
-export function LeagueMatchesSection({ k1Matches = [], k2Matches = [] }: Props) {
+export function LeagueMatchesSection({
+  k1Matches = [],
+  k2Matches = [],
+  hasK1Focus = false,
+  hasK2Focus = false,
+}: Props) {
   const [k1Open, setK1Open] = useState(true)
   const [k2Open, setK2Open] = useState(true)
-  const hasK1 = k1Matches.length > 0
-  const hasK2 = k2Matches.length > 0
-  if (!hasK1 && !hasK2) return null
+  if (!hasK1Focus && !hasK2Focus) return null
 
   return (
     <div className="mb-8 md:mb-12">
       <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
         Focus Round
       </h2>
-      {hasK1 && (
+      {hasK1Focus && (
         <LeagueBlock
           leagueName="K League 1"
           roundNumber={1}
@@ -114,7 +125,7 @@ export function LeagueMatchesSection({ k1Matches = [], k2Matches = [] }: Props) 
           onToggle={() => setK1Open((o) => !o)}
         />
       )}
-      {hasK2 && (
+      {hasK2Focus && (
         <LeagueBlock
           leagueName="K League 2"
           roundNumber={1}

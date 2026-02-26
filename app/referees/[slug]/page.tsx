@@ -9,7 +9,7 @@ import { RefereeAssignmentYearFilter } from "@/components/referees/RefereeAssign
 
 type Props = {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ year?: string; back?: string }>
+  searchParams: Promise<{ year?: string; stats?: string; back?: string }>
 }
 
 async function resolveReferee(param: string) {

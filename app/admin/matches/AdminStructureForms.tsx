@@ -32,12 +32,15 @@ export function AdminStructureForms({
   const [leagueName, setLeagueName] = useState("")
   const [leagueSlugInput, setLeagueSlugInput] = useState("")
   const [roundNumber, setRoundNumber] = useState("")
+  const [roundTargetLeagueId, setRoundTargetLeagueId] = useState<string>("")
   const [pendingSeason, setPendingSeason] = useState(false)
   const [pendingLeague, setPendingLeague] = useState(false)
   const [pendingRound, setPendingRound] = useState(false)
   const [errorSeason, setErrorSeason] = useState<string | null>(null)
   const [errorLeague, setErrorLeague] = useState<string | null>(null)
   const [errorRound, setErrorRound] = useState<string | null>(null)
+
+  const effectiveRoundLeagueId = roundTargetLeagueId || leagueId || leagues[0]?.id || ""
 
   async function handleAddSeason(e: React.FormEvent) {
     e.preventDefault()
@@ -85,14 +88,15 @@ export function AdminStructureForms({
   async function handleAddRound(e: React.FormEvent) {
     e.preventDefault()
     setErrorRound(null)
-    if (!leagueId) return
+    const targetLeagueId = effectiveRoundLeagueId
+    if (!targetLeagueId) return
     const num = parseInt(roundNumber, 10)
     if (Number.isNaN(num) || num < 1) {
       setErrorRound("라운드 번호를 1 이상으로 입력해 주세요.")
       return
     }
     setPendingRound(true)
-    const result = await createRound({ leagueId, number: num })
+    const result = await createRound({ leagueId: targetLeagueId, number: num })
     setPendingRound(false)
     if (result.ok) {
       setRoundNumber("")
@@ -174,21 +178,34 @@ export function AdminStructureForms({
 
         <form onSubmit={handleAddRound} className="space-y-2">
           <label className="block font-mono text-[10px] text-muted-foreground">
-            라운드 추가 {leagueId && `(round-N)`}
+            라운드 추가 (리그별로 round-N)
           </label>
-          {!leagueId ? (
-            <p className="text-muted-foreground text-[10px]">리그를 선택하면 추가할 수 있습니다.</p>
+          {leagues.length === 0 ? (
+            <p className="text-muted-foreground text-[10px]">리그를 먼저 추가하세요.</p>
           ) : (
             <>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={effectiveRoundLeagueId}
+                  onChange={(e) => setRoundTargetLeagueId(e.target.value)}
+                  className="bg-background border border-border px-2 py-1.5 text-xs focus:border-primary outline-none min-w-[140px]"
+                >
+                  {leagues.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-muted-foreground text-[10px]">·</span>
                 <input
                   type="number"
                   min={1}
                   value={roundNumber}
                   onChange={(e) => setRoundNumber(e.target.value)}
-                  placeholder="2"
-                  className="w-20 bg-background border border-border px-2 py-1.5 text-xs focus:border-primary outline-none"
+                  placeholder="1"
+                  className="w-16 bg-background border border-border px-2 py-1.5 text-xs focus:border-primary outline-none"
                 />
+                <span className="text-muted-foreground text-[10px]">라운드</span>
                 <button
                   type="submit"
                   disabled={pendingRound}
@@ -197,7 +214,9 @@ export function AdminStructureForms({
                   {pendingRound ? "추가 중" : "추가"}
                 </button>
               </div>
-              <p className="text-[9px] text-muted-foreground">슬러그는 round-{roundNumber || "N"}으로 생성됩니다.</p>
+              <p className="text-[9px] text-muted-foreground">
+                슬러그는 round-{roundNumber || "N"}으로 생성됩니다. 같은 리그 안에서만 번호 중복 불가.
+              </p>
               {errorRound && <p className="text-destructive text-[10px] font-mono">{errorRound}</p>}
             </>
           )}

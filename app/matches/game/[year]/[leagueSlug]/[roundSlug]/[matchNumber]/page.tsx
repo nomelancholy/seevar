@@ -250,8 +250,6 @@ export default async function MatchDetailBySlugPage({
               {ROLE_DISPLAY_ORDER.map((role) => {
                 const refs = refereesByRole[role] ?? []
                 const label = ROLE_LABEL[role] ?? role
-                const isVar = role === "VAR"
-                const isMain = role === "MAIN"
                 return (
                   <div key={role}>
                     <p className="text-muted-foreground mb-1 uppercase tracking-tighter text-[8px] md:text-[10px]">
@@ -273,7 +271,7 @@ export default async function MatchDetailBySlugPage({
                                 {sep}
                                 <Link
                                   href={refereeHref}
-                                  className={`font-bold hover:text-primary transition-colors inline-flex items-center gap-0.5 ${isVar ? "text-primary" : ""}`}
+                                  className="font-bold hover:text-primary transition-colors inline-flex items-center gap-0.5"
                                 >
                                   {ref.name}
                                   <ChevronRight className="size-3" />
@@ -282,7 +280,7 @@ export default async function MatchDetailBySlugPage({
                             )
                           }
                           return (
-                            <span key={ref.id} className={`inline-flex items-center gap-0.5 ${isVar ? "text-primary" : ""}`}>
+                            <span key={ref.id} className="inline-flex items-center gap-0.5">
                               {sep}
                               <span className="font-bold">{ref.name}</span>
                             </span>

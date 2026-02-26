@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { deriveMatchStatus } from "@/lib/utils/match-status"
+import { EmblemImage } from "@/components/ui/EmblemImage"
 import { TeamMatchHistoryYearFilter } from "./TeamMatchHistoryYearFilter"
 
 const ROLE_LABEL: Record<string, string> = {
@@ -213,9 +214,7 @@ export function TeamDetailSection({
                     <div className="font-mono text-xs md:text-sm text-muted-foreground">{formatDate(m.playedAt)}</div>
                     <div className="flex items-center gap-4 md:gap-6">
                       <div className="flex items-center gap-2 md:gap-3">
-                        {m.homeTeam.emblemPath && (
-                          <img src={m.homeTeam.emblemPath} alt="" className="w-6 h-6 md:w-8 md:h-8" />
-                        )}
+                        <EmblemImage src={m.homeTeam.emblemPath} width={32} height={32} className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
                         <span className="font-black italic text-base md:text-xl uppercase">{m.homeTeam.name}</span>
                       </div>
                       <span className="text-2xl md:text-4xl font-black italic tracking-tighter">
@@ -229,9 +228,7 @@ export function TeamDetailSection({
                         })()}
                       </span>
                       <div className="flex items-center gap-2 md:gap-3">
-                        {m.awayTeam.emblemPath && (
-                          <img src={m.awayTeam.emblemPath} alt="" className="w-6 h-6 md:w-8 md:h-8" />
-                        )}
+                        <EmblemImage src={m.awayTeam.emblemPath} width={32} height={32} className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
                         <span className="font-black italic text-base md:text-xl uppercase text-muted-foreground">
                           {m.awayTeam.name}
                         </span>

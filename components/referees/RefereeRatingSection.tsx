@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { ChevronDown } from "lucide-react"
+import { EmblemImage } from "@/components/ui/EmblemImage"
 
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "주심",
@@ -109,9 +110,7 @@ export function RefereeRatingSection({
               className="bg-card/50 p-3 md:p-4 border border-border flex justify-between items-center"
             >
               <div className="flex items-center gap-2 md:gap-3">
-                {t.emblemPath && (
-                  <img src={t.emblemPath} alt="" className="w-5 h-5 md:w-6 md:h-6 object-contain" />
-                )}
+                <EmblemImage src={t.emblemPath} width={24} height={24} className="w-5 h-5 md:w-6 md:h-6 object-contain shrink-0" />
                 <div className="flex flex-col">
                   <span className="font-mono text-[10px] md:text-xs uppercase">{t.teamName}</span>
                   <span className="font-mono text-[7px] md:text-[8px] text-muted-foreground">

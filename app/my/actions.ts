@@ -5,6 +5,7 @@ import { writeFile, mkdir } from "fs/promises"
 import path from "path"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
+import { updateProfileSchema } from "@/lib/schemas/profile"
 
 export type UpdateProfileResult = { ok: true } | { ok: false; error: string }
 
@@ -15,12 +16,17 @@ export async function updateProfile(formData: {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
 
-  const name = formData.name?.trim() || null
+  const parsed = updateProfileSchema.safeParse(formData)
+  if (!parsed.success) {
+    const msg = parsed.error.flatten().formErrors[0] ?? parsed.error.message
+    return { ok: false, error: msg }
+  }
+
   await prisma.user.update({
     where: { id: user.id },
     data: {
-      name: name ?? undefined,
-      supportingTeamId: formData.supportingTeamId ?? undefined,
+      name: parsed.data.name ?? undefined,
+      supportingTeamId: parsed.data.supportingTeamId ?? undefined,
     },
   })
   revalidatePath("/my")
