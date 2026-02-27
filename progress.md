@@ -122,10 +122,10 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 
 ### F. 성능·운영
 
-- [ ] **캐싱**  
-       `unstable_cache`, `revalidatePath` 적절히 사용.
-- [ ] **Prisma**  
-       `lib/prisma.ts` 싱글톤 유지, N+1 방지 `include` 사용.
+- [x] **캐싱**  
+       `unstable_cache`로 홈 포커스 라운드, 아카이브 라운드 데이터 캐시. 서버 액션에서는 `revalidatePath`로 갱신.
+- [x] **Prisma**  
+       `lib/prisma.ts` 싱글톤 유지, 주요 조회 쿼리에 `include`로 N+1 방지.
 
 ---
 

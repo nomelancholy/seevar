@@ -10,6 +10,7 @@ type Props = {
   initialTitle?: string
   initialContent?: string
   initialAllowComments?: boolean
+   initialIsPinned?: boolean
   mode?: "create" | "edit"
 }
 
@@ -19,11 +20,13 @@ export function NoticeForm({
   initialTitle = "",
   initialContent = "",
   initialAllowComments = true,
+  initialIsPinned = false,
   mode = "create",
 }: Props) {
   const [title, setTitle] = useState(initialTitle)
   const [content, setContent] = useState(initialContent)
   const [allowComments, setAllowComments] = useState(initialAllowComments)
+  const [isPinned, setIsPinned] = useState(initialIsPinned)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -34,10 +37,10 @@ export function NoticeForm({
     setError(null)
     const result =
       mode === "create"
-        ? await createNotice({ title, content, allowComments })
+        ? await createNotice({ title, content, allowComments, isPinned })
         : await (async () => {
             const { updateNotice } = await import("@/lib/actions/notices")
-            return updateNotice(noticeId!, { title, content, allowComments })
+            return updateNotice(noticeId!, { title, content, allowComments, isPinned })
           })()
     setPending(false)
     if (result.ok) {
@@ -76,17 +79,30 @@ export function NoticeForm({
           placeholder="공지 내용"
         />
       </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="allowComments"
-          checked={allowComments}
-          onChange={(e) => setAllowComments(e.target.checked)}
-          className="rounded border-border"
-        />
-        <label htmlFor="allowComments" className="font-mono text-xs text-muted-foreground">
-          댓글 허용
-        </label>
+      <div className="flex flex-col gap-2">
+        <label className="font-mono text-xs text-muted-foreground uppercase">옵션</label>
+        <div className="flex flex-wrap items-center gap-4">
+          <label className="inline-flex items-center gap-2 font-mono text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              id="isPinned"
+              checked={isPinned}
+              onChange={(e) => setIsPinned(e.target.checked)}
+              className="rounded border-border"
+            />
+            <span>상단 고정</span>
+          </label>
+          <label className="inline-flex items-center gap-2 font-mono text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              id="allowComments"
+              checked={allowComments}
+              onChange={(e) => setAllowComments(e.target.checked)}
+              className="rounded border-border"
+            />
+            <span>댓글 허용</span>
+          </label>
+        </div>
       </div>
       {error && <p className="text-destructive text-sm font-mono">{error}</p>}
       <button

@@ -32,7 +32,7 @@ export default async function NoticeNewPage() {
           공지 작성
         </h1>
         <p className="font-mono text-[10px] md:text-sm text-muted-foreground">
-          제목·내용을 입력하고 댓글 허용 여부를 선택하세요.
+          제목·내용을 입력하고 상단 고정 및 댓글 허용 여부를 선택하세요.
         </p>
       </header>
 

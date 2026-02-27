@@ -22,12 +22,49 @@ export async function updateProfile(formData: {
     return { ok: false, error: msg }
   }
 
+  const existing = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { supportingTeamId: true, lastTeamChangeAt: true },
+  })
+  if (!existing) {
+    return { ok: false, error: "사용자 정보를 찾을 수 없습니다." }
+  }
+
+  const newTeamId: string | null = parsed.data.supportingTeamId ?? null
+  const currentTeamId: string | null = existing.supportingTeamId
+
+  const isTeamChanged = newTeamId !== currentTeamId
+
+  if (isTeamChanged && existing.lastTeamChangeAt) {
+    const last = existing.lastTeamChangeAt
+    const nextAvailable = new Date(last.getTime() + 180 * 24 * 60 * 60 * 1000)
+    const now = new Date()
+    if (now < nextAvailable) {
+      const y = nextAvailable.getFullYear()
+      const m = String(nextAvailable.getMonth() + 1).padStart(2, "0")
+      const d = String(nextAvailable.getDate()).padStart(2, "0")
+      return {
+        ok: false,
+        error: `응원팀은 변경 후 6개월(약 180일)이 지나야 다시 변경할 수 있습니다. (다음 변경 가능일: ${y}-${m}-${d})`,
+      }
+    }
+  }
+
+  const updateData: {
+    name?: string | null
+    supportingTeamId?: string | null
+    lastTeamChangeAt?: Date
+  } = {}
+
+  updateData.name = parsed.data.name ?? undefined
+  updateData.supportingTeamId = newTeamId
+  if (isTeamChanged) {
+    updateData.lastTeamChangeAt = new Date()
+  }
+
   await prisma.user.update({
     where: { id: user.id },
-    data: {
-      name: parsed.data.name ?? undefined,
-      supportingTeamId: parsed.data.supportingTeamId ?? undefined,
-    },
+    data: updateData,
   })
   revalidatePath("/my")
   revalidatePath("/")

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { unstable_cache } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { shortNameFromSlug } from "@/lib/team-short-names"
 import { getMatchDetailPathWithBack } from "@/lib/match-url"
@@ -61,12 +62,9 @@ type RoundHighlight = {
   instagramEmbedUrl: string | null
 }
 
-export default async function HomePage() {
-  // 메인에는 isFocus === true 인 라운드만 표시 (없으면 Focus Round 섹션 비표시)
-  let k1Round1: RoundWithMatches = null
-  let k2Round1: RoundWithMatches = null
-  try {
-    const focusRounds = await prisma.round.findMany({
+const getFocusRoundsCached = unstable_cache(
+  async () =>
+    prisma.round.findMany({
       where: { isFocus: true },
       include: {
         league: true,
@@ -79,7 +77,17 @@ export default async function HomePage() {
           orderBy: { playedAt: "asc" },
         },
       },
-    })
+    }),
+  ["home-focus-rounds"],
+  { revalidate: 60 },
+)
+
+export default async function HomePage() {
+  // 메인에는 isFocus === true 인 라운드만 표시 (없으면 Focus Round 섹션 비표시)
+  let k1Round1: RoundWithMatches = null
+  let k2Round1: RoundWithMatches = null
+  try {
+    const focusRounds = await getFocusRoundsCached()
     // K리그1/2 슬러그: kleague1, k-league1 등 모두 허용
     const k1Slugs = ["kleague1", "k-league1", "k-league-1"]
     const k2Slugs = ["kleague2", "k-league2", "k-league-2"]

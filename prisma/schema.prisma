@@ -421,6 +421,7 @@ model Notice {
   authorId      String
   author        User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
   allowComments Boolean          @default(true)
+  isPinned      Boolean          @default(false) // 상단 고정 여부
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   comments      NoticeComment[]

@@ -167,9 +167,12 @@ export function MyInformationForm({
 
       {/* Supporting Team */}
       <div>
-        <label className="block text-[10px] md:text-xs font-mono text-muted-foreground mb-4 uppercase tracking-widest">
+        <label className="block text-[10px] md:text-xs font-mono text-muted-foreground mb-1 uppercase tracking-widest">
           Supporting Team
         </label>
+        <p className="text-[9px] md:text-[10px] font-mono text-muted-foreground mb-3">
+          응원팀은 변경 후 <span className="font-bold text-foreground">6개월(약 180일)</span>이 지나야 다시 변경할 수 있습니다.
+        </p>
         <div className="grid grid-cols-3 md:grid-cols-4 gap-3 max-h-[320px] overflow-y-auto pr-2 scrollbar-team">
           {teams.map((team) => (
             <button

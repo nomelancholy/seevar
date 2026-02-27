@@ -62,9 +62,12 @@ export function OnboardingForm({ teams }: Props) {
       </div>
 
       <div>
-        <label className="block text-[8px] md:text-[10px] font-mono text-muted-foreground mb-4 uppercase tracking-widest">
+        <label className="block text-[8px] md:text-[10px] font-mono text-muted-foreground mb-1 uppercase tracking-widest">
           Select Supporting Team
         </label>
+        <p className="text-[9px] md:text-[10px] font-mono text-muted-foreground mb-3">
+          응원팀은 선택 후 <span className="font-bold text-foreground">6개월(약 180일)</span>이 지나야 다시 변경할 수 있습니다.
+        </p>
         <div className="grid grid-cols-3 md:grid-cols-4 gap-3 max-h-[420px] overflow-y-auto pr-2 scrollbar-team">
           {teams.map((team) => (
             <button

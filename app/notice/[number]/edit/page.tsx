@@ -35,7 +35,7 @@ export default async function NoticeEditPage({
 
   const notice = await prisma.notice.findUnique({
     where: { number: num },
-    select: { id: true, number: true, title: true, content: true, allowComments: true },
+    select: { id: true, number: true, title: true, content: true, allowComments: true, isPinned: true },
   })
   if (!notice) notFound()
 
@@ -63,6 +63,7 @@ export default async function NoticeEditPage({
         initialTitle={notice.title}
         initialContent={notice.content}
         initialAllowComments={notice.allowComments}
+        initialIsPinned={notice.isPinned}
         mode="edit"
       />
     </main>

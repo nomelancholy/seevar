@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { unstable_cache } from "next/cache"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { prisma } from "@/lib/prisma"
@@ -100,6 +101,79 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     matchLabel: string
   }[] = []
 
+  const getRoundDataCached = unstable_cache(
+    async (roundIdParam: string, seasonIdParam: string) => {
+      const [matchesRes, rawHotMomentsRes, reviewsRes] = await Promise.all([
+        prisma.match.findMany({
+          where: {
+            roundId: roundIdParam,
+            round: { league: { seasonId: seasonIdParam } },
+          },
+          take: 100,
+          orderBy: { playedAt: "desc" },
+          include: {
+            homeTeam: true,
+            awayTeam: true,
+            round: { include: { league: { include: { season: true } } } },
+            matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
+          },
+        }),
+        prisma.moment
+          .findMany({
+            where: {
+              match: {
+                roundId: roundIdParam,
+                round: { league: { seasonId: seasonIdParam } },
+              },
+            },
+            take: 10,
+            orderBy: { seeVarCount: "desc" },
+            include: {
+              match: {
+                include: {
+                  homeTeam: true,
+                  awayTeam: true,
+                  round: { include: { league: true } },
+                },
+              },
+            },
+          })
+          .catch((e: { code?: string }) => (e?.code === "P2021" ? [] : Promise.reject(e))),
+        prisma.refereeReview.findMany({
+          where: {
+            status: "VISIBLE",
+            match: {
+              roundId: roundIdParam,
+              round: { league: { seasonId: seasonIdParam } },
+            },
+          },
+          include: {
+            referee: true,
+            match: {
+              include: {
+                homeTeam: true,
+                awayTeam: true,
+              },
+            },
+            fanTeam: {
+              select: { name: true, slug: true, emblemPath: true },
+            },
+            user: {
+              select: { name: true },
+            },
+            reactions: {
+              select: { type: true },
+            },
+          },
+        }),
+      ])
+
+      return { matchesRes, rawHotMomentsRes, reviewsRes }
+    },
+    ["archive-round"],
+    { revalidate: 60 },
+  )
+
   // 필터: 시즌 → 해당 시즌의 모든 리그 → 해당 리그의 모든 라운드 (경기 일자와 무관하게 시즌 구조 기준으로 노출)
   const [seasonsRes, leaguesRes] = await Promise.all([
     prisma.season.findMany({
@@ -127,70 +201,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   roundsForFilter = roundsRes
 
   if (roundId) {
-    const [matchesRes, rawHotMomentsRes, reviewsRes] = await Promise.all([
-      prisma.match.findMany({
-        where: {
-          roundId,
-          round: { league: { seasonId } },
-        },
-        take: 100,
-        orderBy: { playedAt: "desc" },
-        include: {
-          homeTeam: true,
-          awayTeam: true,
-          round: { include: { league: { include: { season: true } } } },
-          matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
-        },
-      }),
-      prisma.moment
-        .findMany({
-          where: {
-            match: {
-              roundId,
-              round: { league: { seasonId } },
-            },
-          },
-          take: 10,
-          orderBy: { seeVarCount: "desc" },
-          include: {
-            match: {
-              include: {
-                homeTeam: true,
-                awayTeam: true,
-                round: { include: { league: true } },
-              },
-            },
-          },
-        })
-        .catch((e: { code?: string }) => (e?.code === "P2021" ? [] : Promise.reject(e))),
-      prisma.refereeReview.findMany({
-        where: {
-          status: "VISIBLE",
-          match: {
-            roundId,
-            round: { league: { seasonId } },
-          },
-        },
-        include: {
-          referee: true,
-          match: {
-            include: {
-              homeTeam: true,
-              awayTeam: true,
-            },
-          },
-          fanTeam: {
-            select: { name: true, slug: true, emblemPath: true },
-          },
-          user: {
-            select: { name: true },
-          },
-          reactions: {
-            select: { type: true },
-          },
-        },
-      }),
-    ])
+    const { matchesRes, rawHotMomentsRes, reviewsRes } = await getRoundDataCached(roundId, seasonId)
     matches = matchesRes
     rawHotMoments = rawHotMomentsRes
 

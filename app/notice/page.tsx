@@ -14,7 +14,7 @@ export default async function NoticeListPage() {
   const isAdmin = getIsAdmin(user)
 
   const notices = await prisma.notice.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     include: {
       author: { select: { name: true } },
     },
@@ -71,12 +71,13 @@ export default async function NoticeListPage() {
             <Link
               key={n.id}
               href={`/notice/${n.number}`}
-              className="block p-4 md:p-6 border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors"
+              className={`block p-4 md:p-6 border-b border-border last:border-b-0 transition-colors ${
+                n.isPinned ? "bg-primary/10 hover:bg-primary/15" : "hover:bg-muted/20"
+              }`}
             >
               <h2 className="font-bold text-base md:text-lg mb-1">{n.title}</h2>
               <p className="font-mono text-[10px] md:text-xs text-muted-foreground">
-                {n.author.name ?? "운영자"} ·{" "}
-                {new Date(n.createdAt).toLocaleDateString("ko-KR")}
+                {n.author.name ?? "운영자"} · {new Date(n.createdAt).toLocaleDateString("ko-KR")}
                 {!n.allowComments && " · 댓글 비허용"}
               </p>
             </Link>

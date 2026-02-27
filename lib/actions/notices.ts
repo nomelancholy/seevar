@@ -11,7 +11,7 @@ export type DeleteNoticeResult = { ok: true } | { ok: false; error: string }
 export type CreateNoticeCommentResult = { ok: true; id: string } | { ok: false; error: string }
 
 export async function createNotice(
-  input: { title: string; content: string; allowComments: boolean }
+  input: { title: string; content: string; allowComments: boolean; isPinned: boolean }
 ): Promise<CreateNoticeResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
@@ -31,6 +31,7 @@ export async function createNotice(
         content: content || " ",
         authorId: user.id,
         allowComments: !!input.allowComments,
+        isPinned: !!input.isPinned,
       },
     })
     revalidatePath("/notice")
@@ -43,7 +44,7 @@ export async function createNotice(
 
 export async function updateNotice(
   id: string,
-  input: { title: string; content: string; allowComments: boolean }
+  input: { title: string; content: string; allowComments: boolean; isPinned: boolean }
 ): Promise<UpdateNoticeResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
@@ -62,6 +63,7 @@ export async function updateNotice(
         title,
         content: (input.content?.trim() ?? "") || " ",
         allowComments: !!input.allowComments,
+        isPinned: !!input.isPinned,
       },
     })
     const updated = await prisma.notice.findUnique({ where: { id }, select: { number: true } })
