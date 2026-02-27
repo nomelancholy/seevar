@@ -1,0 +1,53 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches: [main, dev]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set target server
+        id: target
+        run: |
+          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            echo "host=${{ secrets.PROD_HOST }}" >> $GITHUB_OUTPUT
+            echo "site_url=https://seevar.online" >> $GITHUB_OUTPUT
+          else
+            echo "host=${{ secrets.DEV_HOST }}" >> $GITHUB_OUTPUT
+            echo "site_url=https://dev.seevar.online" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ steps.target.outputs.host }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            mkdir -p ~/seevar
+            cd ~/seevar
+
+            # 1. 최신 코드 가져오기
+            git pull origin ${{ github.ref_name }}
+
+            # 2. .env 파일 새로 쓰기 (기존 내용 덮어쓰기)
+            echo "DB_USER=${{ secrets.DB_USER }}" > .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}" >> .env
+
+            # 3. NextAuth 및 네이버 로그인 정보 추가
+            echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
+            echo "NEXTAUTH_URL=${{ steps.target.outputs.site_url }}" >> .env
+            echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> .env
+            echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> .env
+
+            # 4. 컨테이너 빌드 및 실행
+            docker-compose up -d --build
