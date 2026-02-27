@@ -1,4 +1,5 @@
-# DB만 띄움. 앱은 호스트에서 npm run dev 로 실행하고 .env 의 DB_* 로 접속.
+version: "3.8"
+
 services:
   db:
     image: postgres:16-alpine
@@ -12,17 +13,16 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-app:
-  build: .
-  restart: always
-  ports:
-    - "3000:3000"
-  environment:
-    - NODE_ENV=production
-    # DB 접속 주소를 'db'로 설정 (Docker 내부 네트워크)
-    - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
-  depends_on:
-    - db
+  app:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+    depends_on:
+      - db
 
 volumes:
   pgdata:
