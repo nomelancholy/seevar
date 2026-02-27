@@ -16,11 +16,6 @@ export type MomentForMy = {
   isArchived: boolean
 }
 
-type Props = {
-  createdByMe: MomentForMy[]
-  participated: MomentForMy[]
-}
-
 export type RatingForMy = {
   id: string
   createdAt: string

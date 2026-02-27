@@ -67,7 +67,7 @@ const getFocusRoundsCached = unstable_cache(
     prisma.round.findMany({
       where: { isFocus: true },
       include: {
-        league: true,
+        league: { include: { season: true } },
         matches: {
           include: {
             homeTeam: true,
