@@ -86,23 +86,13 @@ export default function AboutPage() {
               </h4>
               <p className="text-xl md:text-3xl font-black italic tracking-tighter">
                 <a
-                  href="mailto:support@seevar.com"
+                  href="mailto:takeknowledge@naver.com"
                   className="hover:text-primary transition-colors underline decoration-1 underline-offset-8"
                 >
-                  support@seevar.com
+                  takeknowledge@naver.com
                 </a>
               </p>
             </div>
-            <Button
-              size="lg"
-              className="w-full md:w-auto bg-foreground text-background hover:bg-primary hover:text-primary-foreground font-mono"
-              asChild
-            >
-              <Link href="/" className="inline-flex items-center gap-2">
-                <Heart className="size-5" />
-                SUPPORT SEE VAR
-              </Link>
-            </Button>
           </div>
         </div>
       </section>

@@ -53,6 +53,17 @@ type CommentRow = {
   parent?: CommentParent | null
   reactions?: CommentReaction[]
   replies?: CommentRow[]
+  status?: string
+  filterReason?: string | null
+  reportCount?: number
+}
+
+/** 숨김 처리된 글 표시 문구 */
+function hiddenMessage(status?: string): string {
+  if (status === "PENDING_REAPPROVAL") {
+    return "이 글은 수정되어 재심 요청 중입니다. 운영진 검토 후 노출 여부가 결정됩니다."
+  }
+  return "이 글은 커뮤니티 가이드라인 위반 (욕설 및 비하 금지) 으로 숨김 처리된 글입니다."
 }
 
 /** 대댓글을 깊이 무관하게 평탄화(생성일 순). 들여쓰기는 모두 동일하게 유지. */
@@ -292,6 +303,8 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // IME(한글) 입력 중 Enter는 전송으로 처리하지 않음
+      if ((e as any).nativeEvent?.isComposing) return
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault()
         if (e.repeat) return
@@ -549,6 +562,10 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
               {comments.map((c) => {
                 const isOwn = detail?.currentUserId && c.author?.id === detail.currentUserId
                 const isEditing = editingCommentId === c.id
+                const status = c.status ?? "VISIBLE"
+                const isHidden = status === "HIDDEN"
+                const isPending = status === "PENDING_REAPPROVAL"
+                const isModerated = isHidden || isPending
                 return (
                 <div
                   key={c.id}
@@ -578,7 +595,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
-                        {currentUserId && (
+                        {currentUserId && !isModerated && (
                           <>
                             <button
                               type="button"
@@ -632,7 +649,11 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                         )}
                           </div>
                       </div>
-                      {isEditing ? (
+                      {isModerated && !isEditing ? (
+                        <p className="text-xs md:text-sm mt-1 text-muted-foreground italic">
+                          {hiddenMessage(status)}
+                        </p>
+                      ) : isEditing ? (
                         <div className="mt-2 space-y-2">
                           <textarea
                             value={editingContent}
@@ -671,7 +692,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                         {c.content}
                       </p>
                       )}
-                      {c.mediaUrl && (
+                      {!isModerated && c.mediaUrl && (
                         <div className="mt-2 rounded overflow-hidden border border-border max-w-[280px]">
                           {c.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -690,7 +711,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                           )}
                         </div>
                       )}
-                      {currentUserId && (
+                      {currentUserId && !isModerated && (
                         <div className="mt-2">
                           {replyToCommentId === c.id ? (
                             <div className="space-y-2">
@@ -845,6 +866,10 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                             const replyLike = getLikeState(r)
                             const isOwnReply = currentUserId && r.author?.id === currentUserId
                             const isEditingReply = editingCommentId === r.id
+                            const replyStatus = r.status ?? "VISIBLE"
+                            const isReplyHidden = replyStatus === "HIDDEN"
+                            const isReplyPending = replyStatus === "PENDING_REAPPROVAL"
+                            const isReplyModerated = isReplyHidden || isReplyPending
                             const parentName = r.parent?.author?.name ?? "알 수 없음"
                             return (
                               <div key={r.id} className="space-y-1">
@@ -875,7 +900,11 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                                         {new Date(r.createdAt).toLocaleString("ko-KR")}
                                       </span>
                                     </div>
-                                    {isEditingReply ? (
+                                    {isReplyModerated && !isEditingReply ? (
+                                      <p className="text-xs md:text-sm text-muted-foreground mt-0.5 italic">
+                                        {hiddenMessage(replyStatus)}
+                                      </p>
+                                    ) : isEditingReply ? (
                                       <div className="mt-2 space-y-2">
                                         <textarea
                                           value={editingContent}
@@ -916,7 +945,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                                     )}
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
-                                    {currentUserId && (
+                                    {currentUserId && !isReplyModerated && (
                                       <>
                                         <button
                                           type="button"
@@ -939,7 +968,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                                         >
                                           <Flag className="size-3" />
                                         </button>
-                                        {isOwnReply && !isEditingReply && (
+                                        {isOwnReply && !isEditingReply && !isReplyModerated && (
                                           <>
                                             <button
                                               type="button"

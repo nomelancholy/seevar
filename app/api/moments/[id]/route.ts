@@ -20,18 +20,21 @@ export async function GET(_request: Request, { params }: { params: Params }) {
         },
       },
       comments: {
-        where: { parentId: null, status: "VISIBLE" },
+        where: {
+          parentId: null,
+          status: { in: ["VISIBLE", "HIDDEN", "PENDING_REAPPROVAL"] },
+        },
         include: {
           author: true,
           reactions: { select: { type: true, userId: true } },
           replies: {
-            where: { status: "VISIBLE" },
+            where: { status: { in: ["VISIBLE", "HIDDEN", "PENDING_REAPPROVAL"] } },
             include: {
               author: true,
               reactions: { select: { type: true, userId: true } },
               parent: { select: { id: true, author: { select: { name: true } } } },
               replies: {
-                where: { status: "VISIBLE" },
+                where: { status: { in: ["VISIBLE", "HIDDEN", "PENDING_REAPPROVAL"] } },
                 include: {
                   author: true,
                   reactions: { select: { type: true, userId: true } },

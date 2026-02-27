@@ -1,4 +1,7 @@
+'use client'
+
 import Link from "next/link"
+import { useState } from "react"
 import { deriveMatchStatus } from "@/lib/utils/match-status"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { TeamMatchHistoryYearFilter } from "./TeamMatchHistoryYearFilter"
@@ -37,6 +40,7 @@ type Props = {
   /** 심판 상세에서 BACK 시 돌아갈 URL (팀 상세 등) */
   refereeBackPath: string
   compatibility: { high: RefereeStat | null; low: RefereeStat | null }
+  compatibilityList: RefereeStat[]
   assignments: RefereeStat[]
   matches: MatchRow[]
   availableYears: number[]
@@ -69,11 +73,14 @@ export function TeamDetailSection({
   teamId,
   refereeBackPath,
   compatibility,
+  compatibilityList,
   assignments,
   matches,
   availableYears,
   currentYear,
 }: Props) {
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalTab, setModalTab] = useState<"ratings" | "assignments">("ratings")
   const formatDate = (d: Date | null) =>
     d
       ? new Date(d).toLocaleDateString("ko-KR", {
@@ -89,9 +96,21 @@ export function TeamDetailSection({
       <div className="lg:col-span-4 space-y-6 md:space-y-8">
         {/* Referee Compatibility (Fan Choice) */}
         <div className="ledger-surface p-4 md:p-6 border border-border">
-          <h3 className="font-mono text-[10px] md:text-xs font-black tracking-widest text-primary uppercase italic mb-6 md:mb-8">
-            Referee Compatibility (Fan Choice)
-          </h3>
+          <div className="flex items-center justify-between mb-6 md:mb-8 gap-2">
+            <h3 className="font-mono text-[10px] md:text-xs font-black tracking-widest text-primary uppercase italic">
+              Referee Compatibility (Fan Choice)
+            </h3>
+            <button
+              type="button"
+              onClick={() => {
+                setModalTab("ratings")
+                setModalOpen(true)
+              }}
+              className="font-mono text-[9px] md:text-[10px] font-bold text-muted-foreground hover:text-foreground underline underline-offset-4"
+            >
+              VIEW ALL
+            </button>
+          </div>
           <div className="space-y-6 md:space-y-8">
             <div>
               <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase mb-3 md:mb-4">
@@ -156,9 +175,21 @@ export function TeamDetailSection({
 
         {/* Frequent Assignments */}
         <div className="ledger-surface p-4 md:p-6 border border-border">
-          <h3 className="font-mono text-[10px] md:text-xs font-black tracking-widest text-primary uppercase italic mb-6 md:mb-8">
-            Frequent Assignments
-          </h3>
+          <div className="flex items-center justify-between mb-6 md:mb-8 gap-2">
+            <h3 className="font-mono text-[10px] md:text-xs font-black tracking-widest text-primary uppercase italic">
+              Frequent Assignments
+            </h3>
+            <button
+              type="button"
+              onClick={() => {
+                setModalTab("assignments")
+                setModalOpen(true)
+              }}
+              className="font-mono text-[9px] md:text-[10px] font-bold text-muted-foreground hover:text-foreground underline underline-offset-4"
+            >
+              VIEW ALL
+            </button>
+          </div>
           <div className="space-y-2">
             {assignments.length === 0 ? (
               <p className="font-mono text-[10px] text-muted-foreground py-2">해당 팀 경기 배정 데이터가 없습니다.</p>
@@ -265,6 +296,155 @@ export function TeamDetailSection({
           )}
         </div>
       </div>
+
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setModalOpen(false)
+          }}
+        >
+          <div className="relative w-full max-w-3xl max-h-[80vh] bg-background border border-border shadow-2xl flex flex-col">
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+              aria-label="닫기"
+            >
+              ✕
+            </button>
+            <div className="flex border-b border-border">
+              <button
+                type="button"
+                onClick={() => setModalTab("ratings")}
+                className={`flex-1 py-3 text-[10px] md:text-xs font-mono tracking-widest uppercase ${
+                  modalTab === "ratings"
+                    ? "bg-card text-primary border-b-2 border-primary"
+                    : "bg-muted/30 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Fan Ratings
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalTab("assignments")}
+                className={`flex-1 py-3 text-[10px] md:text-xs font-mono tracking-widest uppercase ${
+                  modalTab === "assignments"
+                    ? "bg-card text-primary border-b-2 border-primary"
+                    : "bg-muted/30 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Assignment Stats
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3">
+              {modalTab === "ratings" ? (
+                compatibilityList.length === 0 ? (
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    이 팀 팬 평점 데이터가 없습니다.
+                  </p>
+                ) : (
+                  compatibilityList
+                    .slice()
+                    .sort((a, b) => b.fanAverageRating - a.fanAverageRating)
+                    .map((ref, idx) => (
+                      <div
+                        key={ref.id}
+                        className="flex items-center justify-between border border-border bg-card/40 px-3 py-2 md:px-4 md:py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-[9px] text-muted-foreground w-6 text-right">
+                            {idx + 1}.
+                          </span>
+                          <Link
+                            href={refereeHref(ref.slug, refereeBackPath)}
+                            className="font-mono text-[10px] md:text-xs font-bold italic uppercase hover:text-primary transition-colors flex items-center gap-1"
+                          >
+                            {ref.name}
+                            <span className="text-[8px]">→</span>
+                          </Link>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 md:w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary"
+                              style={{
+                                width: `${Math.min(
+                                  100,
+                                  (ref.fanAverageRating / 5) * 100
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="font-mono text-[10px] md:text-xs font-bold text-primary">
+                            {ref.fanAverageRating.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                )
+              ) : assignments.length === 0 ? (
+                <p className="font-mono text-[10px] text-muted-foreground">
+                  배정 데이터가 없습니다.
+                </p>
+              ) : (
+                <div className="w-full border border-border bg-card/40">
+                  <div className="grid grid-cols-8 gap-2 px-4 py-3 md:px-6 md:py-3 border-b border-border text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+                    <span className="text-right w-6">#</span>
+                    <span>Referee Name</span>
+                    <span className="text-center">Main</span>
+                    <span className="text-center">Asst</span>
+                    <span className="text-center">Var</span>
+                    <span className="text-center">Avar</span>
+                    <span className="text-center">4th</span>
+                    <span className="text-center">Total</span>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {assignments
+                      .slice()
+                      .sort((a, b) => b.totalAssignments - a.totalAssignments)
+                      .map((ref, idx) => (
+                        <div
+                          key={ref.id}
+                          className="grid grid-cols-8 gap-2 px-4 py-2.5 md:px-6 md:py-3 items-center text-[10px] md:text-xs font-mono"
+                        >
+                          <span className="text-right text-muted-foreground w-6">
+                            {idx + 1}.
+                          </span>
+                          <Link
+                            href={refereeHref(ref.slug, refereeBackPath)}
+                            className="font-bold italic uppercase hover:text-primary transition-colors flex items-center gap-1 truncate"
+                          >
+                            {ref.name}
+                            <span className="text-[8px]">→</span>
+                          </Link>
+                          <span className="text-center">
+                            {getRoleCount(ref.roleCounts, "MAIN")}
+                          </span>
+                          <span className="text-center">
+                            {getRoleCount(ref.roleCounts, "ASSISTANT")}
+                          </span>
+                          <span className="text-center">
+                            {getRoleCount(ref.roleCounts, "VAR")}
+                          </span>
+                          <span className="text-center">
+                            0
+                          </span>
+                          <span className="text-center">
+                            {getRoleCount(ref.roleCounts, "WAITING")}
+                          </span>
+                          <span className="text-center font-bold text-primary">
+                            {ref.totalAssignments}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

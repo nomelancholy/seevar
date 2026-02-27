@@ -38,19 +38,37 @@ export function AdminReportList({ reports }: Props) {
   const router = useRouter()
   const [actingId, setActingId] = useState<string | null>(null)
 
-  async function handleHideComment(commentId: string) {
-    if (!confirm("이 댓글을 숨김 처리할까요?")) return
+  async function handleHideComment(commentId: string, reasonLabel: string) {
+    if (!confirm("이 댓글을 숨김 처리할까요? (사유가 저장되어 게시물에 표시됩니다)")) return
     setActingId(commentId)
-    const result = await setCommentStatus(commentId, "HIDDEN")
+    const result = await setCommentStatus(commentId, "HIDDEN", reasonLabel)
     setActingId(null)
     if (result.ok) router.refresh()
     else alert(result.error)
   }
 
-  async function handleHideReview(reviewId: string) {
-    if (!confirm("이 심판 평가를 숨김 처리할까요?")) return
+  async function handleHideReview(reviewId: string, reasonLabel: string) {
+    if (!confirm("이 심판 평가를 숨김 처리할까요? (사유가 저장되어 게시물에 표시됩니다)")) return
     setActingId(reviewId)
-    const result = await setReviewStatus(reviewId, "HIDDEN")
+    const result = await setReviewStatus(reviewId, "HIDDEN", reasonLabel)
+    setActingId(null)
+    if (result.ok) router.refresh()
+    else alert(result.error)
+  }
+
+  async function handleRestoreComment(commentId: string) {
+    if (!confirm("이 댓글을 다시 노출할까요? (재심 통과)")) return
+    setActingId(commentId)
+    const result = await setCommentStatus(commentId, "VISIBLE", null)
+    setActingId(null)
+    if (result.ok) router.refresh()
+    else alert(result.error)
+  }
+
+  async function handleRestoreReview(reviewId: string) {
+    if (!confirm("이 심판 평가를 다시 노출할까요? (재심 통과)")) return
+    setActingId(reviewId)
+    const result = await setReviewStatus(reviewId, "VISIBLE", null)
     setActingId(null)
     if (result.ok) router.refresh()
     else alert(result.error)
@@ -92,39 +110,69 @@ export function AdminReportList({ reports }: Props) {
               </p>
             )}
             {r.comment && (
-              <div className="bg-muted/30 border border-border p-3 rounded">
+              <div className="bg-muted/30 border border-border p-3 rounded space-y-1">
                 <p className="font-mono text-[10px] uppercase text-muted-foreground mb-1">
                   댓글 (상태: {r.comment.status})
                 </p>
                 <p className="text-sm break-words">{r.comment.content}</p>
+                {r.comment.status === "PENDING_REAPPROVAL" && (
+                  <p className="font-mono text-[10px] text-emerald-400">
+                    · 작성자가 내용을 수정하여 재심을 요청한 상태입니다.
+                  </p>
+                )}
                 {r.comment.status === "VISIBLE" && (
                   <button
                     type="button"
-                    onClick={() => handleHideComment(r.comment!.id)}
+                    onClick={() => handleHideComment(r.comment!.id, REASON_LABEL[r.reason] ?? r.reason)}
                     disabled={actingId === r.comment!.id}
                     className="mt-2 text-[10px] font-mono uppercase tracking-wider text-destructive hover:underline disabled:opacity-50"
                   >
                     {actingId === r.comment.id ? "처리 중..." : "숨김 처리"}
                   </button>
                 )}
+                {r.comment.status !== "VISIBLE" && (
+                  <button
+                    type="button"
+                    onClick={() => handleRestoreComment(r.comment!.id)}
+                    disabled={actingId === r.comment!.id}
+                    className="mt-2 text-[10px] font-mono uppercase tracking-wider text-primary hover:underline disabled:opacity-50"
+                  >
+                    {actingId === r.comment.id ? "처리 중..." : "재노출 (재심 통과)"}
+                  </button>
+                )}
               </div>
             )}
             {r.review && (
-              <div className="bg-muted/30 border border-border p-3 rounded">
+              <div className="bg-muted/30 border border-border p-3 rounded space-y-1">
                 <p className="font-mono text-[10px] uppercase text-muted-foreground mb-1">
                   심판 평가 · {r.review.referee.name} (상태: {r.review.status})
                 </p>
                 <p className="text-sm">
                   별점 {r.review.rating} · {r.review.comment ?? "—"}
                 </p>
+                {r.review.status === "PENDING_REAPPROVAL" && (
+                  <p className="font-mono text-[10px] text-emerald-400">
+                    · 작성자가 평점을 수정하여 재심을 요청한 상태입니다.
+                  </p>
+                )}
                 {r.review.status === "VISIBLE" && (
                   <button
                     type="button"
-                    onClick={() => handleHideReview(r.review!.id)}
+                    onClick={() => handleHideReview(r.review!.id, REASON_LABEL[r.reason] ?? r.reason)}
                     disabled={actingId === r.review!.id}
                     className="mt-2 text-[10px] font-mono uppercase tracking-wider text-destructive hover:underline disabled:opacity-50"
                   >
                     {actingId === r.review.id ? "처리 중..." : "숨김 처리"}
+                  </button>
+                )}
+                {r.review.status !== "VISIBLE" && (
+                  <button
+                    type="button"
+                    onClick={() => handleRestoreReview(r.review!.id)}
+                    disabled={actingId === r.review!.id}
+                    className="mt-2 text-[10px] font-mono uppercase tracking-wider text-primary hover:underline disabled:opacity-50"
+                  >
+                    {actingId === r.review.id ? "처리 중..." : "재노출 (재심 통과)"}
                   </button>
                 )}
               </div>

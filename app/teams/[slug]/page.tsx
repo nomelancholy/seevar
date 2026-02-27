@@ -249,16 +249,25 @@ export default async function TeamDetailPage({
     })),
   }))
 
-  const availableYears = [...new Set(
-    allMatches
-      .map((m) => m.playedAt != null ? new Date(m.playedAt).getFullYear() : null)
-      .filter((y): y is number => y != null)
-  )]
-  const matches =
+  const availableYears = [
+    ...new Set(
+      allMatches
+        .map((m) => (m.playedAt != null ? new Date(m.playedAt).getFullYear() : null))
+        .filter((y): y is number => y != null)
+    ),
+  ].sort((a, b) => b - a)
+
+  const latestYear = availableYears[0] ?? null
+  const effectiveYear =
     isYearValid && filterYear != null
+      ? filterYear
+      : latestYear
+
+  const matches =
+    effectiveYear != null
       ? allMatches.filter((m) => {
           const y = m.playedAt != null ? new Date(m.playedAt).getFullYear() : null
-          return y === filterYear
+          return y === effectiveYear
         })
       : allMatches
 
@@ -299,10 +308,11 @@ export default async function TeamDetailPage({
         teamId={team.id}
         refereeBackPath={`/teams/${slug}`}
         compatibility={compatibility}
+        compatibilityList={combinedForCompatibility}
         assignments={assignments}
         matches={matches}
         availableYears={availableYears}
-        currentYear={isYearValid && filterYear != null ? filterYear : null}
+        currentYear={effectiveYear}
       />
     </main>
   )

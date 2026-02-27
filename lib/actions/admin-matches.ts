@@ -280,6 +280,7 @@ export async function setRoundFocus(roundId: string, isFocus: boolean): Promise<
 export type UpdateSeasonResult = { ok: true } | { ok: false; error: string }
 export type UpdateLeagueResult = { ok: true } | { ok: false; error: string }
 export type UpdateRoundResult = { ok: true } | { ok: false; error: string }
+export type UpdateRoundLinksResult = { ok: true } | { ok: false; error: string }
 export type DeleteSeasonResult = { ok: true } | { ok: false; error: string }
 export type DeleteLeagueResult = { ok: true } | { ok: false; error: string }
 export type DeleteRoundResult = { ok: true } | { ok: false; error: string }
@@ -395,6 +396,43 @@ export async function updateRound(roundId: string, number: number): Promise<Upda
   } catch (e) {
     console.error("updateRound:", e)
     return { ok: false, error: "라운드 수정에 실패했습니다." }
+  }
+}
+
+// 라운드별 외부 컨텐츠 링크 (유튜브 / 인스타그램) 수정
+export async function updateRoundLinks(
+  roundId: string,
+  data: { youtubeUrl?: string | null; instagramUrl?: string | null }
+): Promise<UpdateRoundLinksResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const round = await prisma.round.findUnique({
+    where: { id: roundId },
+    select: { id: true },
+  })
+  if (!round) return { ok: false, error: "라운드를 찾을 수 없습니다." }
+
+  const youtubeUrl = data.youtubeUrl?.trim() || null
+  const instagramUrl = data.instagramUrl?.trim() || null
+
+  try {
+    await prisma.round.update({
+      where: { id: roundId },
+      data: {
+        youtubeUrl,
+        instagramUrl,
+      },
+    })
+    revalidatePath("/admin")
+    revalidatePath("/admin/structure")
+    revalidatePath("/matches")
+    revalidatePath("/matches/archive")
+    return { ok: true }
+  } catch (e) {
+    console.error("updateRoundLinks:", e)
+    return { ok: false, error: "라운드 링크 수정에 실패했습니다." }
   }
 }
 

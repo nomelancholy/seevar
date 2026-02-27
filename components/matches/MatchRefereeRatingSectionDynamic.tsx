@@ -28,9 +28,12 @@ type Props = {
     userId: string
     rating: number
     comment: string | null
+    status?: string
+    filterReason?: string | null
     user: { name: string | null }
     fanTeamId: string | null
     fanTeam: { name: string; emblemPath: string | null } | null
+    reactions?: { userId: string }[]
   }[]
   currentUserId: string | null
 }

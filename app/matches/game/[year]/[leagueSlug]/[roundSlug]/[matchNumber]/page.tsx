@@ -146,10 +146,14 @@ export default async function MatchDetailBySlugPage({
   const matchReviews =
     status === "FINISHED" &&
     (await prisma.refereeReview.findMany({
-      where: { matchId: match.id, status: "VISIBLE" },
+      where: { matchId: match.id, status: { in: ["VISIBLE", "HIDDEN"] } },
+      orderBy: { createdAt: "desc" },
       include: {
         user: { select: { name: true } },
         fanTeam: { select: { name: true, emblemPath: true } },
+        reactions: {
+          select: { userId: true },
+        },
       },
     }))
   const reviewsForRating = Array.isArray(matchReviews) ? matchReviews : []
@@ -363,11 +367,14 @@ export default async function MatchDetailBySlugPage({
             userId: r.userId,
             rating: r.rating,
             comment: r.comment,
+            status: r.status,
+            filterReason: r.filterReason,
             user: { name: r.user.name },
             fanTeamId: r.fanTeamId,
             fanTeam: r.fanTeam
               ? { name: r.fanTeam.name, emblemPath: r.fanTeam.emblemPath }
               : null,
+            reactions: r.reactions ?? [],
           }))}
           currentUserId={currentUser?.id ?? null}
         />

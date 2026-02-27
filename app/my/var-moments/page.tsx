@@ -57,7 +57,6 @@ export default async function MyVarMomentsPage() {
       ? await prisma.moment.findMany({
           where: {
             comments: { some: { userId: user.id } },
-            userId: { not: user.id },
           },
           orderBy: { createdAt: "desc" },
           include: {
@@ -72,6 +71,28 @@ export default async function MyVarMomentsPage() {
                 },
               },
             },
+          },
+        })
+      : []
+
+  const refereeRatings =
+    user != null
+      ? await prisma.refereeReview.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: "desc" },
+          include: {
+            match: {
+              include: {
+                homeTeam: true,
+                awayTeam: true,
+                round: {
+                  include: {
+                    league: { include: { season: true } },
+                  },
+                },
+              },
+            },
+            referee: true,
           },
         })
       : []
@@ -130,6 +151,29 @@ export default async function MyVarMomentsPage() {
       : false,
   }))
 
+  const ratingsForClient = refereeRatings.map((r) => ({
+    id: r.id,
+    createdAt: r.createdAt.toISOString(),
+    matchTitle: `${r.match.homeTeam.name} vs ${r.match.awayTeam.name}`,
+    leagueRound: `${r.match.round.league.name} | ROUND ${r.match.round.number}`,
+    refereeName: r.referee.name,
+    role: r.role,
+    rating: r.rating,
+    matchDetailPath: getMatchDetailPathWithBack(
+      {
+        roundOrder: r.match.roundOrder,
+        round: {
+          slug: r.match.round.slug,
+          league: {
+            slug: r.match.round.league.slug,
+            season: { year: r.match.round.league.season.year },
+          },
+        },
+      },
+      "/my/var-moments"
+    ),
+  }))
+
   return (
     <main className="py-8 md:py-12 max-w-5xl mx-auto">
       <div className="mb-6 md:mb-12">
@@ -174,6 +218,7 @@ export default async function MyVarMomentsPage() {
         <MyVarMomentsContent
           createdByMe={createdForClient}
           participated={participatedForClient}
+          ratings={ratingsForClient}
         />
       ) : (
         <section className="ledger-surface p-6 md:p-8">

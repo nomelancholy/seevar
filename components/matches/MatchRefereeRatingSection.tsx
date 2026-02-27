@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Pencil } from "lucide-react"
-import { createRefereeReview } from "@/lib/actions/referee-reviews"
+import { Heart, Flag, Loader2, Pencil } from "lucide-react"
+import {
+  createRefereeReview,
+  toggleRefereeReviewLike,
+  reportRefereeReview,
+} from "@/lib/actions/referee-reviews"
 
 const STAR_CLIP =
   "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
@@ -93,15 +97,22 @@ type RefereeItem = {
   referee: { id: string; name: string; slug: string }
 }
 
+function hiddenReviewMessage(): string {
+  return "이 글은 커뮤니티 가이드라인 위반 (욕설 및 비하 금지) 으로 숨김 처리된 글입니다."
+}
+
 type ReviewItem = {
   id: string
   refereeId: string
   userId: string
   rating: number
   comment: string | null
+  status?: string
+  filterReason?: string | null
   user: { name: string | null }
   fanTeamId: string | null
   fanTeam: { name: string; emblemPath: string | null } | null
+  reactions?: { userId: string }[]
 }
 
 type Props = {
@@ -127,6 +138,12 @@ export function MatchRefereeRatingSection({
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const [likePendingId, setLikePendingId] = useState<string | null>(null)
+  const [reportTargetId, setReportTargetId] = useState<string | null>(null)
+  const [reportReason, setReportReason] = useState("ABUSE")
+  const [reportDescription, setReportDescription] = useState("")
+  const [reportPending, setReportPending] = useState(false)
+  const [reportError, setReportError] = useState<string | null>(null)
   const router = useRouter()
   const reviews = initialReviews
 
@@ -146,18 +163,19 @@ export function MatchRefereeRatingSection({
   const selectedReviews = selectedRefereeId
     ? reviews.filter((r) => r.refereeId === selectedRefereeId)
     : []
+  const visibleReviews = selectedReviews.filter((r) => r.status !== "HIDDEN")
   const myReview = currentUserId
     ? selectedReviews.find((r) => r.userId === currentUserId)
     : null
   const avgRating =
-    selectedReviews.length > 0
-      ? selectedReviews.reduce((s, r) => s + r.rating, 0) / selectedReviews.length
+    visibleReviews.length > 0
+      ? visibleReviews.reduce((s, r) => s + r.rating, 0) / visibleReviews.length
       : null
-  const count = selectedReviews.length
+  const count = visibleReviews.length
 
-  const homeFanReviews = selectedReviews.filter((r) => r.fanTeamId === homeTeamId)
-  const awayFanReviews = selectedReviews.filter((r) => r.fanTeamId === awayTeamId)
-  const thirdFanReviews = selectedReviews.filter(
+  const homeFanReviews = visibleReviews.filter((r) => r.fanTeamId === homeTeamId)
+  const awayFanReviews = visibleReviews.filter((r) => r.fanTeamId === awayTeamId)
+  const thirdFanReviews = visibleReviews.filter(
     (r) => r.fanTeamId != null && r.fanTeamId !== homeTeamId && r.fanTeamId !== awayTeamId
   )
   const avgHome =
@@ -172,6 +190,73 @@ export function MatchRefereeRatingSection({
     thirdFanReviews.length > 0
       ? thirdFanReviews.reduce((s, r) => s + r.rating, 0) / thirdFanReviews.length
       : null
+
+  const getLikeState = (rev: ReviewItem) => {
+    const likes = rev.reactions ?? []
+    const likeCount = likes.length
+    const likedByMe = !!currentUserId && likes.some((r) => r.userId === currentUserId)
+    return { likeCount, likedByMe }
+  }
+
+  const handleToggleLike = async (reviewId: string) => {
+    if (!currentUserId || likePendingId) return
+    setLikePendingId(reviewId)
+    const result = await toggleRefereeReviewLike(reviewId)
+    setLikePendingId(null)
+    if (!result.ok) {
+      console.error(result.error)
+      return
+    }
+    router.refresh()
+  }
+
+  const openReportForm = (reviewId: string) => {
+    setReportTargetId(reviewId)
+    setReportReason("ABUSE")
+    setReportDescription("")
+    setReportError(null)
+  }
+
+  const closeReportForm = () => {
+    setReportTargetId(null)
+    setReportDescription("")
+    setReportError(null)
+  }
+
+  const handleSubmitReport = async (e: React.FormEvent, reviewId: string) => {
+    e.preventDefault()
+    if (!currentUserId) return
+    setReportPending(true)
+    setReportError(null)
+    const result = await reportRefereeReview(
+      reviewId,
+      reportReason,
+      reportDescription.trim() || null
+    )
+    setReportPending(false)
+    if (result.ok) {
+      closeReportForm()
+      router.refresh()
+    } else {
+      setReportError(result.error)
+    }
+  }
+
+  // 베스트(좋아요 5개 이상) 상단 고정: 최대 3개
+  const orderedSelectedReviews: ReviewItem[] = (() => {
+    const withLikes = selectedReviews.map((rev) => ({
+      rev,
+      likeCount: getLikeState(rev).likeCount,
+    }))
+    const best = withLikes
+      .filter(({ likeCount }) => likeCount >= 5)
+      .sort((a, b) => b.likeCount - a.likeCount)
+      .slice(0, 3)
+      .map(({ rev }) => rev)
+    const bestIds = new Set(best.map((r) => r.id))
+    const rest = selectedReviews.filter((r) => !bestIds.has(r.id))
+    return [...best, ...rest]
+  })()
 
   const handleSubmit = async () => {
     if (!selected || !currentUserId) return
@@ -294,27 +379,37 @@ export function MatchRefereeRatingSection({
                       <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[8px] font-mono">
                         SUBMITTED
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRating(myReview.rating)
-                          setComment(myReview.comment ?? "")
-                          setIsEditing(true)
-                        }}
-                        className="flex items-center gap-1.5 border border-border hover:border-primary bg-card px-2.5 py-1.5 text-[8px] md:text-[9px] font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        <Pencil className="size-3" aria-hidden />
-                        Edit
-                      </button>
+                      {myReview.status !== "HIDDEN" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRating(myReview.rating)
+                            setComment(myReview.comment ?? "")
+                            setIsEditing(true)
+                          }}
+                          className="flex items-center gap-1.5 border border-border hover:border-primary bg-card px-2.5 py-1.5 text-[8px] md:text-[9px] font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <Pencil className="size-3" aria-hidden />
+                          Edit
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="space-y-2">
                     <p className="text-[10px] text-muted-foreground font-mono">
                       {ROLE_LABEL[selected.role]}: {selected.referee.name}
                     </p>
-                    <StarRatingDisplay rating={myReview.rating} />
-                    {myReview.comment && (
-                      <p className="text-sm text-muted-foreground italic">&quot;{myReview.comment}&quot;</p>
+                    {myReview.status === "HIDDEN" ? (
+                      <p className="text-xs text-muted-foreground italic">
+                        {hiddenReviewMessage()}
+                      </p>
+                    ) : (
+                      <>
+                        <StarRatingDisplay rating={myReview.rating} />
+                        {myReview.comment && (
+                          <p className="text-sm text-muted-foreground italic">&quot;{myReview.comment}&quot;</p>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -453,36 +548,156 @@ export function MatchRefereeRatingSection({
                 Community Feedbacks
               </h4>
               <div className="space-y-0 border border-border bg-black/20 max-h-[400px] overflow-y-auto">
-                {selectedReviews.length === 0 ? (
+                {orderedSelectedReviews.length === 0 ? (
                   <div className="p-8 text-center font-mono text-[10px] text-muted-foreground">
                     아직 평가가 없습니다.
                   </div>
                 ) : (
-                  selectedReviews.map((rev) => (
-                    <div
-                      key={rev.id}
-                      className="p-4 md:p-6 border-b border-border last:border-b-0"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-3">
-                          <span className="text-[10px] md:text-xs font-bold text-muted-foreground">
-                            {rev.user.name ?? "Anonymous"}
-                          </span>
-                          {rev.fanTeam && (
-                            <span className="text-[8px] font-mono text-muted-foreground">
-                              {rev.fanTeam.name}
+                  orderedSelectedReviews.map((rev) => {
+                    const likeState = getLikeState(rev)
+                    const isModerated =
+                      rev.status === "HIDDEN" || rev.status === "PENDING_REAPPROVAL"
+                    const isReporting = reportTargetId === rev.id
+                    return (
+                      <div
+                        key={rev.id}
+                        className="p-4 md:p-6 border-b border-border last:border-b-0"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] md:text-xs font-bold text-muted-foreground">
+                              {rev.user.name ?? "Anonymous"}
                             </span>
+                            {rev.fanTeam && (
+                              <span className="text-[8px] font-mono text-muted-foreground">
+                                {rev.fanTeam.name}
+                              </span>
+                            )}
+                          </div>
+                          {rev.status !== "HIDDEN" && (
+                            <StarRatingDisplay rating={rev.rating} size="small" />
                           )}
                         </div>
-                        <StarRatingDisplay rating={rev.rating} size="small" />
+                        {rev.status === "HIDDEN" || rev.status === "PENDING_REAPPROVAL" ? (
+                          <p className="text-xs md:text-sm text-muted-foreground italic">
+                            {hiddenReviewMessage()}
+                          </p>
+                        ) : (
+                          rev.comment && (
+                            <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
+                              &quot;{rev.comment}&quot;
+                            </p>
+                          )
+                        )}
+                        {!isModerated && currentUserId && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleLike(rev.id)}
+                              disabled={likePendingId === rev.id}
+                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                                likeState.likedByMe
+                                  ? "text-primary"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                              aria-label="좋아요"
+                            >
+                              <Heart
+                                className={`size-3.5 ${
+                                  likeState.likedByMe ? "fill-current" : ""
+                                }`}
+                              />
+                              {likeState.likeCount > 0 && (
+                                <span>{likeState.likeCount}</span>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openReportForm(rev.id)}
+                              className="p-1 text-muted-foreground hover:text-foreground rounded"
+                              aria-label="신고"
+                            >
+                              <Flag className="size-3.5" />
+                            </button>
+                          </div>
+                        )}
+                        {isReporting && (
+                          <form
+                            onSubmit={(e) => handleSubmitReport(e, rev.id)}
+                            className="mt-3 p-3 border border-border bg-black/20 space-y-2 rounded"
+                          >
+                            <p className="font-mono text-[9px] text-muted-foreground">
+                              신고 사유 선택
+                            </p>
+                            <div className="flex flex-wrap gap-2 text-[9px] font-mono">
+                              {[
+                                { value: "ABUSE", label: "욕설 및 비하" },
+                                { value: "SPAM", label: "도배 및 광고" },
+                                {
+                                  value: "INAPPROPRIATE",
+                                  label: "부적절한 게시물 (정치·혐오 등)",
+                                },
+                                { value: "FALSE_INFO", label: "허위 사실 유포" },
+                              ].map((opt) => (
+                                <label
+                                  key={opt.value}
+                                  className="inline-flex items-center gap-1"
+                                >
+                                  <input
+                                    type="radio"
+                                    className="rounded border-border"
+                                    name={`reportReason-review-${rev.id}`}
+                                    value={opt.value}
+                                    checked={reportReason === opt.value}
+                                    onChange={(e) => setReportReason(e.target.value)}
+                                  />
+                                  {opt.label}
+                                </label>
+                              ))}
+                            </div>
+                            <div>
+                              <label className="block font-mono text-[9px] text-muted-foreground mb-1">
+                                상세 설명 (선택)
+                              </label>
+                              <textarea
+                                value={reportDescription}
+                                onChange={(e) =>
+                                  setReportDescription(e.target.value.slice(0, 500))
+                                }
+                                rows={2}
+                                className="w-full bg-background border border-border px-2 py-1.5 text-[10px] font-mono rounded focus:border-primary outline-none resize-none"
+                                placeholder="추가로 전달할 내용이 있으면 입력해 주세요."
+                              />
+                            </div>
+                            {reportError && (
+                              <p className="text-destructive text-[10px] font-mono">
+                                {reportError}
+                              </p>
+                            )}
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={closeReportForm}
+                                className="px-3 py-1.5 border border-border text-[10px] font-mono rounded hover:bg-muted/50"
+                              >
+                                취소
+                              </button>
+                              <button
+                                type="submit"
+                                disabled={reportPending}
+                                className="px-3 py-1.5 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1"
+                              >
+                                {reportPending && (
+                                  <Loader2 className="size-3 animate-spin" />
+                                )}
+                                {reportPending ? "처리 중..." : "신고하기"}
+                              </button>
+                            </div>
+                          </form>
+                        )}
                       </div>
-                      {rev.comment && (
-                        <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-                          &quot;{rev.comment}&quot;
-                        </p>
-                      )}
-                    </div>
-                  ))
+                    )
+                  })
                 )}
               </div>
             </div>

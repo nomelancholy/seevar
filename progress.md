@@ -108,7 +108,7 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
       경기 일정, 심판 정보, 경기 결과 등의 데이터 자동화 할 거지만 수정 혹은 수동 추가, 삭제가 필요할 경우, 신고 받은 유저등의 조치가 필요한 경우 컨트롤 할 수 있는 관리자 페이지 신설
 - [x] **라운드 활성화**  
        같은 시즌·같은 리그에서 "다음 라운드 경기 전날"까지 `isFocus` true, 그날 지나면 다음 라운드로 자동 전환. `lib/jobs/update-round-focus.ts` + `scripts/run-update-round-focus.ts`. 경기 상태 배치와 함께 `cron:match-status` 한 번에 실행.
-- [ ] **클린봇 도입**  
+- [x] **클린봇 도입**  
        모멘트·댓글 등 UGC 자동 검수(욕설/스팸 등), ContentStatus·신고 연동.
 
 ### E. 데이터·보안

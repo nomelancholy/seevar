@@ -14,9 +14,7 @@ export function TeamMatchHistoryYearFilter({ availableYears, currentYear }: Prop
 
   const handleChange = (value: string) => {
     const next = new URLSearchParams(searchParams.toString())
-    if (value === "all" || value === "") {
-      next.delete("year")
-    } else {
+    if (value) {
       next.set("year", value)
     }
     const q = next.toString()
@@ -25,19 +23,33 @@ export function TeamMatchHistoryYearFilter({ availableYears, currentYear }: Prop
 
   if (availableYears.length === 0) return null
 
+  const sortedYears = [...availableYears].sort((a, b) => b - a)
+  const activeYear = currentYear ?? sortedYears[0]
+
   return (
-    <select
-      value={currentYear ?? "all"}
-      onChange={(e) => handleChange(e.target.value)}
-      className="bg-card border border-border px-3 py-1.5 text-[10px] md:text-xs font-mono text-muted-foreground focus:text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-      aria-label="연도 필터"
-    >
-      <option value="all">전체 연도</option>
-      {[...availableYears].sort((a, b) => b - a).map((y) => (
-        <option key={y} value={y}>
-          {y}년
-        </option>
-      ))}
-    </select>
+    <div className="flex items-center gap-2">
+      <span className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest">
+        연도
+      </span>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {sortedYears.map((y) => {
+          const isActive = activeYear === y
+          return (
+            <button
+              key={y}
+              type="button"
+              onClick={() => handleChange(String(y))}
+              className={`px-2.5 py-1 rounded-full border text-[9px] md:text-[10px] font-mono transition-colors ${
+                isActive
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-border hover:border-primary hover:text-foreground"
+              }`}
+            >
+              {y}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }

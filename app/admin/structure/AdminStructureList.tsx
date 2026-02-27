@@ -7,6 +7,7 @@ import {
   updateSeason,
   updateLeague,
   updateRound,
+  updateRoundLinks,
   deleteSeason,
   deleteLeague,
   deleteRound,
@@ -18,6 +19,8 @@ type RoundWithCount = {
   slug: string
   isFocus: boolean
   leagueId: string
+  youtubeUrl?: string | null
+  instagramUrl?: string | null
   _count: { matches: number }
 }
 
@@ -49,6 +52,9 @@ export function AdminStructureList({ seasons }: Props) {
   const [editing, setEditing] = useState<Editing | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<string | null>(null)
+  const [linkDrafts, setLinkDrafts] = useState<
+    Record<string, { youtubeUrl: string; instagramUrl: string }>
+  >({})
 
   async function handleSetFocus(roundId: string, isFocus: boolean) {
     setError(null)
@@ -142,6 +148,31 @@ export function AdminStructureList({ seasons }: Props) {
     setPending(null)
     if (result.ok) router.refresh()
     else setError(result.error)
+  }
+
+  function getLinkDraft(round: RoundWithCount) {
+    const existing = linkDrafts[round.id]
+    if (existing) return existing
+    return {
+      youtubeUrl: round.youtubeUrl ?? "",
+      instagramUrl: round.instagramUrl ?? "",
+    }
+  }
+
+  async function handleUpdateRoundLinksClick(round: RoundWithCount) {
+    const draft = getLinkDraft(round)
+    setError(null)
+    setPending(round.id)
+    const result = await updateRoundLinks(round.id, {
+      youtubeUrl: draft.youtubeUrl,
+      instagramUrl: draft.instagramUrl,
+    })
+    setPending(null)
+    if (result.ok) {
+      router.refresh()
+    } else {
+      setError(result.error)
+    }
   }
 
   if (seasons.length === 0) {
@@ -281,66 +312,120 @@ export function AdminStructureList({ seasons }: Props) {
                       <p className="ml-4 font-mono text-[10px] text-muted-foreground/80">라운드 없음</p>
                     ) : (
                       <ul className="mt-1 ml-4 flex flex-wrap gap-x-3 gap-y-1 items-center">
-                        {l.rounds.map((r) => (
-                          <li key={r.id} className="flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
-                            {editing?.type === "round" && editing.id === r.id ? (
-                              <>
+                        {l.rounds.map((r) => {
+                          const linkDraft = getLinkDraft(r)
+                          return (
+                            <li
+                              key={r.id}
+                              className="flex flex-col gap-1 font-mono text-[10px] text-muted-foreground"
+                            >
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {editing?.type === "round" && editing.id === r.id ? (
+                                  <>
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      value={editing.value}
+                                      onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                                      className="w-14 bg-background border border-border px-1.5 py-0.5 text-xs"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleUpdateRound(r.id, editing.value)}
+                                      disabled={!!pending}
+                                      className="text-primary hover:underline disabled:opacity-50"
+                                    >
+                                      저장
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditing(null)
+                                        setError(null)
+                                      }}
+                                      className="text-muted-foreground hover:underline"
+                                    >
+                                      취소
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>{r.slug}</span>
+                                    {r.isFocus && <span className="text-primary">(포커스)</span>}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetFocus(r.id, !r.isFocus)}
+                                      disabled={!!pending}
+                                      className="text-primary hover:underline disabled:opacity-50"
+                                    >
+                                      {r.isFocus ? "포커스 해제" : "포커스로 설정"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setEditing({ type: "round", id: r.id, value: String(r.number) })
+                                      }
+                                      disabled={!!pending}
+                                      className="hover:text-foreground disabled:opacity-50"
+                                    >
+                                      번호 수정
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteRound(r.id, r._count.matches)}
+                                      disabled={!!pending || r._count.matches > 0}
+                                      title={r._count.matches > 0 ? "경기가 있는 라운드는 삭제할 수 없습니다" : "삭제"}
+                                      className="text-destructive hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      삭제
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-1.5 pl-4">
                                 <input
-                                  type="number"
-                                  min={1}
-                                  value={editing.value}
-                                  onChange={(e) => setEditing({ ...editing, value: e.target.value })}
-                                  className="w-14 bg-background border border-border px-1.5 py-0.5 text-xs"
+                                  type="text"
+                                  placeholder="YouTube 링크"
+                                  value={linkDraft.youtubeUrl}
+                                  onChange={(e) =>
+                                    setLinkDrafts((prev) => ({
+                                      ...prev,
+                                      [r.id]: {
+                                        youtubeUrl: e.target.value,
+                                        instagramUrl: linkDraft.instagramUrl,
+                                      },
+                                    }))
+                                  }
+                                  className="min-w-[140px] bg-background border border-border px-1.5 py-0.5 text-[10px]"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Instagram 링크"
+                                  value={linkDraft.instagramUrl}
+                                  onChange={(e) =>
+                                    setLinkDrafts((prev) => ({
+                                      ...prev,
+                                      [r.id]: {
+                                        youtubeUrl: linkDraft.youtubeUrl,
+                                        instagramUrl: e.target.value,
+                                      },
+                                    }))
+                                  }
+                                  className="min-w-[140px] bg-background border border-border px-1.5 py-0.5 text-[10px]"
                                 />
                                 <button
                                   type="button"
-                                  onClick={() => handleUpdateRound(r.id, editing.value)}
+                                  onClick={() => handleUpdateRoundLinksClick(r)}
                                   disabled={!!pending}
                                   className="text-primary hover:underline disabled:opacity-50"
                                 >
-                                  저장
+                                  링크 저장
                                 </button>
-                                <button
-                                  type="button"
-                                  onClick={() => { setEditing(null); setError(null) }}
-                                  className="text-muted-foreground hover:underline"
-                                >
-                                  취소
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <span>{r.slug}</span>
-                                {r.isFocus && <span className="text-primary">(포커스)</span>}
-                                <button
-                                  type="button"
-                                  onClick={() => handleSetFocus(r.id, !r.isFocus)}
-                                  disabled={!!pending}
-                                  className="text-primary hover:underline disabled:opacity-50"
-                                >
-                                  {r.isFocus ? "포커스 해제" : "포커스로 설정"}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setEditing({ type: "round", id: r.id, value: String(r.number) })}
-                                  disabled={!!pending}
-                                  className="hover:text-foreground disabled:opacity-50"
-                                >
-                                  수정
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteRound(r.id, r._count.matches)}
-                                  disabled={!!pending || r._count.matches > 0}
-                                  title={r._count.matches > 0 ? "경기가 있는 라운드는 삭제할 수 없습니다" : "삭제"}
-                                  className="text-destructive hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  삭제
-                                </button>
-                              </>
-                            )}
-                          </li>
-                        ))}
+                              </div>
+                            </li>
+                          )
+                        })}
                       </ul>
                     )}
                   </li>

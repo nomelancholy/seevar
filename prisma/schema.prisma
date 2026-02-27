@@ -158,6 +158,10 @@ model Round {
   isFocus   Boolean  @default(false)
   matches   Match[]
 
+  // 라운드별 외부 컨텐츠 링크 (리뷰 영상, 카드 뉴스 등)
+  youtubeUrl   String?
+  instagramUrl String?
+
   @@unique([leagueId, number])
   @@unique([leagueId, slug])
 }
@@ -301,6 +305,7 @@ model RefereeReview {
   filterReason  String?        // 클린봇이 감지한 위반 내용
   reportCount   Int            @default(0)
   reports       Report[]
+  reactions     Reaction[]
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -386,8 +391,11 @@ model Reaction {
   moment    Moment?      @relation(fields: [momentId], references: [id])
   commentId String?
   comment   Comment?     @relation(fields: [commentId], references: [id])
+  reviewId  String?
+  review    RefereeReview? @relation(fields: [reviewId], references: [id])
 
   @@unique([userId, momentId, commentId])
+  @@unique([userId, reviewId])
 }
 
 model Notification {

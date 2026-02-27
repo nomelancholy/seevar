@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
 import { createCommentSchema, updateCommentSchema, reportCommentSchema } from "@/lib/schemas/comment"
+import type { ContentStatus } from "@prisma/client"
+import { checkProfanity } from "@/lib/filters/profanity"
 
 export type CreateCommentResult = { ok: true; commentId: string } | { ok: false; error: string }
 export type UpdateCommentResult = { ok: true } | { ok: false; error: string }
@@ -126,18 +128,27 @@ export async function updateComment(commentId: string, content: string): Promise
 
   const comment = await prisma.comment.findUnique({
     where: { id: parsed.data.commentId },
-    select: { id: true, userId: true },
+    select: { id: true, userId: true, status: true },
   })
   if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
   if (comment.userId !== user.id) return { ok: false, error: "본인이 작성한 댓글만 수정할 수 있습니다." }
 
+  const data: { content: string; status?: ContentStatus; filterReason?: string | null } = {
+    content: parsed.data.content,
+  }
+  if (comment.status === "HIDDEN") {
+    data.status = "PENDING_REAPPROVAL"
+    data.filterReason = null
+  }
+
   try {
     await prisma.comment.update({
       where: { id: parsed.data.commentId },
-      data: { content: parsed.data.content },
+      data,
     })
     revalidatePath("/")
     revalidatePath("/matches")
+    revalidatePath("/admin/reports")
     return { ok: true }
   } catch (e) {
     console.error("updateComment:", e)
@@ -254,7 +265,7 @@ export async function reportComment(
 
   const comment = await prisma.comment.findUnique({
     where: { id: parsed.data.commentId },
-    select: { id: true },
+    select: { id: true, content: true, status: true },
   })
   if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
 
@@ -272,9 +283,19 @@ export async function reportComment(
         commentId: parsed.data.commentId,
       },
     })
+    const profanity = checkProfanity(comment.content)
+
     await prisma.comment.update({
       where: { id: parsed.data.commentId },
-      data: { reportCount: { increment: 1 } },
+      data: {
+        reportCount: { increment: 1 },
+        ...(profanity.isViolated && comment.status === "VISIBLE"
+          ? {
+              status: "HIDDEN" as ContentStatus,
+              filterReason: profanity.reason,
+            }
+          : {}),
+      },
     })
     revalidatePath("/")
     revalidatePath("/matches")
