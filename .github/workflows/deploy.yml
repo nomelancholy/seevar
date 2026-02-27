@@ -30,24 +30,29 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            mkdir -p ~/seevar
+            # 1. 프로젝트 폴더 존재 여부 확인 및 이동
+            if [ ! -d "~/seevar/.git" ]; then
+              echo "Repository not found. Removing folder and cloning..."
+              rm -rf ~/seevar
+              git clone -b ${{ github.ref_name }} https://${{ secrets.GH_TOKEN }}@github.com/nomelancholy/seevar.git ~/seevar
+            fi
+
             cd ~/seevar
 
-            # 1. 최신 코드 가져오기
+            # 2. 최신 코드 가져오기
             git pull origin ${{ github.ref_name }}
 
-            # 2. .env 파일 새로 쓰기 (기존 내용 덮어쓰기)
+            # 3. .env 파일 생성 및 환경변수 주입 (Secrets 이름은 GitHub 설정과 같아야 함)
             echo "DB_USER=${{ secrets.DB_USER }}" > .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
             echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
             echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
             echo "DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}" >> .env
 
-            # 3. NextAuth 및 네이버 로그인 정보 추가
             echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
             echo "NEXTAUTH_URL=${{ steps.target.outputs.site_url }}" >> .env
             echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> .env
             echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> .env
 
             # 4. 컨테이너 빌드 및 실행
-            docker-compose up -d --build
+            docker compose up -d --build
