@@ -1,10 +1,11 @@
 import Link from "next/link"
 import { unstable_cache } from "next/cache"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { Suspense } from "react"
 import { prisma } from "@/lib/prisma"
 import { deriveMatchStatus } from "@/lib/utils/match-status"
 import { shortNameFromSlug } from "@/lib/team-short-names"
+import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { ArchiveFilters } from "@/components/matches/ArchiveFilters"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
@@ -24,12 +25,37 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   const season = await prisma.season.findUnique({ where: { year } })
   if (!season) notFound()
 
+  const seasonId = season.id
   const hasLeagueSlug = leagueSlug && leagueSlug !== "_"
-  const league = hasLeagueSlug
+  let league = hasLeagueSlug
     ? await prisma.league.findFirst({
-        where: { seasonId: season.id, slug: leagueSlug } as { seasonId: string; slug: string },
+        where: { seasonId, slug: leagueSlug } as { seasonId: string; slug: string },
       })
     : null
+
+  // URL의 리그가 이 시즌에 없으면(예: 2025에 kleague1 없고 kleague2만 있음) 첫 리그·첫 라운드로 이동
+  if (hasLeagueSlug && !league) {
+    const firstLeagueWithRound = await prisma.league.findFirst({
+      where: { seasonId, rounds: { some: {} } },
+      orderBy: { slug: "asc" },
+      include: {
+        rounds: { orderBy: { number: "asc" }, take: 1, select: { slug: true } },
+      },
+    })
+    if (firstLeagueWithRound?.rounds[0]) {
+      redirect(
+        `/matches/archive/${yearStr}/${firstLeagueWithRound.slug}/${firstLeagueWithRound.rounds[0].slug}`,
+      )
+    }
+    const firstLeague = await prisma.league.findFirst({
+      where: { seasonId },
+      orderBy: { slug: "asc" },
+    })
+    if (firstLeague) {
+      redirect(`/matches/archive/${yearStr}/${firstLeague.slug}/round-1`)
+    }
+  }
+
   const round =
     league &&
     (await prisma.round.findFirst({
@@ -37,7 +63,6 @@ export default async function MatchesArchivePage({ params }: { params: Params })
       include: { league: { include: { season: true } } },
     }))
 
-  const seasonId = season.id
   const leagueId = league?.id
   const roundId = round?.id
 
@@ -199,6 +224,32 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     roundsRes = rows
   }
   roundsForFilter = roundsRes
+
+  // 선택한 리그에 라운드가 없으면, 같은 시즌에서 라운드가 있는 리그로 자동 이동
+  if (leagueId && roundsRes.length === 0 && leaguesRes.length > 1) {
+    const leagueWithRound = await prisma.league.findFirst({
+      where: {
+        seasonId,
+        rounds: { some: {} },
+      },
+      orderBy: { slug: "asc" },
+      include: {
+        rounds: { orderBy: { number: "asc" }, take: 1, select: { slug: true } },
+      },
+    })
+    if (leagueWithRound?.rounds[0]) {
+      redirect(
+        `/matches/archive/${yearStr}/${leagueWithRound.slug}/${leagueWithRound.rounds[0].slug}`,
+      )
+    }
+  }
+
+  // 리그에는 라운드가 있는데 URL의 round가 이 리그에 없으면(예: round-1인데 K2에는 round-37만 있음) 첫 라운드로 이동
+  if (leagueId && roundsRes.length > 0 && !round) {
+    redirect(
+      `/matches/archive/${yearStr}/${leagueSlug}/${roundsRes[0].slug}`,
+    )
+  }
 
   if (roundId) {
     const { matchesRes, rawHotMomentsRes, reviewsRes } = await getRoundDataCached(roundId, seasonId)
@@ -460,7 +511,9 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                         <span className="font-mono text-[7px] md:text-[8px] font-black">{fb.likeCount}</span>
                       </div>
                     </div>
-                    <p className="text-xs md:text-sm text-zinc-300 italic leading-relaxed">{fb.comment}</p>
+                    <div className="text-xs md:text-sm text-zinc-300 italic">
+                      <TextWithEmbedPreview text={fb.comment} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -535,7 +588,9 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                         <span className="font-mono text-[7px] md:text-[8px] font-black">{fb.likeCount}</span>
                       </div>
                     </div>
-                    <p className="text-xs md:text-sm text-zinc-300 italic leading-relaxed">{fb.comment}</p>
+                    <div className="text-xs md:text-sm text-zinc-300 italic">
+                      <TextWithEmbedPreview text={fb.comment} />
+                    </div>
                   </div>
                 ))}
               </div>

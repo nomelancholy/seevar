@@ -11,6 +11,8 @@ import {
   deleteSeason,
   deleteLeague,
   deleteRound,
+  createLeague,
+  createRound,
 } from "@/lib/actions/admin-matches"
 
 type RoundWithCount = {
@@ -52,6 +54,11 @@ export function AdminStructureList({ seasons }: Props) {
   const [editing, setEditing] = useState<Editing | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<string | null>(null)
+  const [addingLeagueToSeasonId, setAddingLeagueToSeasonId] = useState<string | null>(null)
+  const [addingRoundToLeagueId, setAddingRoundToLeagueId] = useState<string | null>(null)
+  const [newLeagueName, setNewLeagueName] = useState("")
+  const [newLeagueSlug, setNewLeagueSlug] = useState("")
+  const [newRoundNumber, setNewRoundNumber] = useState("")
   const [linkDrafts, setLinkDrafts] = useState<
     Record<string, { youtubeUrl: string; instagramUrl: string }>
   >({})
@@ -175,6 +182,51 @@ export function AdminStructureList({ seasons }: Props) {
     }
   }
 
+  async function handleAddLeague(seasonId: string) {
+    const name = newLeagueName.trim()
+    const slug = newLeagueSlug.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") ||
+      name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")
+    if (!name) {
+      setError("리그 이름을 입력해 주세요.")
+      return
+    }
+    if (!slug) {
+      setError("리그 슬러그를 입력해 주세요.")
+      return
+    }
+    setError(null)
+    setPending(seasonId)
+    const result = await createLeague({ seasonId, name, slug })
+    setPending(null)
+    if (result.ok) {
+      setAddingLeagueToSeasonId(null)
+      setNewLeagueName("")
+      setNewLeagueSlug("")
+      router.refresh()
+    } else {
+      setError(result.error)
+    }
+  }
+
+  async function handleAddRound(leagueId: string) {
+    const num = parseInt(newRoundNumber, 10)
+    if (Number.isNaN(num) || num < 1) {
+      setError("라운드 번호를 1 이상으로 입력해 주세요.")
+      return
+    }
+    setError(null)
+    setPending(leagueId)
+    const result = await createRound({ leagueId, number: num })
+    setPending(null)
+    if (result.ok) {
+      setAddingRoundToLeagueId(null)
+      setNewRoundNumber("")
+      router.refresh()
+    } else {
+      setError(result.error)
+    }
+  }
+
   if (seasons.length === 0) {
     return (
       <p className="font-mono text-xs text-muted-foreground">
@@ -244,8 +296,63 @@ export function AdminStructureList({ seasons }: Props) {
               )}
             </div>
 
+            <div className="ml-4 mt-1.5">
+              {addingLeagueToSeasonId === s.id ? (
+                <div className="flex flex-wrap items-center gap-2 font-mono text-[10px]">
+                  <input
+                    type="text"
+                    value={newLeagueName}
+                    onChange={(e) => setNewLeagueName(e.target.value)}
+                    placeholder="리그 이름"
+                    className="w-32 bg-background border border-border px-2 py-1 text-xs"
+                  />
+                  <input
+                    type="text"
+                    value={newLeagueSlug}
+                    onChange={(e) => setNewLeagueSlug(e.target.value)}
+                    placeholder="슬러그"
+                    className="w-28 bg-background border border-border px-2 py-1 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddLeague(s.id)}
+                    disabled={!!pending}
+                    className="text-primary hover:underline disabled:opacity-50"
+                  >
+                    추가
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddingLeagueToSeasonId(null)
+                      setNewLeagueName("")
+                      setNewLeagueSlug("")
+                      setError(null)
+                    }}
+                    className="text-muted-foreground hover:underline"
+                  >
+                    취소
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAddingLeagueToSeasonId(s.id)
+                    setNewLeagueName("")
+                    setNewLeagueSlug("")
+                    setAddingRoundToLeagueId(null)
+                  }}
+                  disabled={!!pending}
+                  className="font-mono text-[10px] text-primary hover:underline disabled:opacity-50"
+                >
+                  + 리그 추가
+                </button>
+              )}
+            </div>
+
             {s.leagues.length === 0 ? (
-              <p className="ml-4 font-mono text-[10px] text-muted-foreground">리그 없음</p>
+              <p className="ml-4 mt-1 font-mono text-[10px] text-muted-foreground">리그 없음</p>
             ) : (
               <ul className="mt-2 ml-4 space-y-2">
                 {s.leagues.map((l) => (
@@ -308,8 +415,55 @@ export function AdminStructureList({ seasons }: Props) {
                       )}
                     </div>
 
+                    <div className="ml-4 mt-1">
+                      {addingRoundToLeagueId === l.id ? (
+                        <div className="flex flex-wrap items-center gap-2 font-mono text-[10px]">
+                          <input
+                            type="number"
+                            min={1}
+                            value={newRoundNumber}
+                            onChange={(e) => setNewRoundNumber(e.target.value)}
+                            placeholder="라운드 번호"
+                            className="w-20 bg-background border border-border px-2 py-1 text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleAddRound(l.id)}
+                            disabled={!!pending}
+                            className="text-primary hover:underline disabled:opacity-50"
+                          >
+                            추가
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAddingRoundToLeagueId(null)
+                              setNewRoundNumber("")
+                              setError(null)
+                            }}
+                            className="text-muted-foreground hover:underline"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAddingRoundToLeagueId(l.id)
+                            setNewRoundNumber("")
+                            setAddingLeagueToSeasonId(null)
+                          }}
+                          disabled={!!pending}
+                          className="font-mono text-[10px] text-primary hover:underline disabled:opacity-50"
+                        >
+                          + 라운드 추가
+                        </button>
+                      )}
+                    </div>
+
                     {l.rounds.length === 0 ? (
-                      <p className="ml-4 font-mono text-[10px] text-muted-foreground/80">라운드 없음</p>
+                      <p className="ml-4 mt-0.5 font-mono text-[10px] text-muted-foreground/80">라운드 없음</p>
                     ) : (
                       <ul className="mt-1 ml-4 flex flex-wrap gap-x-3 gap-y-1 items-center">
                         {l.rounds.map((r) => {

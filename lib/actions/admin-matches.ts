@@ -4,17 +4,29 @@ import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { SHORT_TO_EMBLEM, DISPLAY_NAME_TO_EMBLEM } from "@/lib/team-short-names"
+import {
+  syncRefereeStatsOnMatchRefereeCreate,
+  syncRefereeStatsOnMatchRefereeDelete,
+  syncRefereeStatsOnMatchRefereeUpdate,
+} from "@/lib/referee-stats-sync"
 import type { MatchStatus, RefereeRole } from "@prisma/client"
 
 export type UpdateMatchScheduleResult = { ok: true } | { ok: false; error: string }
 export type CreateMatchResult = { ok: true; matchId: string } | { ok: false; error: string }
 export type DeleteMatchResult = { ok: true } | { ok: false; error: string }
+export type ImportBulkMatchesResult =
+  | { ok: true; created: number }
+  | { ok: false; error: string }
 export type CreateSeasonResult = { ok: true; seasonId: string; year: number } | { ok: false; error: string }
 export type CreateLeagueResult = { ok: true; leagueId: string; slug: string } | { ok: false; error: string }
 export type CreateRoundResult = { ok: true; roundId: string; slug: string } | { ok: false; error: string }
 export type CreateMatchRefereeResult = { ok: true; id: string } | { ok: false; error: string }
 export type UpdateMatchRefereeResult = { ok: true } | { ok: false; error: string }
 export type DeleteMatchRefereeResult = { ok: true } | { ok: false; error: string }
+export type ImportBulkRefereeAssignmentsResult =
+  | { ok: true; created: number; skipped: number }
+  | { ok: false; error: string }
 
 export async function updateMatchSchedule(
   matchId: string,
@@ -99,6 +111,130 @@ export async function createMatch(data: {
     console.error("createMatch:", e)
     return { ok: false, error: "경기 추가에 실패했습니다." }
   }
+}
+
+/** JSON 파일 내용을 파싱해 해당 라운드에 경기 일괄 추가. 형식: { "matches": [ { "home": "인천", "away": "서울", "date": "2026-02-28T14:00:00Z", "stadium": "인천축구전용" } ] } */
+export async function importBulkMatchesFromJson(
+  roundId: string,
+  jsonString: string
+): Promise<ImportBulkMatchesResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  let payload: { matches?: Array<{ home: string; away: string; date: string; stadium?: string }> }
+  try {
+    payload = JSON.parse(jsonString) as typeof payload
+  } catch {
+    return { ok: false, error: "JSON 형식이 올바르지 않습니다." }
+  }
+  const matches = payload?.matches
+  if (!Array.isArray(matches) || matches.length === 0) {
+    return { ok: false, error: "JSON에 'matches' 배열이 비어 있거나 없습니다." }
+  }
+
+  const round = await prisma.round.findUnique({
+    where: { id: roundId },
+    select: { id: true, leagueId: true, league: { select: { slug: true } } },
+  })
+  if (!round) return { ok: false, error: "라운드를 찾을 수 없습니다." }
+  const leagueSlug = round.league.slug
+
+  const leagueTeams = await prisma.team.findMany({
+    where: { leagues: { some: { id: round.leagueId } } },
+    select: { id: true, slug: true },
+  })
+  const teamByEmblem = new Map<string, string>()
+  for (const t of leagueTeams) {
+    if (!t.slug) continue
+    const emblem =
+      t.slug.includes("-") && t.slug.startsWith(`${leagueSlug}-`)
+        ? t.slug.slice(leagueSlug.length + 1)
+        : t.slug
+    teamByEmblem.set(emblem, t.id)
+  }
+
+  // 리그에 팀이 없거나 emblem 매칭이 안 되면 전역에서 slug(emblem)로 팀 조회 (시즌/리그별 팀 연결 없어도 일괄 등록 가능)
+  async function resolveTeamId(emblem: string): Promise<string | null> {
+    const fromLeague = teamByEmblem.get(emblem)
+    if (fromLeague) return fromLeague
+    const team = await prisma.team.findFirst({
+      where: { slug: emblem },
+      select: { id: true },
+    })
+    if (team) {
+      teamByEmblem.set(emblem, team.id)
+      return team.id
+    }
+    return null
+  }
+
+  const maxOrder = await prisma.match
+    .aggregate({
+      where: { roundId },
+      _max: { roundOrder: true },
+    })
+    .then((r) => r._max.roundOrder ?? 0)
+
+  let created = 0
+  for (let i = 0; i < matches.length; i++) {
+    const row = matches[i]
+    if (!row?.home || !row?.away || !row?.date) {
+      return { ok: false, error: `${i + 1}번째 경기: home, away, date는 필수입니다.` }
+    }
+    const homeEmblem = DISPLAY_NAME_TO_EMBLEM[row.home.trim()] ?? SHORT_TO_EMBLEM[row.home.trim()]
+    const awayEmblem = DISPLAY_NAME_TO_EMBLEM[row.away.trim()] ?? SHORT_TO_EMBLEM[row.away.trim()]
+    if (!homeEmblem) return { ok: false, error: `${i + 1}번째 경기: 알 수 없는 홈팀 '${row.home}' (app/assets/docs/TEAM_LIST.md 표기 사용)` }
+    if (!awayEmblem) return { ok: false, error: `${i + 1}번째 경기: 알 수 없는 원정팀 '${row.away}' (app/assets/docs/TEAM_LIST.md 표기 사용)` }
+    const homeTeamId = await resolveTeamId(homeEmblem)
+    const awayTeamId = await resolveTeamId(awayEmblem)
+    if (!homeTeamId) return { ok: false, error: `${i + 1}번째 경기: 홈팀 '${row.home}'에 해당하는 팀을 찾을 수 없습니다. (팀 slug: ${homeEmblem})` }
+    if (!awayTeamId) return { ok: false, error: `${i + 1}번째 경기: 원정팀 '${row.away}'에 해당하는 팀을 찾을 수 없습니다. (팀 slug: ${awayEmblem})` }
+    if (homeTeamId === awayTeamId) {
+      return { ok: false, error: `${i + 1}번째 경기: 홈팀과 원정팀이 같을 수 없습니다.` }
+    }
+    let playedAt: Date
+    try {
+      playedAt = new Date(row.date)
+      if (Number.isNaN(playedAt.getTime())) throw new Error("Invalid date")
+    } catch {
+      return { ok: false, error: `${i + 1}번째 경기: 올바른 날짜 형식이 아닙니다. (예: 2026-02-28T14:00:00Z)` }
+    }
+    const now = Date.now()
+    const matchStart = playedAt.getTime()
+    const twoAndHalfHours = 2.5 * 60 * 60 * 1000
+    let status: MatchStatus
+    if (matchStart > now) {
+      status = "SCHEDULED"
+    } else if (matchStart + twoAndHalfHours < now) {
+      status = "FINISHED"
+    } else {
+      status = "LIVE"
+    }
+    const roundOrder = maxOrder + i + 1
+    try {
+      await prisma.match.create({
+        data: {
+          roundId,
+          roundOrder,
+          homeTeamId,
+          awayTeamId,
+          playedAt,
+          venue: row.stadium?.trim() || null,
+          status,
+        },
+      })
+      created++
+    } catch (e) {
+      console.error("importBulkMatchesFromJson create:", e)
+      return { ok: false, error: `${i + 1}번째 경기 추가 중 오류가 발생했습니다. (순서 중복 등)` }
+    }
+  }
+
+  revalidatePath("/admin")
+  revalidatePath("/admin/matches")
+  revalidatePath("/matches")
+  return { ok: true, created }
 }
 
 export async function deleteMatch(matchId: string): Promise<DeleteMatchResult> {
@@ -549,9 +685,13 @@ export async function createMatchReferee(
     const mr = await prisma.matchReferee.create({
       data: { matchId, refereeId, role },
     })
+    await syncRefereeStatsOnMatchRefereeCreate(matchId, refereeId, role)
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
+    revalidatePath("/admin/referee-assignments")
     revalidatePath("/matches")
+    revalidatePath("/referees")
+    revalidatePath("/teams")
     return { ok: true, id: mr.id }
   } catch (e) {
     console.error("createMatchReferee:", e)
@@ -569,7 +709,7 @@ export async function updateMatchReferee(
 
   const mr = await prisma.matchReferee.findUnique({
     where: { id: matchRefereeId },
-    select: { id: true, matchId: true },
+    select: { id: true, matchId: true, refereeId: true, role: true },
   })
   if (!mr) return { ok: false, error: "배정 정보를 찾을 수 없습니다." }
 
@@ -594,9 +734,19 @@ export async function updateMatchReferee(
       where: { id: matchRefereeId },
       data: { refereeId: data.refereeId, role: data.role },
     })
+    await syncRefereeStatsOnMatchRefereeUpdate(
+      mr.matchId,
+      mr.refereeId,
+      mr.role,
+      data.refereeId,
+      data.role
+    )
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
+    revalidatePath("/admin/referee-assignments")
     revalidatePath("/matches")
+    revalidatePath("/referees")
+    revalidatePath("/teams")
     return { ok: true }
   } catch (e) {
     console.error("updateMatchReferee:", e)
@@ -611,18 +761,127 @@ export async function deleteMatchReferee(matchRefereeId: string): Promise<Delete
 
   const mr = await prisma.matchReferee.findUnique({
     where: { id: matchRefereeId },
-    select: { id: true },
+    select: { id: true, matchId: true, refereeId: true, role: true },
   })
   if (!mr) return { ok: false, error: "배정 정보를 찾을 수 없습니다." }
 
   try {
+    await syncRefereeStatsOnMatchRefereeDelete(mr.matchId, mr.refereeId, mr.role)
     await prisma.matchReferee.delete({ where: { id: matchRefereeId } })
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
+    revalidatePath("/admin/referee-assignments")
     revalidatePath("/matches")
+    revalidatePath("/referees")
+    revalidatePath("/teams")
     return { ok: true }
   } catch (e) {
     console.error("deleteMatchReferee:", e)
     return { ok: false, error: "배정 삭제에 실패했습니다." }
   }
+}
+
+/** JSON 파일로 심판 배정 일괄 추가. 형식: { "assignments": [ { "matchId": "...", "refereeSlug": "go-hyeongjin", "role": "MAIN" } ] } 또는 matchIdentifier: { "year": 2026, "leagueSlug": "kleague1", "roundNumber": 1, "roundOrder": 1 } */
+export async function importBulkRefereeAssignmentsFromJson(
+  jsonString: string
+): Promise<ImportBulkRefereeAssignmentsResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  let payload: {
+    assignments?: Array<{
+      matchId?: string
+      matchIdentifier?: { year: number; leagueSlug: string; roundNumber: number; roundOrder: number }
+      refereeSlug?: string
+      refereeId?: string
+      role: RefereeRole
+    }>
+  }
+  try {
+    payload = JSON.parse(jsonString) as typeof payload
+  } catch {
+    return { ok: false, error: "JSON 형식이 올바르지 않습니다." }
+  }
+  const assignments = payload?.assignments
+  if (!Array.isArray(assignments) || assignments.length === 0) {
+    return { ok: false, error: "JSON에 'assignments' 배열이 비어 있거나 없습니다." }
+  }
+
+  const refereesBySlug = new Map(
+    (await prisma.referee.findMany({ select: { id: true, slug: true } })).map((r) => [r.slug, r.id])
+  )
+
+  let created = 0
+  let skipped = 0
+  for (let i = 0; i < assignments.length; i++) {
+    const row = assignments[i]!
+    const role = row.role
+    if (!role || !["MAIN", "ASSISTANT", "VAR", "WAITING"].includes(role)) {
+      return { ok: false, error: `${i + 1}번째: role은 MAIN, ASSISTANT, VAR, WAITING 중 하나여야 합니다.` }
+    }
+    let matchId: string | null = row.matchId ?? null
+    if (!matchId && row.matchIdentifier) {
+      const { year, leagueSlug, roundNumber, roundOrder } = row.matchIdentifier
+      const season = await prisma.season.findUnique({ where: { year }, select: { id: true } })
+      if (!season) {
+        return { ok: false, error: `${i + 1}번째: 시즌(연도 ${year})을 찾을 수 없습니다.` }
+      }
+      const league = await prisma.league.findFirst({
+        where: { seasonId: season.id, slug: leagueSlug },
+        select: { id: true },
+      })
+      if (!league) {
+        return { ok: false, error: `${i + 1}번째: 리그 ${leagueSlug}를 찾을 수 없습니다.` }
+      }
+      const round = await prisma.round.findFirst({
+        where: { leagueId: league.id, number: roundNumber },
+        select: { id: true },
+      })
+      if (!round) {
+        return { ok: false, error: `${i + 1}번째: 라운드 ${roundNumber}를 찾을 수 없습니다.` }
+      }
+      const match = await prisma.match.findFirst({
+        where: { roundId: round.id, roundOrder },
+        select: { id: true },
+      })
+      if (!match) {
+        return { ok: false, error: `${i + 1}번째: 해당 경기(roundOrder ${roundOrder})를 찾을 수 없습니다.` }
+      }
+      matchId = match.id
+    }
+    if (!matchId) {
+      return { ok: false, error: `${i + 1}번째: matchId 또는 matchIdentifier를 입력해 주세요.` }
+    }
+    const refereeId = row.refereeId ?? (row.refereeSlug ? refereesBySlug.get(row.refereeSlug) : undefined)
+    if (!refereeId) {
+      return {
+        ok: false,
+        error: `${i + 1}번째: 심판을 찾을 수 없습니다. (refereeSlug 또는 refereeId 확인)`,
+      }
+    }
+    const existing = await prisma.matchReferee.findUnique({
+      where: { matchId_refereeId_role: { matchId, refereeId, role } },
+    })
+    if (existing) {
+      skipped++
+      continue
+    }
+    try {
+      await prisma.matchReferee.create({ data: { matchId, refereeId, role } })
+      await syncRefereeStatsOnMatchRefereeCreate(matchId, refereeId, role)
+      created++
+    } catch (e) {
+      console.error("importBulkRefereeAssignmentsFromJson:", e)
+      return { ok: false, error: `${i + 1}번째 배정 추가 중 오류가 발생했습니다.` }
+    }
+  }
+
+  revalidatePath("/admin")
+  revalidatePath("/admin/matches")
+  revalidatePath("/admin/referee-assignments")
+  revalidatePath("/matches")
+  revalidatePath("/referees")
+  revalidatePath("/teams")
+  return { ok: true, created, skipped }
 }

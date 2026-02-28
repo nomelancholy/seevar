@@ -1,26 +1,30 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import Image from "next/image"
-import { User } from "lucide-react"
+import Link from "next/link";
+import Image from "next/image";
+import { User } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import { UserDrawerContent } from "./UserDrawerContent"
-import { NotificationModal } from "./NotificationModal"
+} from "@/components/ui/sheet";
+import { UserDrawerContent } from "./UserDrawerContent";
+import { NotificationModal } from "./NotificationModal";
 
 export type NavUser = {
-  id: string
-  name: string | null
-  email: string | null
-  image: string | null
-  supportingTeam: { id: string; name: string; emblemPath: string | null } | null
-}
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  supportingTeam: {
+    id: string;
+    name: string;
+    emblemPath: string | null;
+  } | null;
+};
 
-type SiteNavProps = { user: NavUser | null; unreadNotificationCount?: number }
+type SiteNavProps = { user: NavUser | null; unreadNotificationCount?: number };
 
 export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
   return (
@@ -32,13 +36,20 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
         >
           SEE <span className="text-primary">VAR</span>
         </Link>
-        <div className="h-8 w-px bg-border hidden md:block shrink-0 md:ml-6 lg:ml-8" aria-hidden />
+        <div
+          className="h-8 w-px bg-border hidden md:block shrink-0 md:ml-6 lg:ml-8"
+          aria-hidden
+        />
         {user ? (
           <NotificationModal
             unreadCount={unreadNotificationCount}
             compact
             className="md:hidden relative p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors shrink-0"
-            ariaLabel={unreadNotificationCount > 0 ? `알림 ${unreadNotificationCount}건` : "알림"}
+            ariaLabel={
+              unreadNotificationCount > 0
+                ? `알림 ${unreadNotificationCount}건`
+                : "알림"
+            }
           />
         ) : null}
         {/* 모바일: 프로필(이미지) + 우하단 엠블럼 → 드로어 */}
@@ -47,7 +58,9 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
             <button
               type="button"
               className="md:hidden relative shrink-0 rounded-full border border-border bg-card overflow-visible p-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              aria-label={user ? "마이페이지 열기" : "네이버 로그인 또는 회원가입"}
+              aria-label={
+                user ? "마이페이지 열기" : "네이버 로그인 또는 회원가입"
+              }
             >
               <div className="w-9 h-9 rounded-full overflow-hidden bg-card flex items-center justify-center">
                 {user?.image ? (
@@ -122,55 +135,62 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
             <NotificationModal
               unreadCount={unreadNotificationCount}
               className="relative p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
-              ariaLabel={unreadNotificationCount > 0 ? `알림 ${unreadNotificationCount}건` : "알림"}
+              ariaLabel={
+                unreadNotificationCount > 0
+                  ? `알림 ${unreadNotificationCount}건`
+                  : "알림"
+              }
             />
-          <Sheet>
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                className="hidden md:flex items-center gap-3 pl-6 lg:pl-8 border-l border-border cursor-pointer group"
-                aria-label="마이페이지 열기"
-              >
-                <div className="flex flex-col items-end">
-                  <span className="text-[9px] text-muted-foreground leading-none mb-1 uppercase">
-                    Supporting
-                  </span>
-                  <span className="text-[10px] text-foreground leading-none font-black italic">
-                    {user.supportingTeam?.name ?? "미설정"}
-                  </span>
-                </div>
-                <div className="relative shrink-0">
-                  <div className="w-11 h-11 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center group-hover:border-foreground transition-colors relative">
-                    {user.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={user.image}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <User className="size-5 text-muted-foreground" />
+            <Sheet>
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  className="hidden md:flex items-center gap-3 pl-6 lg:pl-8 border-l border-border cursor-pointer group"
+                  aria-label="마이페이지 열기"
+                >
+                  <div className="flex flex-col items-end">
+                    <span className="text-[9px] text-muted-foreground leading-none mb-1 uppercase">
+                      Supporting
+                    </span>
+                    <span className="text-[10px] text-foreground leading-none font-black italic">
+                      {user.supportingTeam?.name ?? "미설정"}
+                    </span>
+                  </div>
+                  <div className="relative shrink-0">
+                    <div className="w-11 h-11 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center group-hover:border-foreground transition-colors relative">
+                      {user.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={user.image}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="size-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    {user.supportingTeam?.emblemPath && (
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                        <Image
+                          src={user.supportingTeam.emblemPath}
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
                     )}
                   </div>
-                  {user.supportingTeam?.emblemPath && (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
-                      <Image
-                        src={user.supportingTeam.emblemPath}
-                        alt=""
-                        width={20}
-                        height={20}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  )}
-                </div>
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[320px] sm:max-w-[320px] p-0">
-              <SheetTitle className="sr-only">마이페이지</SheetTitle>
-              <UserDrawerContent user={user} onClose={() => {}} />
-            </SheetContent>
-          </Sheet>
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-[320px] sm:max-w-[320px] p-0"
+              >
+                <SheetTitle className="sr-only">마이페이지</SheetTitle>
+                <UserDrawerContent user={user} onClose={() => {}} />
+              </SheetContent>
+            </Sheet>
           </>
         ) : (
           <Link
@@ -193,5 +213,5 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
         )}
       </div>
     </nav>
-  )
+  );
 }

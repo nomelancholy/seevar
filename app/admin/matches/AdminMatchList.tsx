@@ -56,7 +56,8 @@ export function AdminMatchList({
       <div className="grid grid-cols-12 gap-2 p-3 border-b border-border font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-card/50">
         <div className="col-span-2">일시</div>
         <div className="col-span-1">경기</div>
-        <div className="col-span-5 text-center">매치업</div>
+        <div className="col-span-4 text-center">매치업</div>
+        <div className="col-span-1">상태</div>
         <div className="col-span-2">경기장</div>
         <div className="col-span-2 text-right">작업</div>
       </div>
