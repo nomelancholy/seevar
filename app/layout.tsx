@@ -16,6 +16,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// 빌드 시 DB에 접속하지 않도록 함. 배포 환경에서만 DB 접근.
+export const dynamic = "force-dynamic";
+
 // 페이지 이동 시 CSS 로딩 지연/순서 이슈로 스타일이 잠깐 빠지는 현상 방지.
 // 최소한의 크리티컬 스타일을 인라인으로 넣어 항상 배경·글자색·폰트가 적용되도록 함.
 const criticalCss = `
