@@ -3,7 +3,9 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AdminMatchScheduleForm } from "./AdminMatchScheduleForm"
 import { AdminMatchList } from "./AdminMatchList"
+import { AdminBulkMatchUpload } from "./AdminBulkMatchUpload"
 import { RoundFocusToggle } from "./RoundFocusToggle"
+import { AdminAddRoundInline } from "./AdminAddRoundInline"
 
 export const metadata = {
   title: "경기 일정 | 관리자 | See VAR",
@@ -125,6 +127,16 @@ export default async function AdminMatchesPage({
         </p>
       )}
 
+      {league && rounds.length === 0 && (
+        <AdminAddRoundInline
+          leagueId={league.id}
+          leagueName={league.name}
+          seasonYear={season!.year}
+          baseUrl={baseUrl}
+          leagueSlug={league.slug}
+        />
+      )}
+
       {round && (
         <>
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
@@ -133,6 +145,7 @@ export default async function AdminMatchesPage({
             </h3>
             <RoundFocusToggle roundId={round.id} isFocus={round.isFocus} />
           </div>
+          <AdminBulkMatchUpload roundId={round.id} />
           <AdminMatchList
             matches={matches}
             seasonYear={season!.year}

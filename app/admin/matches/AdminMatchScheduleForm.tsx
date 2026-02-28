@@ -66,15 +66,20 @@ export function AdminMatchScheduleForm({
       <label className="flex items-center gap-2">
         <span className="text-muted-foreground">라운드</span>
         <select
-          value={currentRoundSlug}
+          value={rounds.length ? currentRoundSlug : ""}
           onChange={(e) => onRoundChange(e.target.value)}
-          className="bg-card border border-border px-2 py-1.5 focus:border-primary outline-none"
+          disabled={rounds.length === 0}
+          className="bg-card border border-border px-2 py-1.5 focus:border-primary outline-none disabled:opacity-60"
         >
-          {rounds.map((r) => (
-            <option key={r.id} value={r.slug}>
-              {r.slug}
-            </option>
-          ))}
+          {rounds.length === 0 ? (
+            <option value="">— 라운드 없음 (아래에서 추가)</option>
+          ) : (
+            rounds.map((r) => (
+              <option key={r.id} value={r.slug}>
+                {r.slug}
+              </option>
+            ))
+          )}
         </select>
       </label>
     </div>

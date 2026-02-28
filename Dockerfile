@@ -13,16 +13,17 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-# 3. 실행 단계
+# 3. 실행 단계 (standalone: .next/standalone에 필요한 파일만 포함)
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
 
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
+RUN npm install prisma --no-save
 
 EXPOSE 3000
-CMD npx prisma migrate deploy && npm start
+CMD npx prisma migrate deploy && node server.js

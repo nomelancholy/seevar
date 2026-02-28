@@ -8,17 +8,7 @@ export const metadata = {
   description: "시즌, 리그, 라운드 추가 및 구조 관리",
 }
 
-type SearchParams = Promise<{ year?: string; league?: string }>
-
-export default async function AdminStructurePage({
-  searchParams,
-}: {
-  searchParams: SearchParams
-}) {
-  const params = await searchParams
-  const yearStr = params.year
-  const leagueSlug = params.league
-
+export default async function AdminStructurePage() {
   const seasonsWithStructure = await prisma.season.findMany({
     orderBy: { year: "desc" },
     include: {
@@ -33,19 +23,6 @@ export default async function AdminStructurePage({
       },
     },
   })
-
-  const seasons = seasonsWithStructure.map((s) => ({ id: s.id, year: s.year }))
-  const year = yearStr ? parseInt(yearStr, 10) : seasons[0]?.year
-  const season = seasons.length > 0 ? (seasonsWithStructure.find((s) => s.year === year) ?? seasonsWithStructure[0]) : null
-
-  const leagues = season
-    ? season.leagues.map((l) => ({ id: l.id, name: l.name, slug: l.slug }))
-    : []
-
-  const leagueSlugRes = leagueSlug || leagues[0]?.slug
-  const league = leagues.find((l) => l.slug === leagueSlugRes) ?? leagues[0] ?? null
-
-  const baseUrl = "/admin/structure"
 
   return (
     <main className="max-w-4xl mx-auto pb-12 md:pb-16">
@@ -72,15 +49,7 @@ export default async function AdminStructurePage({
         <AdminStructureList seasons={seasonsWithStructure} />
       </section>
 
-      <AdminStructureForms
-        baseUrl={baseUrl}
-        currentYear={season?.year ?? 0}
-        currentLeagueSlug={league?.slug ?? ""}
-        seasonId={season?.id ?? null}
-        leagueId={league?.id ?? null}
-        seasons={seasons}
-        leagues={leagues}
-      />
+      <AdminStructureForms />
     </main>
   )
 }

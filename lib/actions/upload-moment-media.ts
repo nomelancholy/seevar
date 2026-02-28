@@ -1,8 +1,7 @@
 "use server"
 
-import { writeFile, mkdir } from "fs/promises"
-import path from "path"
 import { getCurrentUser } from "@/lib/auth"
+import { uploadToSpaces } from "@/lib/spaces"
 import { randomBytes } from "crypto"
 
 export type UploadMomentMediaResult = { ok: true; url: string } | { ok: false; error: string }
@@ -29,18 +28,12 @@ export async function uploadMomentMedia(formData: FormData): Promise<UploadMomen
   const ext = file.name.split(".").pop()?.toLowerCase() || (isImage ? "jpg" : "mp4")
   const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : isImage ? "jpg" : "mp4"
   const filename = `${randomBytes(8).toString("hex")}.${safeExt}`
-  const dir = path.join(process.cwd(), "public", "uploads", "moments")
+  const key = `moments/${filename}`
 
-  try {
-    await mkdir(dir, { recursive: true })
-    const bytes = await file.arrayBuffer()
-    const buf = Buffer.from(bytes)
-    await writeFile(path.join(dir, filename), buf)
-  } catch (e) {
-    console.error("uploadMomentMedia:", e)
-    return { ok: false, error: "파일 저장에 실패했습니다." }
-  }
+  const bytes = await file.arrayBuffer()
+  const buf = Buffer.from(bytes)
+  const result = await uploadToSpaces(key, buf, file.type)
+  if (!result.ok) return result
 
-  const url = `/uploads/moments/${filename}`
-  return { ok: true, url }
+  return { ok: true, url: result.url }
 }

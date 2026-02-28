@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { shortNameFromSlug } from "@/lib/team-short-names"
 import { getMatchDetailPathWithBack } from "@/lib/match-url"
+import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { LeagueMatchesSection } from "@/components/home/LeagueMatchesSection"
 import { HomeEmptyState } from "@/components/home/HomeEmptyState"
@@ -437,7 +438,9 @@ export default async function HomePage() {
                                           <span className="font-mono text-[7px] md:text-[8px] font-black">{fb.likeCount}</span>
                                         </div>
                                       </div>
-                                      <p className="text-xs md:text-sm text-zinc-300 italic leading-relaxed">{fb.comment}</p>
+                                      <div className="text-xs md:text-sm text-zinc-300 italic">
+                                        <TextWithEmbedPreview text={fb.comment} />
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
@@ -513,7 +516,9 @@ export default async function HomePage() {
                                           <span className="font-mono text-[7px] md:text-[8px] font-black">{fb.likeCount}</span>
                                         </div>
                                       </div>
-                                      <p className="text-xs md:text-sm text-zinc-300 italic leading-relaxed">{fb.comment}</p>
+                                      <div className="text-xs md:text-sm text-zinc-300 italic">
+                                        <TextWithEmbedPreview text={fb.comment} />
+                                      </div>
                                     </div>
                                   ))}
                                 </div>

@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { ChevronDown, ChevronRight, User } from "lucide-react"
 import { EmblemImage } from "@/components/ui/EmblemImage"
+import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "Main Referee",
@@ -160,9 +161,11 @@ export function RefereeMatchRow({
                     </div>
                   </div>
                   {r.comment && (
-                    <p className="text-[10px] md:text-xs text-muted-foreground leading-relaxed">
-                      &quot;{r.comment}&quot;
-                    </p>
+                    <div className="text-[10px] md:text-xs text-muted-foreground">
+                      &quot;
+                      <TextWithEmbedPreview text={r.comment} />
+                      &quot;
+                    </div>
                   )}
                 </div>
               ))

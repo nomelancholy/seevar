@@ -9,6 +9,7 @@ import {
   toggleCommentLike,
   reportComment,
 } from "@/lib/actions/comments"
+import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { toggleMomentSeeVar } from "@/lib/actions/moments"
 import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
 import {
@@ -688,9 +689,9 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                           </div>
                         </div>
                       ) : (
-                      <p className="text-xs md:text-sm mt-1 text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                        {c.content}
-                      </p>
+                      <div className="text-xs md:text-sm mt-1 text-muted-foreground">
+                        <TextWithEmbedPreview text={c.content} />
+                      </div>
                       )}
                       {!isModerated && c.mediaUrl && (
                         <div className="mt-2 rounded overflow-hidden border border-border max-w-[280px]">
@@ -939,9 +940,9 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                                         </div>
                                       </div>
                                     ) : (
-                                    <p className="text-xs md:text-sm text-muted-foreground mt-0.5 leading-relaxed whitespace-pre-wrap">
-                                      {r.content}
-                                    </p>
+                                    <div className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                                      <TextWithEmbedPreview text={r.content} />
+                                    </div>
                                     )}
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">

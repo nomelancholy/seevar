@@ -1,11 +1,10 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { writeFile, mkdir } from "fs/promises"
-import path from "path"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
 import { updateProfileSchema } from "@/lib/schemas/profile"
+import { uploadToSpaces } from "@/lib/spaces"
 
 export type UpdateProfileResult = { ok: true } | { ok: false; error: string }
 
@@ -89,19 +88,14 @@ export async function uploadProfileImage(formData: FormData): Promise<UploadProf
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
   const safeExt = ["jpeg", "jpg", "png", "webp"].includes(ext) ? ext : "jpg"
   const filename = `${user.id}.${safeExt}`
-  const dir = path.join(process.cwd(), "public", "uploads", "avatars")
+  const key = `avatars/${filename}`
 
-  try {
-    await mkdir(dir, { recursive: true })
-    const bytes = await file.arrayBuffer()
-    const buf = Buffer.from(bytes)
-    await writeFile(path.join(dir, filename), buf)
-  } catch (e) {
-    console.error("uploadProfileImage:", e)
-    return { ok: false, error: "파일 저장에 실패했습니다." }
-  }
+  const bytes = await file.arrayBuffer()
+  const buf = Buffer.from(bytes)
+  const result = await uploadToSpaces(key, buf, file.type)
+  if (!result.ok) return result
 
-  const url = `/uploads/avatars/${filename}`
+  const url = result.url
   await prisma.user.update({
     where: { id: user.id },
     data: { image: url },

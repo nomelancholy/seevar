@@ -17,9 +17,20 @@ export default async function AdminResultEditPage({ params }: { params: Params }
       homeTeam: true,
       awayTeam: true,
       round: { include: { league: { include: { season: true } } } },
+      matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
     },
   })
   if (!match) notFound()
+
+  const matchRefereesForForm = match.matchReferees.map((mr) => ({
+    id: mr.id,
+    role: mr.role,
+    refereeName: mr.referee.name,
+    homeYellowCards: mr.homeYellowCards,
+    homeRedCards: mr.homeRedCards,
+    awayYellowCards: mr.awayYellowCards,
+    awayRedCards: mr.awayRedCards,
+  }))
 
   return (
     <main className="max-w-2xl mx-auto pb-12">
@@ -45,6 +56,7 @@ export default async function AdminResultEditPage({ params }: { params: Params }
         initialSecondHalfExtraTime={match.secondHalfExtraTime ?? null}
         initialExtraFirstHalfExtraTime={match.extraFirstHalfExtraTime ?? null}
         initialExtraSecondHalfExtraTime={match.extraSecondHalfExtraTime ?? null}
+        matchReferees={matchRefereesForForm}
       />
     </main>
   )

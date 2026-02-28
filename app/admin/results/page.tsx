@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AdminResultsFilter } from "./AdminResultsFilter"
 import { AdminResultsMatchList } from "./AdminResultsMatchList"
+import { AdminBulkResultUpload } from "./AdminBulkResultUpload"
 
 export const metadata = {
   title: "경기 결과 | 관리자 | See VAR",
@@ -90,7 +91,7 @@ export default async function AdminResultsPage({
         경기 결과
       </h2>
       <p className="font-mono text-xs text-muted-foreground mb-6">
-        경기 상태(SCHEDULED/LIVE/FINISHED/CANCELLED)와 스코어를 수동 반영할 수 있습니다.
+        경기 상태(SCHEDULED/LIVE/FINISHED/CANCELLED), 스코어, 심판별 옐로/레드 카드를 수동 반영하거나 JSON 파일로 일괄 반영할 수 있습니다.
       </p>
 
       <AdminResultsFilter
@@ -102,6 +103,8 @@ export default async function AdminResultsPage({
         currentRoundSlug={round?.slug ?? ""}
         baseUrl={baseUrl}
       />
+
+      <AdminBulkResultUpload />
 
       {round && (
         <AdminResultsMatchList

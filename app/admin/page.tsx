@@ -3,6 +3,7 @@ import {
   Calendar,
   Layers,
   UserCheck,
+  UserCog,
   Trophy,
   Flag,
   FileText,
@@ -21,6 +22,13 @@ const sections = [
     description: "경기 일정 수정, 수동 추가·삭제",
     href: "/admin/matches",
     icon: Calendar,
+    comingSoon: false,
+  },
+  {
+    title: "심판 배정 정보",
+    description: "경기별 심판 배정(역할당 1명), JSON 일괄 업로드",
+    href: "/admin/referee-assignments",
+    icon: UserCog,
     comingSoon: false,
   },
   {

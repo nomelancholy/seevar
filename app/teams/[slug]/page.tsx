@@ -16,31 +16,18 @@ function sanitizeBackUrl(back: string | undefined): string {
   return decoded
 }
 
-/** URL 세그먼트 → DB slug. "리그-엠블럼키" 형식, 첫 번째 - 이후만 _로 치환 */
-function paramToSlug(param: string): string {
-  const firstDash = param.indexOf("-")
-  if (firstDash === -1) return param
-  const league = param.slice(0, firstDash)
-  const emblemPart = param.slice(firstDash + 1).replace(/-/g, "_")
-  return `${league}-${emblemPart}`
+/** URL 세그먼트(gangwon-fc) → DB slug(gangwon_fc) */
+function paramToDbSlug(param: string): string {
+  return param.replace(/-/g, "_")
 }
 
 async function findTeamForSlug(slug: string) {
-  const teamSlug = paramToSlug(slug)
-  let team = await prisma.team.findFirst({
-    where: slug.includes("-") ? { slug: teamSlug } : { id: slug },
+  const bySlug = slug.includes("-")
+  const team = await prisma.team.findFirst({
+    where: bySlug ? { slug: paramToDbSlug(slug) } : { id: slug },
     include: { leagues: true },
   })
-  if (!team && slug.includes("-")) {
-    const emblemPart = teamSlug.indexOf("-") >= 0 ? teamSlug.slice(teamSlug.indexOf("-") + 1) : ""
-    if (emblemPart) {
-      team = await prisma.team.findFirst({
-        where: { slug: { endsWith: emblemPart } },
-        include: { leagues: true },
-      })
-    }
-  }
-  return team
+  return team ?? null
 }
 
 export async function generateMetadata({ params }: { params: Params }) {

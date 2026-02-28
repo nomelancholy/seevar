@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Heart, Flag, Loader2, Pencil } from "lucide-react"
+import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import {
   createRefereeReview,
   toggleRefereeReviewLike,
@@ -351,7 +352,7 @@ export function MatchRefereeRatingSection({
                         value={comment}
                         onChange={(e) => setComment(e.target.value.slice(0, 100))}
                         rows={3}
-                        placeholder="한줄평을 입력해주세요 (예: 판정이 공정했습니다)"
+                        placeholder="한줄평 (유튜브·인스타 링크 붙여넣기 시 미리보기 표시)"
                         className="w-full bg-background border border-border p-3 text-[10px] md:text-xs font-mono focus:border-primary outline-none resize-none"
                       />
                     </div>
@@ -407,7 +408,9 @@ export function MatchRefereeRatingSection({
                       <>
                         <StarRatingDisplay rating={myReview.rating} />
                         {myReview.comment && (
-                          <p className="text-sm text-muted-foreground italic">&quot;{myReview.comment}&quot;</p>
+                          <div className="text-sm text-muted-foreground italic">
+                            &quot;<TextWithEmbedPreview text={myReview.comment} />&quot;
+                          </div>
                         )}
                       </>
                     )}
@@ -436,7 +439,7 @@ export function MatchRefereeRatingSection({
                         value={comment}
                         onChange={(e) => setComment(e.target.value.slice(0, 100))}
                         rows={3}
-                        placeholder="한줄평을 입력해주세요 (예: 판정이 공정했습니다)"
+                        placeholder="한줄평 (유튜브·인스타 링크 붙여넣기 시 미리보기 표시)"
                         className="w-full bg-background border border-border p-3 text-[10px] md:text-xs font-mono focus:border-primary outline-none resize-none"
                       />
                     </div>
@@ -584,9 +587,11 @@ export function MatchRefereeRatingSection({
                           </p>
                         ) : (
                           rev.comment && (
-                            <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-                              &quot;{rev.comment}&quot;
-                            </p>
+                            <div className="text-xs md:text-sm text-muted-foreground">
+                              &quot;
+                              <TextWithEmbedPreview text={rev.comment} />
+                              &quot;
+                            </div>
                           )
                         )}
                         {!isModerated && currentUserId && (
