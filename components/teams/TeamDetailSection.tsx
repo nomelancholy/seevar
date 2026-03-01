@@ -10,7 +10,7 @@ const ROLE_LABEL: Record<string, string> = {
   MAIN: "MAIN",
   ASSISTANT: "ASST",
   VAR: "VAR",
-  WAITING: "4TH",
+  WAITING: "WAITING",
 }
 
 type RefereeStat = {
@@ -396,7 +396,7 @@ export function TeamDetailSection({
                     <span className="text-center">Asst</span>
                     <span className="text-center">Var</span>
                     <span className="text-center">Avar</span>
-                    <span className="text-center">4th</span>
+                    <span className="text-center">WAITING</span>
                     <span className="text-center">Total</span>
                   </div>
                   <div className="divide-y divide-border">

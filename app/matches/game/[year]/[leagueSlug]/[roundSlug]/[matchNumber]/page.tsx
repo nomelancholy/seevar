@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { unstable_cache } from "next/cache"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { getCurrentUser } from "@/lib/auth"
@@ -17,7 +18,7 @@ type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string; mat
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "Referee",
   ASSISTANT: "Assistance",
-  WAITING: "Waiting",
+  WAITING: "WAITING",
   VAR: "VAR",
 }
 /** 표시 순서: 주심 → 부심 → 대기심 → VAR */
@@ -78,6 +79,20 @@ async function resolveMatchBySlug(
   return { ...(match ?? fallback), moments: match?.moments ?? [] }
 }
 
+/** 경기 상세 캐시 (60초). 같은 경기 재방문 시 DB 부하 감소 */
+function getCachedMatch(
+  year: string,
+  leagueSlug: string,
+  roundSlug: string,
+  matchNumber: string
+) {
+  return unstable_cache(
+    () => resolveMatchBySlug(year, leagueSlug, roundSlug, matchNumber),
+    ["match-detail", year, leagueSlug, roundSlug, matchNumber],
+    { revalidate: 60 }
+  )()
+}
+
 type SearchParams = Promise<{ back?: string; openMoment?: string }>
 
 function sanitizeBackUrl(back: string | undefined): string {
@@ -105,7 +120,7 @@ export default async function MatchDetailBySlugPage({
   const { year, leagueSlug, roundSlug, matchNumber } = await params
   const { back: backParam, openMoment: openMomentId } = await searchParams
   const [match, currentUser] = await Promise.all([
-    resolveMatchBySlug(year, leagueSlug, roundSlug, matchNumber),
+    getCachedMatch(year, leagueSlug, roundSlug, matchNumber),
     getCurrentUser(),
   ])
   if (!match) notFound()
@@ -145,17 +160,31 @@ export default async function MatchDetailBySlugPage({
 
   const matchReviews =
     status === "FINISHED" &&
-    (await prisma.refereeReview.findMany({
-      where: { matchId: match.id, status: { in: ["VISIBLE", "HIDDEN"] } },
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: { select: { name: true } },
-        fanTeam: { select: { name: true, emblemPath: true } },
-        reactions: {
-          select: { userId: true },
-        },
-      },
-    }))
+    (await unstable_cache(
+      async () =>
+        prisma.refereeReview.findMany({
+          where: { matchId: match.id, status: { in: ["VISIBLE", "HIDDEN"] } },
+          orderBy: { createdAt: "desc" },
+          include: {
+            user: { select: { name: true, image: true } },
+            fanTeam: { select: { name: true, emblemPath: true } },
+            reactions: { select: { userId: true } },
+            replies: {
+              orderBy: { createdAt: "asc" },
+              include: {
+                user: {
+                  include: {
+                    supportingTeam: { select: { name: true, emblemPath: true } },
+                  },
+                },
+                reactions: { select: { userId: true } },
+              },
+            },
+          },
+        }),
+      ["match-reviews", match.id],
+      { revalidate: 30, tags: [`match-reviews-${match.id}`] }
+    )())
   const reviewsForRating = Array.isArray(matchReviews) ? matchReviews : []
 
   return (
@@ -369,14 +398,44 @@ export default async function MatchDetailBySlugPage({
             comment: r.comment,
             status: r.status,
             filterReason: r.filterReason,
-            user: { name: r.user.name },
+            user: {
+              name: r.user.name,
+              image: r.user.image ?? null,
+            },
             fanTeamId: r.fanTeamId,
             fanTeam: r.fanTeam
               ? { name: r.fanTeam.name, emblemPath: r.fanTeam.emblemPath }
               : null,
             reactions: r.reactions ?? [],
+            replies:
+              r.replies?.map((rp) => ({
+                id: rp.id,
+                content: rp.content,
+                createdAt: rp.createdAt,
+                user: {
+                  name: rp.user.name,
+                  image: rp.user.image ?? null,
+                  supportingTeam: rp.user.supportingTeam
+                    ? {
+                        name: rp.user.supportingTeam.name,
+                        emblemPath: rp.user.supportingTeam.emblemPath,
+                      }
+                    : null,
+                },
+                reactions: rp.reactions ?? [],
+              })) ?? [],
           }))}
           currentUserId={currentUser?.id ?? null}
+          currentUserName={currentUser?.name ?? null}
+          currentUserImage={currentUser?.image ?? null}
+          currentUserSupportingTeam={
+            currentUser?.supportingTeam
+              ? {
+                  name: currentUser.supportingTeam.name,
+                  emblemPath: currentUser.supportingTeam.emblemPath,
+                }
+              : null
+          }
         />
       ) : (
         <div className="mb-8 border border-border bg-card/50">

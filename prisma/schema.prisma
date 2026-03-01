@@ -82,9 +82,10 @@ model User {
   reviews           RefereeReview[]
   reports           Report[]        // 내가 한 신고들
   notifications     Notification[]
-  reactions         Reaction[]
-  notices           Notice[]        // 운영자 공지 작성
-  noticeComments    NoticeComment[]
+  reactions             Reaction[]
+  refereeReviewReplies  RefereeReviewReply[]
+  notices               Notice[]        // 운영자 공지 작성
+  noticeComments        NoticeComment[]
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -306,11 +307,24 @@ model RefereeReview {
   reportCount   Int            @default(0)
   reports       Report[]
   reactions     Reaction[]
+  replies       RefereeReviewReply[]
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
   @@unique([matchId, refereeId, userId])
+}
+
+model RefereeReviewReply {
+  id         String       @id @default(cuid())
+  reviewId   String
+  review     RefereeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User          @relation(fields: [userId], references: [id])
+  content    String        @db.VarChar(500)
+  reactions  Reaction[]
+  reports    Report[]
+  createdAt  DateTime      @default(now())
 }
 
 model Moment {
@@ -375,6 +389,8 @@ model Report {
 
   reviewId      String?
   review        RefereeReview? @relation(fields: [reviewId], references: [id])
+  reviewReplyId String?
+  reviewReply   RefereeReviewReply? @relation(fields: [reviewReplyId], references: [id], onDelete: Cascade)
   commentId     String?
   comment       Comment?       @relation(fields: [commentId], references: [id])
 
@@ -389,13 +405,16 @@ model Reaction {
 
   momentId  String?
   moment    Moment?      @relation(fields: [momentId], references: [id])
-  commentId String?
-  comment   Comment?     @relation(fields: [commentId], references: [id])
-  reviewId  String?
-  review    RefereeReview? @relation(fields: [reviewId], references: [id])
+  commentId     String?
+  comment       Comment?     @relation(fields: [commentId], references: [id])
+  reviewId      String?
+  review        RefereeReview? @relation(fields: [reviewId], references: [id])
+  reviewReplyId String?
+  reviewReply   RefereeReviewReply? @relation(fields: [reviewReplyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, momentId, commentId])
   @@unique([userId, reviewId])
+  @@unique([userId, reviewReplyId])
 }
 
 model Notification {

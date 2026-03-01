@@ -10,7 +10,7 @@ const ROLE_LABEL: Record<string, string> = {
   MAIN: "Main Referee",
   ASSISTANT: "Assistance",
   VAR: "VAR Official",
-  WAITING: "4th Official",
+  WAITING: "WAITING",
 }
 
 type ReviewItem = {
@@ -162,9 +162,7 @@ export function RefereeMatchRow({
                   </div>
                   {r.comment && (
                     <div className="text-[10px] md:text-xs text-muted-foreground">
-                      &quot;
                       <TextWithEmbedPreview text={r.comment} />
-                      &quot;
                     </div>
                   )}
                 </div>

@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
@@ -186,6 +186,162 @@ export async function reportRefereeReview(
     return { ok: true }
   } catch (e) {
     console.error("reportRefereeReview:", e)
+    return { ok: false, error: "신고에 실패했습니다." }
+  }
+}
+
+export type CreateReviewReplyResult =
+  | { ok: true; replyId: string }
+  | { ok: false; error: string }
+
+const replyContentSchema = z.string().min(1, "내용을 입력해주세요.").max(500, "500자 이내로 입력해주세요.")
+
+export async function createRefereeReviewReply(
+  reviewId: string,
+  content: string
+): Promise<CreateReviewReplyResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+
+  const parsed = replyContentSchema.safeParse(content.trim())
+  if (!parsed.success) {
+    const msg = parsed.error.flatten().formErrors[0] ?? parsed.error.message
+    return { ok: false, error: msg }
+  }
+
+  const review = await prisma.refereeReview.findUnique({
+    where: { id: reviewId },
+    select: { id: true, status: true, matchId: true },
+  })
+  if (!review) return { ok: false, error: "평가를 찾을 수 없습니다." }
+  if (review.status !== "VISIBLE") return { ok: false, error: "해당 평가에는 답글을 달 수 없습니다." }
+
+  const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000)
+  const recentDuplicate = await prisma.refereeReviewReply.findFirst({
+    where: {
+      reviewId,
+      userId: user.id,
+      content: parsed.data,
+      createdAt: { gte: twoMinutesAgo },
+    },
+    select: { id: true },
+  })
+  if (recentDuplicate) {
+    return { ok: false, error: "동일한 내용의 답글이 잠시 전에 등록되었습니다." }
+  }
+
+  try {
+    const reply = await prisma.refereeReviewReply.create({
+      data: {
+        reviewId,
+        userId: user.id,
+        content: parsed.data,
+      },
+    })
+    revalidatePath("/matches")
+    revalidatePath("/referees")
+    revalidateTag(`match-reviews-${review.matchId}`)
+    return { ok: true, replyId: reply.id }
+  } catch (e) {
+    console.error("createRefereeReviewReply:", e)
+    return { ok: false, error: "답글 저장에 실패했습니다." }
+  }
+}
+
+export type ToggleReplyLikeResult = { ok: true; liked: boolean } | { ok: false; error: string }
+
+export async function toggleRefereeReviewReplyLike(
+  replyId: string
+): Promise<ToggleReplyLikeResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+
+  const reply = await prisma.refereeReviewReply.findUnique({
+    where: { id: replyId },
+    select: { id: true, review: { select: { matchId: true } } },
+  })
+  if (!reply) return { ok: false, error: "답글을 찾을 수 없습니다." }
+
+  const existing = await prisma.reaction.findUnique({
+    where: {
+      userId_reviewReplyId: { userId: user.id, reviewReplyId: replyId },
+    },
+  })
+
+  try {
+    if (existing) {
+      await prisma.reaction.delete({ where: { id: existing.id } })
+      revalidatePath("/matches")
+      revalidatePath("/referees")
+      if (reply.review?.matchId) revalidateTag(`match-reviews-${reply.review.matchId}`)
+      return { ok: true, liked: false }
+    }
+    await prisma.reaction.create({
+      data: {
+        userId: user.id,
+        type: "LIKE",
+        reviewReplyId: replyId,
+      },
+    })
+    revalidatePath("/matches")
+    revalidatePath("/referees")
+    if (reply.review?.matchId) revalidateTag(`match-reviews-${reply.review.matchId}`)
+    return { ok: true, liked: true }
+  } catch (e) {
+    console.error("toggleRefereeReviewReplyLike:", e)
+    return { ok: false, error: "좋아요 처리에 실패했습니다." }
+  }
+}
+
+export type ReportReplyResult = { ok: true } | { ok: false; error: string }
+
+const reportReplySchema = z.object({
+  replyId: z.string().min(1),
+  reason: z.enum(["ABUSE", "SPAM", "INAPPROPRIATE", "FALSE_INFO"], {
+    message: "유효하지 않은 신고 사유입니다.",
+  }),
+  description: z.string().max(500).optional().nullable(),
+})
+
+export async function reportRefereeReviewReply(
+  replyId: string,
+  reason: string,
+  description?: string | null
+): Promise<ReportReplyResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+
+  const parsed = reportReplySchema.safeParse({ replyId, reason, description })
+  if (!parsed.success) {
+    const msg = parsed.error.flatten().formErrors[0] ?? parsed.error.message
+    return { ok: false, error: msg }
+  }
+
+  const reply = await prisma.refereeReviewReply.findUnique({
+    where: { id: parsed.data.replyId },
+    select: { id: true },
+  })
+  if (!reply) return { ok: false, error: "답글을 찾을 수 없습니다." }
+
+  const already = await prisma.report.findFirst({
+    where: { reporterId: user.id, reviewReplyId: parsed.data.replyId },
+  })
+  if (already) return { ok: false, error: "이미 신고한 답글입니다." }
+
+  try {
+    await prisma.report.create({
+      data: {
+        reporterId: user.id,
+        reason: parsed.data.reason,
+        description: parsed.data.description ?? null,
+        reviewReplyId: parsed.data.replyId,
+      },
+    })
+    revalidatePath("/matches")
+    revalidatePath("/referees")
+    return { ok: true }
+  } catch (e) {
+    console.error("reportRefereeReviewReply:", e)
     return { ok: false, error: "신고에 실패했습니다." }
   }
 }

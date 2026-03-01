@@ -82,7 +82,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     MAIN: "MAIN",
     ASSISTANT: "ASST",
     VAR: "VAR",
-    WAITING: "4TH",
+    WAITING: "WAITING",
   }
 
   type MatchWithRound = Awaited<

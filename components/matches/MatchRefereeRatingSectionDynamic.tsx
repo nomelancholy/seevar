@@ -30,12 +30,26 @@ type Props = {
     comment: string | null
     status?: string
     filterReason?: string | null
-    user: { name: string | null }
+    user: { name: string | null; image: string | null }
     fanTeamId: string | null
     fanTeam: { name: string; emblemPath: string | null } | null
     reactions?: { userId: string }[]
+    replies?: {
+      id: string
+      content: string
+      createdAt: Date | string
+      user: {
+        name: string | null
+        image?: string | null
+        supportingTeam?: { name: string; emblemPath: string | null } | null
+      }
+      reactions?: { userId: string }[]
+    }[]
   }[]
   currentUserId: string | null
+  currentUserName?: string | null
+  currentUserImage?: string | null
+  currentUserSupportingTeam?: { name: string; emblemPath: string | null } | null
 }
 
 export function MatchRefereeRatingSectionDynamic(props: Props) {
