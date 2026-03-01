@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { User } from "lucide-react";
+import { User, Menu } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { UserDrawerContent } from "./UserDrawerContent";
 import { NotificationModal } from "./NotificationModal";
@@ -27,9 +28,49 @@ export type NavUser = {
 type SiteNavProps = { user: NavUser | null; unreadNotificationCount?: number };
 
 export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
+  const navLinks = [
+    { href: "/about", label: "ABOUT" },
+    { href: "/notice", label: "NOTICE" },
+    { href: "/matches", label: "ARCHIVE" },
+    { href: "/referees", label: "REFEREES" },
+    { href: "/teams", label: "TEAMS" },
+  ];
+
   return (
     <nav className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 mb-8 md:mb-12 border-b border-border pb-6 w-full">
       <div className="flex items-center justify-between w-full md:w-auto gap-4 shrink-0 md:min-w-0">
+        {/* 모바일: 햄버거 → 왼쪽 메뉴 시트 */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              type="button"
+              className="md:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+              aria-label="메뉴 열기"
+            >
+              <Menu className="size-6" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[280px] sm:max-w-[85vw] p-0 flex flex-col">
+            <SheetTitle className="sr-only">메뉴</SheetTitle>
+            <div className="p-4 border-b border-border">
+              <Link href="/" className="text-xl font-black tracking-tighter italic">
+                SEE <span className="text-primary">VAR</span>
+              </Link>
+            </div>
+            <nav className="flex flex-col p-4 gap-1 font-mono text-sm font-bold tracking-widest">
+              {navLinks.map(({ href, label }) => (
+                <SheetClose asChild key={href}>
+                  <Link
+                    href={href}
+                    className="py-3 px-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  >
+                    {label}
+                  </Link>
+                </SheetClose>
+              ))}
+            </nav>
+          </SheetContent>
+        </Sheet>
         <Link
           href="/"
           className="text-2xl md:text-3xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity"
@@ -94,38 +135,17 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
         </Sheet>
       </div>
 
-      {/* 메뉴 링크 — 중앙 균형 배치 */}
-      <div className="flex-1 flex items-center justify-center gap-8 md:gap-12 lg:gap-14 text-xs md:text-sm font-bold tracking-widest font-mono overflow-x-auto no-scrollbar py-2 md:py-0 min-w-0">
-        <Link
-          href="/about"
-          className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
-        >
-          ABOUT
-        </Link>
-        <Link
-          href="/notice"
-          className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
-        >
-          NOTICE
-        </Link>
-        <Link
-          href="/matches"
-          className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
-        >
-          ARCHIVE
-        </Link>
-        <Link
-          href="/referees"
-          className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
-        >
-          REFEREES
-        </Link>
-        <Link
-          href="/teams"
-          className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
-        >
-          TEAMS
-        </Link>
+      {/* 데스크톱: 메뉴 링크 — 중앙 균형 배치 / 모바일: 햄버거 메뉴로 대체 */}
+      <div className="hidden md:flex flex-1 items-center justify-center gap-8 md:gap-12 lg:gap-14 text-xs md:text-sm font-bold tracking-widest font-mono min-w-0">
+        {navLinks.map(({ href, label }) => (
+          <Link
+            key={href}
+            href={href}
+            className="menu-link text-muted-foreground hover:text-foreground whitespace-nowrap"
+          >
+            {label}
+          </Link>
+        ))}
       </div>
 
       {/* 데스크톱: 알림 + 로그인 시 Supporting / 비로그인 시 LOG IN */}
