@@ -1,4 +1,5 @@
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AdminMatchScheduleForm } from "./AdminMatchScheduleForm"
@@ -6,6 +7,11 @@ import { AdminMatchList } from "./AdminMatchList"
 import { AdminBulkMatchUpload } from "./AdminBulkMatchUpload"
 import { RoundFocusToggle } from "./RoundFocusToggle"
 import { AdminAddRoundInline } from "./AdminAddRoundInline"
+
+const AdminBulkMatchUploadMulti = dynamic(
+  () => import("./AdminBulkMatchUploadMulti"),
+  { ssr: true }
+)
 
 export const metadata = {
   title: "경기 일정 | 관리자 | See VAR",
@@ -105,20 +111,23 @@ export default async function AdminMatchesPage({
       <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter mb-2">
         경기 일정
       </h2>
-      <p className="font-mono text-xs text-muted-foreground mb-6">
+      <p className="font-mono text-xs text-muted-foreground mb-4">
         시즌·리그·라운드를 선택한 뒤 경기 일정을 수정하거나 추가·삭제할 수 있습니다. 시즌/리그/라운드 추가는 관리자 메뉴의 「시즌·리그·라운드 관리」에서 하세요.
       </p>
 
       {seasons.length > 0 && (
-        <AdminMatchScheduleForm
-          seasons={seasons}
-          leagues={leagues}
-          rounds={rounds}
-          currentYear={season?.year ?? 0}
-          currentLeagueSlug={league?.slug ?? ""}
-          currentRoundSlug={round?.slug ?? ""}
-          baseUrl={baseUrl}
-        />
+        <>
+          <AdminBulkMatchUploadMulti />
+          <AdminMatchScheduleForm
+            seasons={seasons}
+            leagues={leagues}
+            rounds={rounds}
+            currentYear={season?.year ?? 0}
+            currentLeagueSlug={league?.slug ?? ""}
+            currentRoundSlug={round?.slug ?? ""}
+            baseUrl={baseUrl}
+          />
+        </>
       )}
 
       {seasons.length === 0 && (

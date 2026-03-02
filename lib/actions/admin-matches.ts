@@ -22,6 +22,14 @@ export type DeleteMatchResult = { ok: true } | { ok: false; error: string }
 export type ImportBulkMatchesResult =
   | { ok: true; created: number }
   | { ok: false; error: string }
+
+/** 파일명(예: k1-2026-r1.json) → 시즌·리그·라운드 매핑 후 일괄 추가 결과 */
+export type ImportBulkMatchesMultiResult = {
+  results: Array<
+    | { filename: string; ok: true; created: number }
+    | { filename: string; ok: false; error: string }
+  >
+}
 export type CreateSeasonResult = { ok: true; seasonId: string; year: number } | { ok: false; error: string }
 export type CreateLeagueResult = { ok: true; leagueId: string; slug: string } | { ok: false; error: string }
 export type CreateRoundResult = { ok: true; roundId: string; slug: string } | { ok: false; error: string }
@@ -206,9 +214,16 @@ export async function importBulkMatchesFromJson(
     if (homeTeamId === awayTeamId) {
       return { ok: false, error: `${i + 1}번째 경기: 홈팀과 원정팀이 같을 수 없습니다.` }
     }
+    // JSON에 적힌 날짜/시간을 한국 시간(KST) 그대로 저장. "2026-02-28T14:00:00Z" → 2026-02-28 14:00 KST
     let playedAt: Date
     try {
-      playedAt = new Date(row.date)
+      const dateStr = row.date.trim()
+      const kstStr = dateStr.endsWith("Z")
+        ? dateStr.slice(0, -1) + "+09:00"
+        : /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(dateStr) && !/[+-]\d{2}:?\d{2}$/i.test(dateStr)
+          ? dateStr + "+09:00"
+          : dateStr
+      playedAt = new Date(kstStr)
       if (Number.isNaN(playedAt.getTime())) throw new Error("Invalid date")
     } catch {
       return { ok: false, error: `${i + 1}번째 경기: 올바른 날짜 형식이 아닙니다. (예: 2026-02-28T14:00:00Z)` }
@@ -248,6 +263,73 @@ export async function importBulkMatchesFromJson(
   revalidatePath("/admin/matches")
   revalidatePath("/matches")
   return { ok: true, created }
+}
+
+/** 파일명 규칙: k1-2026-r1.json, k2-2026-r2.json → 리그(K League 1 → K-league-1, K League 2 → K-league-2), 연도, 라운드 번호 */
+const MULTI_FILE_REGEX = /^k([12])-(\d{4})-r(\d+)\.json$/i
+const LEAGUE_SLUG_MAP: Record<string, string> = { k1: "K-league-1", k2: "K-league-2" }
+
+export async function importBulkMatchesFromJsonMulti(
+  files: { filename: string; jsonText: string }[]
+): Promise<ImportBulkMatchesMultiResult> {
+  const user = await getCurrentUser()
+  if (!user) return { results: files.map((f) => ({ filename: f.filename, ok: false, error: "로그인이 필요합니다." })) }
+  if (!getIsAdmin(user)) return { results: files.map((f) => ({ filename: f.filename, ok: false, error: "권한이 없습니다." })) }
+
+  const results: ImportBulkMatchesMultiResult["results"] = []
+
+  for (const { filename, jsonText } of files) {
+    const match = MULTI_FILE_REGEX.exec(filename.trim())
+    if (!match) {
+      results.push({ filename, ok: false, error: "파일명 규칙에 맞지 않습니다. (예: k1-2026-r1.json, k2-2026-r2.json)" })
+      continue
+    }
+    const [, leagueNum, yearStr, roundNumStr] = match
+    const leagueSlug = LEAGUE_SLUG_MAP[`k${leagueNum}`]
+    const year = parseInt(yearStr!, 10)
+    const roundNumber = parseInt(roundNumStr!, 10)
+    if (!leagueSlug || Number.isNaN(year) || Number.isNaN(roundNumber) || roundNumber < 1) {
+      results.push({ filename, ok: false, error: "파일명에서 리그/연도/라운드 번호를 읽을 수 없습니다." })
+      continue
+    }
+
+    const season = await prisma.season.findUnique({ where: { year }, select: { id: true } })
+    if (!season) {
+      results.push({ filename, ok: false, error: `시즌 ${year}년이 없습니다. 먼저 시즌·리그·라운드를 추가하세요.` })
+      continue
+    }
+    const league = await prisma.league.findFirst({
+      where: {
+        seasonId: season.id,
+        slug: { equals: leagueSlug, mode: "insensitive" },
+      },
+      select: { id: true },
+    })
+    if (!league) {
+      results.push({ filename, ok: false, error: `리그 ${leagueSlug}(${year})가 없습니다.` })
+      continue
+    }
+    const round = await prisma.round.findFirst({
+      where: { leagueId: league.id, number: roundNumber },
+      select: { id: true },
+    })
+    if (!round) {
+      results.push({ filename, ok: false, error: `라운드 ${roundNumber}(${leagueSlug} ${year})가 없습니다.` })
+      continue
+    }
+
+    const result = await importBulkMatchesFromJson(round.id, jsonText)
+    if (result.ok) {
+      results.push({ filename, ok: true, created: result.created })
+    } else {
+      results.push({ filename, ok: false, error: result.error })
+    }
+  }
+
+  revalidatePath("/admin")
+  revalidatePath("/admin/matches")
+  revalidatePath("/matches")
+  return { results }
 }
 
 export async function deleteMatch(matchId: string): Promise<DeleteMatchResult> {

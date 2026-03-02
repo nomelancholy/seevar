@@ -30,11 +30,17 @@ export default async function AdminMatchScheduleEditPage({ params }: { params: P
   if (!match) notFound()
 
   const playedAt = match.playedAt ? new Date(match.playedAt) : null
+  const KST = "Asia/Seoul"
   const dateStr = playedAt
-    ? playedAt.toISOString().slice(0, 10)
+    ? playedAt.toLocaleDateString("en-CA", { timeZone: KST })
     : ""
   const timeStr = playedAt
-    ? `${String(playedAt.getHours()).padStart(2, "0")}:${String(playedAt.getMinutes()).padStart(2, "0")}`
+    ? playedAt.toLocaleTimeString("ko-KR", {
+        timeZone: KST,
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
     : ""
 
   return (

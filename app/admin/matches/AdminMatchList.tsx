@@ -21,9 +21,12 @@ type Props = {
   teams: { id: string; name: string }[]
 }
 
+const KST = "Asia/Seoul"
+
 function formatDate(d: Date | null) {
   if (!d) return "—"
   return new Date(d).toLocaleDateString("ko-KR", {
+    timeZone: KST,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -32,6 +35,7 @@ function formatDate(d: Date | null) {
 function formatTime(d: Date | null) {
   if (!d) return "—"
   return new Date(d).toLocaleTimeString("ko-KR", {
+    timeZone: KST,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
