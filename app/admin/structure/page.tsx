@@ -2,6 +2,7 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AdminStructureForms } from "../matches/AdminStructureForms"
 import { AdminStructureList } from "./AdminStructureList"
+import { AdminBulkTeamUpload } from "./AdminBulkTeamUpload"
 
 export const metadata = {
   title: "시즌·리그·라운드 관리 | 관리자 | See VAR",
@@ -40,6 +41,11 @@ export default async function AdminStructurePage() {
       <p className="font-mono text-xs text-muted-foreground mb-6">
         시즌(연도), 리그, 라운드를 추가합니다. 경기 일정은 경기 일정 메뉴에서 관리하세요.
       </p>
+
+      {/* 팀 정보 JSON 일괄 등록 */}
+      <section className="mb-8">
+        <AdminBulkTeamUpload />
+      </section>
 
       {/* 현재 등록된 시즌·리그·라운드 목록 (수정/삭제/포커스 설정) */}
       <section className="mb-8 p-4 border border-border bg-card">

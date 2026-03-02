@@ -15,6 +15,35 @@ import { getYouTubeEmbedUrl, getInstagramEmbedUrl } from "@/lib/embed-urls"
 
 type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string; matchNumber: string }>
 
+/** 경기 상세 match에 미디어 URL 포함 (캐시 반환 타입 보완) */
+type MatchWithMedia = { youtubeUrl?: string | null; instagramUrl?: string | null }
+
+/** 리뷰 목록 조회 결과 (unstable_cache 반환 타입 명시) */
+type MatchReviewWithRelations = {
+  id: string
+  userId: string
+  refereeId: string
+  rating: number
+  comment: string | null
+  status: string
+  filterReason: string | null
+  fanTeamId: string | null
+  user: { name: string | null; image: string | null }
+  fanTeam: { name: string; emblemPath: string | null } | null
+  reactions: { userId: string }[]
+  replies: Array<{
+    id: string
+    content: string
+    createdAt: Date
+    user: {
+      name: string | null
+      image: string | null
+      supportingTeam: { name: string; emblemPath: string | null } | null
+    }
+    reactions: { userId: string }[]
+  }>
+}
+
 /** DB RefereeRole → 표시 라벨 (경기 상세 심판 그리드용) */
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "Referee",
@@ -157,9 +186,26 @@ export default async function MatchDetailBySlugPage({
     },
     {} as Record<string, { id: string; name: string; slug: string; link?: string | null }[]>
   )
+
+  const cardTotals = match.matchReferees.reduce(
+    (acc, mr) => {
+      acc.homeYellow += mr.homeYellowCards ?? 0
+      acc.homeRed += mr.homeRedCards ?? 0
+      acc.awayYellow += mr.awayYellowCards ?? 0
+      acc.awayRed += mr.awayRedCards ?? 0
+      return acc
+    },
+    { homeYellow: 0, homeRed: 0, awayYellow: 0, awayRed: 0 }
+  )
+  const hasAnyCards =
+    cardTotals.homeYellow > 0 ||
+    cardTotals.homeRed > 0 ||
+    cardTotals.awayYellow > 0 ||
+    cardTotals.awayRed > 0
+
   const sortedMoments = sortMomentsByStartThenDuration(match.moments ?? [])
 
-  const matchReviews =
+  const matchReviewsRaw =
     status === "FINISHED" &&
     (await unstable_cache(
       async () =>
@@ -178,7 +224,6 @@ export default async function MatchDetailBySlugPage({
                     supportingTeam: { select: { name: true, emblemPath: true } },
                   },
                 },
-                reactions: { select: { userId: true } },
               },
             },
           },
@@ -186,7 +231,10 @@ export default async function MatchDetailBySlugPage({
       ["match-reviews", match.id],
       { revalidate: 30, tags: [`match-reviews-${match.id}`] }
     )())
-  const reviewsForRating = Array.isArray(matchReviews) ? matchReviews : []
+  const matchReviews = Array.isArray(matchReviewsRaw)
+    ? (matchReviewsRaw as unknown as MatchReviewWithRelations[])
+    : []
+  const reviewsForRating = matchReviews
 
   return (
     <main className="py-8 md:py-12">
@@ -255,6 +303,13 @@ export default async function MatchDetailBySlugPage({
                   <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
                   <span>{match.scoreAway ?? 0}</span>
                 </div>
+                {hasAnyCards && (
+                  <div className="font-mono text-[10px] md:text-xs text-muted-foreground flex items-center justify-center gap-4 md:gap-6">
+                    <span>🟨 {cardTotals.homeYellow} 🟥 {cardTotals.homeRed}</span>
+                    <span className="opacity-50">·</span>
+                    <span>🟨 {cardTotals.awayYellow} 🟥 {cardTotals.awayRed}</span>
+                  </div>
+                )}
               </>
             )}
             {isUpcoming && (
@@ -265,22 +320,45 @@ export default async function MatchDetailBySlugPage({
                 <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4">
                   VS
                 </div>
+                {match.venue?.trim() && (
+                  <p className="font-mono text-sm text-muted-foreground">{match.venue.trim()}</p>
+                )}
               </>
             )}
-            {isFinished && match.scoreHome != null && match.scoreAway != null && (
+            {isFinished && (match.scoreHome != null && match.scoreAway != null ? (
               <>
                 <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-4 md:gap-6">
                   <span>{match.scoreHome}</span>
                   <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
                   <span>{match.scoreAway}</span>
                 </div>
-                <p className="font-mono text-sm text-muted-foreground">FT</p>
+                {match.venue?.trim() && (
+                  <p className="font-mono text-sm text-muted-foreground">{match.venue.trim()}</p>
+                )}
+                {hasAnyCards && (
+                  <div className="font-mono text-[10px] md:text-xs text-muted-foreground mt-3 flex items-center justify-center gap-4 md:gap-6">
+                    <span>🟨 {cardTotals.homeYellow} 🟥 {cardTotals.homeRed}</span>
+                    <span className="opacity-50">·</span>
+                    <span>🟨 {cardTotals.awayYellow} 🟥 {cardTotals.awayRed}</span>
+                  </div>
+                )}
               </>
-            )}
+            ) : (
+              <>
+                <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-4 md:gap-6">
+                  <span className="text-muted-foreground">—</span>
+                  <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
+                  <span className="text-muted-foreground">—</span>
+                </div>
+                {match.venue?.trim() && (
+                  <p className="font-mono text-sm text-muted-foreground">{match.venue.trim()}</p>
+                )}
+              </>
+            ))}
 
             <div className="w-full h-px bg-border my-6" />
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-3 md:gap-y-4 gap-x-4 md:gap-x-8 font-mono text-[10px] md:text-xs text-left mb-6 md:mb-8 w-full max-w-xs">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-3 md:gap-y-4 gap-x-4 md:gap-x-8 font-mono text-[10px] md:text-xs text-left mb-6 md:mb-8 w-full max-w-xs mx-auto">
               {ROLE_DISPLAY_ORDER.map((role) => {
                 const refs = refereesByRole[role] ?? []
                 const label = ROLE_LABEL[role] ?? role
@@ -409,7 +487,7 @@ export default async function MatchDetailBySlugPage({
               : null,
             reactions: r.reactions ?? [],
             replies:
-              r.replies?.map((rp) => ({
+              r.replies?.map((rp: MatchReviewWithRelations["replies"][number]) => ({
                 id: rp.id,
                 content: rp.content,
                 createdAt: rp.createdAt,
@@ -423,7 +501,7 @@ export default async function MatchDetailBySlugPage({
                       }
                     : null,
                 },
-                reactions: rp.reactions ?? [],
+                reactions: "reactions" in rp && Array.isArray(rp.reactions) ? rp.reactions : [],
               })) ?? [],
           }))}
           currentUserId={currentUser?.id ?? null}
@@ -456,20 +534,20 @@ export default async function MatchDetailBySlugPage({
       )}
 
       {/* MATCH MEDIA ARCHIVE - 경기별 유튜브·인스타 카드 (Round Media와 동일 패턴) */}
-      {(match.youtubeUrl || match.instagramUrl) && (
+      {((match as MatchWithMedia).youtubeUrl || (match as MatchWithMedia).instagramUrl) && (
         <section className="mt-8 md:mt-12">
           <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-4">
             MATCH MEDIA ARCHIVE
           </h2>
           <div className="flex flex-col gap-4 md:gap-6">
-            {getYouTubeEmbedUrl(match.youtubeUrl) && (
+            {getYouTubeEmbedUrl((match as MatchWithMedia).youtubeUrl) && (
               <div className="border border-border bg-card/60 p-3 md:p-4">
                 <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
                   Match Review · YouTube
                 </p>
                 <div className="relative w-full pt-[56.25%] bg-black border border-border overflow-hidden">
                   <iframe
-                    src={getYouTubeEmbedUrl(match.youtubeUrl)!}
+                    src={getYouTubeEmbedUrl((match as MatchWithMedia).youtubeUrl)!}
                     title="Match review video"
                     className="absolute inset-0 w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -479,14 +557,14 @@ export default async function MatchDetailBySlugPage({
                 </div>
               </div>
             )}
-            {getInstagramEmbedUrl(match.instagramUrl) && (
+            {getInstagramEmbedUrl((match as MatchWithMedia).instagramUrl) && (
               <div className="border border-border bg-card/60 p-3 md:p-4">
                 <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
                   Card News · Instagram
                 </p>
                 <div className="relative w-full pt-[125%] bg-black border border-border overflow-hidden">
                   <iframe
-                    src={getInstagramEmbedUrl(match.instagramUrl)!}
+                    src={getInstagramEmbedUrl((match as MatchWithMedia).instagramUrl)!}
                     title="Match card news"
                     className="absolute inset-0 w-full h-full"
                     allow="clipboard-write; encrypted-media; picture-in-picture; web-share"

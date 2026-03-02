@@ -9,6 +9,8 @@ type Referee = {
   name: string
   averageRating: number | null
   matchesCount: number
+  totalYellowCards: number
+  totalRedCards: number
 }
 
 type Props = { referees: Referee[] }
@@ -68,7 +70,7 @@ export function RefereeListWithSearch({ referees }: Props) {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 md:gap-4 border-t border-border pt-3 md:pt-4">
+              <div className="grid grid-cols-3 gap-3 md:gap-4 border-t border-border pt-3 md:pt-4">
                 <div>
                   <p className="font-mono text-[7px] md:text-[8px] text-muted-foreground uppercase">
                     Total Matches
@@ -77,11 +79,15 @@ export function RefereeListWithSearch({ referees }: Props) {
                 </div>
                 <div>
                   <p className="font-mono text-[7px] md:text-[8px] text-muted-foreground uppercase">
-                    Total Votes
+                    Total Yellow Card
                   </p>
-                  <p className="font-mono text-[10px] md:text-xs font-bold">
-                    {r.matchesCount > 0 ? (r.matchesCount * 85).toLocaleString() : "—"}
+                  <p className="font-mono text-[10px] md:text-xs font-bold">{r.totalYellowCards}</p>
+                </div>
+                <div>
+                  <p className="font-mono text-[7px] md:text-[8px] text-muted-foreground uppercase">
+                    Total Red Card
                   </p>
+                  <p className="font-mono text-[10px] md:text-xs font-bold">{r.totalRedCards}</p>
                 </div>
               </div>
             </Link>

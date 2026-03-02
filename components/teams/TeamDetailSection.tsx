@@ -22,6 +22,14 @@ type RefereeStat = {
   roleCounts: Record<string, number> | null
 }
 
+type CardByReferee = {
+  id: string
+  slug: string
+  name: string
+  totalYellowCards: number
+  totalRedCards: number
+}
+
 type MatchRow = {
   id: string
   matchPath: string
@@ -29,6 +37,7 @@ type MatchRow = {
   status: string
   scoreHome: number | null
   scoreAway: number | null
+  venue: string | null
   homeTeam: { id: string; name: string; emblemPath: string | null }
   awayTeam: { id: string; name: string; emblemPath: string | null }
   matchReferees: { role: string; referee: { id: string; slug: string; name: string } }[]
@@ -42,18 +51,11 @@ type Props = {
   compatibility: { high: RefereeStat | null; low: RefereeStat | null }
   compatibilityList: RefereeStat[]
   assignments: RefereeStat[]
+  /** 이 팀에게 옐로/레드 카드를 부여한 심판별 집계 */
+  cardsByReferee: CardByReferee[]
   matches: MatchRow[]
   availableYears: number[]
   currentYear: number | null
-}
-
-function roleCountDisplay(roleCounts: Record<string, number> | null): string {
-  if (!roleCounts || typeof roleCounts !== "object") return "—"
-  const labels = ["MAIN", "ASSISTANT", "VAR", "WAITING"] as const
-  return labels
-    .filter((r) => roleCounts[r] != null)
-    .map((r) => `${ROLE_LABEL[r] ?? r}: ${roleCounts[r]}`)
-    .join(", ") || "—"
 }
 
 function getRoleCount(roleCounts: Record<string, number> | null, role: string): number {
@@ -75,12 +77,13 @@ export function TeamDetailSection({
   compatibility,
   compatibilityList,
   assignments,
+  cardsByReferee,
   matches,
   availableYears,
   currentYear,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
-  const [modalTab, setModalTab] = useState<"ratings" | "assignments">("ratings")
+  const [modalTab, setModalTab] = useState<"ratings" | "assignments" | "cards">("ratings")
   const formatDate = (d: Date | null) =>
     d
       ? new Date(d).toLocaleDateString("ko-KR", {
@@ -215,10 +218,53 @@ export function TeamDetailSection({
               ))
             )}
           </div>
-          {assignments.length > 0 && (
-            <p className="font-mono text-[9px] text-muted-foreground mt-2">
-              {roleCountDisplay(assignments[0]?.roleCounts ?? null)}
-            </p>
+        </div>
+
+        {/* Cards by Referee (총합 카드 상위 5명, VIEW ALL 시 전체) */}
+        <div className="ledger-surface p-4 md:p-6 border border-border">
+          <div className="flex items-center justify-between mb-4 md:mb-6 gap-2">
+            <h3 className="font-mono text-[10px] md:text-xs font-black tracking-widest text-primary uppercase italic">
+              Cards by Referee
+            </h3>
+            {cardsByReferee.length > 5 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setModalTab("cards")
+                  setModalOpen(true)
+                }}
+                className="font-mono text-[9px] md:text-[10px] font-bold text-muted-foreground hover:text-foreground underline underline-offset-4"
+              >
+                VIEW ALL
+              </button>
+            )}
+          </div>
+          <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground mb-3 md:mb-4">
+            이 팀 경기에서 해당 심판이 부여한 옐로·레드 카드 수
+          </p>
+          {cardsByReferee.length === 0 ? (
+            <p className="font-mono text-[10px] text-muted-foreground py-2">카드 부여 기록이 없습니다.</p>
+          ) : (
+            <div className="space-y-2">
+              {cardsByReferee.slice(0, 5).map((ref) => (
+                <div
+                  key={ref.id}
+                  className="flex items-center justify-between bg-card/30 p-2.5 md:p-3 border border-border"
+                >
+                  <Link
+                    href={refereeHref(ref.slug, refereeBackPath)}
+                    className="text-[10px] md:text-xs font-bold italic uppercase hover:text-primary transition-colors flex items-center gap-1"
+                  >
+                    {ref.name}
+                    <span className="text-[8px]">→</span>
+                  </Link>
+                  <div className="flex items-center gap-3 md:gap-4 font-mono text-[10px] md:text-xs">
+                    <span>🟨 {ref.totalYellowCards}</span>
+                    <span>🟥 {ref.totalRedCards}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -242,7 +288,14 @@ export function TeamDetailSection({
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 md:mb-6">
                   <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
-                    <div className="font-mono text-xs md:text-sm text-muted-foreground">{formatDate(m.playedAt)}</div>
+                    <div>
+                      <div className="font-mono text-xs md:text-sm text-muted-foreground">{formatDate(m.playedAt)}</div>
+                      {m.venue?.trim() && (
+                        <div className="font-mono text-[9px] md:text-[10px] text-muted-foreground mt-0.5">
+                          {m.venue.trim()}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center gap-4 md:gap-6">
                       <div className="flex items-center gap-2 md:gap-3">
                         <EmblemImage src={m.homeTeam.emblemPath} width={32} height={32} className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
@@ -336,9 +389,52 @@ export function TeamDetailSection({
               >
                 Assignment Stats
               </button>
+              <button
+                type="button"
+                onClick={() => setModalTab("cards")}
+                className={`flex-1 py-3 text-[10px] md:text-xs font-mono tracking-widest uppercase ${
+                  modalTab === "cards"
+                    ? "bg-card text-primary border-b-2 border-primary"
+                    : "bg-muted/30 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Cards by Referee
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3">
-              {modalTab === "ratings" ? (
+              {modalTab === "cards" ? (
+                cardsByReferee.length === 0 ? (
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    카드 부여 기록이 없습니다.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {cardsByReferee.map((ref, idx) => (
+                      <div
+                        key={ref.id}
+                        className="flex items-center justify-between border border-border bg-card/40 px-3 py-2 md:px-4 md:py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-[9px] text-muted-foreground w-6 text-right">
+                            {idx + 1}.
+                          </span>
+                          <Link
+                            href={refereeHref(ref.slug, refereeBackPath)}
+                            className="font-mono text-[10px] md:text-xs font-bold italic uppercase hover:text-primary transition-colors flex items-center gap-1"
+                          >
+                            {ref.name}
+                            <span className="text-[8px]">→</span>
+                          </Link>
+                        </div>
+                        <div className="flex items-center gap-4 font-mono text-[10px] md:text-xs">
+                          <span>🟨 {ref.totalYellowCards}</span>
+                          <span>🟥 {ref.totalRedCards}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : modalTab === "ratings" ? (
                 compatibilityList.length === 0 ? (
                   <p className="font-mono text-[10px] text-muted-foreground">
                     이 팀 팬 평점 데이터가 없습니다.
@@ -383,11 +479,11 @@ export function TeamDetailSection({
                       </div>
                     ))
                 )
-              ) : assignments.length === 0 ? (
+              ) : modalTab === "assignments" && assignments.length === 0 ? (
                 <p className="font-mono text-[10px] text-muted-foreground">
                   배정 데이터가 없습니다.
                 </p>
-              ) : (
+              ) : modalTab === "assignments" ? (
                 <div className="w-full border border-border bg-card/40">
                   <div className="grid grid-cols-8 gap-2 px-4 py-3 md:px-6 md:py-3 border-b border-border text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
                     <span className="text-right w-6">#</span>
@@ -440,7 +536,7 @@ export function TeamDetailSection({
                       ))}
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

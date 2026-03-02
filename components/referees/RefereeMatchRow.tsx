@@ -24,6 +24,7 @@ type ReviewItem = {
 
 type Props = {
   matchDate: string
+  venue: string | null
   homeName: string
   awayName: string
   homeEmblem: string | null
@@ -49,6 +50,7 @@ function StarMini({ filled }: { filled: boolean }) {
 
 export function RefereeMatchRow({
   matchDate,
+  venue,
   homeName,
   awayName,
   homeEmblem,
@@ -68,7 +70,14 @@ export function RefereeMatchRow({
         className="flex flex-col md:flex-row md:items-center justify-between w-full p-4 gap-4 text-left"
       >
         <div className="flex flex-col md:flex-row md:items-center md:gap-8 gap-2">
-          <div className="font-mono text-[10px] md:text-xs text-muted-foreground">{matchDate}</div>
+          <div>
+            <div className="font-mono text-[10px] md:text-xs text-muted-foreground">{matchDate}</div>
+            {venue?.trim() && (
+              <div className="font-mono text-[9px] md:text-[10px] text-muted-foreground mt-0.5">
+                {venue.trim()}
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-3 md:gap-4">
             <div className="flex items-center gap-1.5 md:gap-2">
               <EmblemImage src={homeEmblem} width={24} height={24} className="w-5 h-5 md:w-6 md:h-6 shrink-0" />

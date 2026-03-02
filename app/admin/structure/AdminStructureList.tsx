@@ -13,6 +13,7 @@ import {
   deleteRound,
   createLeague,
   createRound,
+  createRoundsInRange,
 } from "@/lib/actions/admin-matches"
 
 type RoundWithCount = {
@@ -59,6 +60,8 @@ export function AdminStructureList({ seasons }: Props) {
   const [newLeagueName, setNewLeagueName] = useState("")
   const [newLeagueSlug, setNewLeagueSlug] = useState("")
   const [newRoundNumber, setNewRoundNumber] = useState("")
+  const [roundRangeFrom, setRoundRangeFrom] = useState("1")
+  const [roundRangeTo, setRoundRangeTo] = useState("38")
   const [linkDrafts, setLinkDrafts] = useState<
     Record<string, { youtubeUrl: string; instagramUrl: string }>
   >({})
@@ -221,6 +224,31 @@ export function AdminStructureList({ seasons }: Props) {
     if (result.ok) {
       setAddingRoundToLeagueId(null)
       setNewRoundNumber("")
+      router.refresh()
+    } else {
+      setError(result.error)
+    }
+  }
+
+  async function handleAddRoundsInRange(leagueId: string) {
+    const from = parseInt(roundRangeFrom, 10)
+    const to = parseInt(roundRangeTo, 10)
+    if (Number.isNaN(from) || Number.isNaN(to) || from < 1 || to < 1) {
+      setError("시작·끝 라운드 번호를 1 이상으로 입력해 주세요.")
+      return
+    }
+    if (from > to) {
+      setError("시작 번호가 끝 번호보다 클 수 없습니다.")
+      return
+    }
+    setError(null)
+    setPending(leagueId)
+    const result = await createRoundsInRange(leagueId, from, to)
+    setPending(null)
+    if (result.ok) {
+      setAddingRoundToLeagueId(null)
+      setRoundRangeFrom("1")
+      setRoundRangeTo("38")
       router.refresh()
     } else {
       setError(result.error)
@@ -417,31 +445,64 @@ export function AdminStructureList({ seasons }: Props) {
 
                     <div className="ml-4 mt-1">
                       {addingRoundToLeagueId === l.id ? (
-                        <div className="flex flex-wrap items-center gap-2 font-mono text-[10px]">
-                          <input
-                            type="number"
-                            min={1}
-                            value={newRoundNumber}
-                            onChange={(e) => setNewRoundNumber(e.target.value)}
-                            placeholder="라운드 번호"
-                            className="w-20 bg-background border border-border px-2 py-1 text-xs"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleAddRound(l.id)}
-                            disabled={!!pending}
-                            className="text-primary hover:underline disabled:opacity-50"
-                          >
-                            추가
-                          </button>
+                        <div className="flex flex-col gap-2 font-mono text-[10px]">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-muted-foreground">한 개</span>
+                            <input
+                              type="number"
+                              min={1}
+                              value={newRoundNumber}
+                              onChange={(e) => setNewRoundNumber(e.target.value)}
+                              placeholder="라운드 번호"
+                              className="w-20 bg-background border border-border px-2 py-1 text-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleAddRound(l.id)}
+                              disabled={!!pending}
+                              className="text-primary hover:underline disabled:opacity-50"
+                            >
+                              추가
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-muted-foreground">범위</span>
+                            <input
+                              type="number"
+                              min={1}
+                              value={roundRangeFrom}
+                              onChange={(e) => setRoundRangeFrom(e.target.value)}
+                              placeholder="시작"
+                              className="w-16 bg-background border border-border px-2 py-1 text-xs"
+                            />
+                            <span className="text-muted-foreground">~</span>
+                            <input
+                              type="number"
+                              min={1}
+                              value={roundRangeTo}
+                              onChange={(e) => setRoundRangeTo(e.target.value)}
+                              placeholder="끝"
+                              className="w-16 bg-background border border-border px-2 py-1 text-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleAddRoundsInRange(l.id)}
+                              disabled={!!pending}
+                              className="text-primary hover:underline disabled:opacity-50"
+                            >
+                              범위로 추가
+                            </button>
+                          </div>
                           <button
                             type="button"
                             onClick={() => {
                               setAddingRoundToLeagueId(null)
                               setNewRoundNumber("")
+                              setRoundRangeFrom("1")
+                              setRoundRangeTo("38")
                               setError(null)
                             }}
-                            className="text-muted-foreground hover:underline"
+                            className="text-muted-foreground hover:underline self-start"
                           >
                             취소
                           </button>

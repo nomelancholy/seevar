@@ -1,29 +1,64 @@
-# 경기 상태 크론 (SCHEDULED / LIVE / FINISHED 갱신)
+# 크론 작업 (Digital Ocean 배포)
 
-경기 일시(`playedAt`) 기준으로 DB의 `Match.status`를 갱신합니다.
+See VAR는 **Digital Ocean** 등 자체 서버에 배포된 환경에서 아래 두 가지를 주기적으로 갱신합니다.
 
-## 동작 방식
-
-- **크론 트리거**: 15분마다 한 번 호출하면 됩니다 (crontab `*/15 * * * *` 또는 외부 스케줄러).
-- **실제 갱신 시점**: **경기가 있는 날**에만, **가장 이른 경기 3시간 전 ~ 가장 늦은 경기 3시간 후** 구간 안에서만 DB를 갱신합니다. 그 구간 밖이거나 그날 경기가 없으면 스킵(무시)합니다.
-- 따라서 24시간 15분마다 돌 필요 없이, 경기일·경기 시간대에만 부하가 발생합니다.
-
-**Vercel Cron은 Vercel에 배포했을 때만 동작합니다.** AWS, DigitalOcean 등 다른 호스트로 이전하면 아래 방식으로 스케줄을 설정해야 합니다.
+1. **경기 상태** (`Match.status`): SCHEDULED → LIVE → FINISHED
+2. **라운드 포커스** (`Round.isFocus`): 특정 리그(예: K리그1)에서 “현재 포커스 라운드” 전환
 
 ---
 
-## 1. 스크립트 + 시스템 크론 (권장 — AWS EC2, DigitalOcean Droplet 등)
+## 1. 경기 상태 갱신 (SCHEDULED / LIVE / FINISHED)
 
-서버에서 **DB에 직접 접속**해 갱신하므로, 앱이 반드시 떠 있을 필요가 없습니다.
+경기 일시(`playedAt`) 기준으로 DB의 `Match.status`를 갱신합니다.
 
-### 1) 수동 실행 테스트
+- **크론 주기**: 15분마다 한 번 호출 (`*/15 * * * *`).
+- **실제 갱신 시점**: **경기가 있는 날**에만, **가장 이른 경기 3시간 전 ~ 가장 늦은 경기 3시간 후** 구간 안에서만 DB를 갱신합니다. 그 구간 밖이거나 그날 경기가 없으면 스킵합니다.
+- 따라서 24시간 내내 부하가 나지 않고, 경기일·경기 시간대에만 갱신이 일어납니다.
+
+---
+
+## 2. 라운드 isFocus 갱신
+
+같은 리그(시즌·리그 단위) 안에서:
+
+- **포커스 유지**: “다음 라운드”의 **가장 이른 경기 날짜 전날**까지는 **현재 라운드**가 `isFocus: true`.
+- **포커스 전환**: 다음 라운드의 **가장 이른 경기 날짜 당일**이 되면, 이전 라운드는 `isFocus: false`, 다음 라운드는 `isFocus: true`로 갱신.
+
+예: 1라운드가 포커스일 때, 2라운드의 첫 경기 날짜가 3월 1일이면, **3월 1일 당일**에 1라운드 `isFocus: false`, 2라운드 `isFocus: true`로 전환됩니다.  
+모든 리그에 대해 위 규칙으로 일괄 갱신합니다.
+
+---
+
+## 3. 실행 방법 (Digital Ocean 권장)
+
+서버에서 **DB에 직접 접속**해 갱신하므로, Next 앱이 반드시 떠 있을 필요는 없습니다.
+
+### 한 번에 둘 다 실행 (권장)
+
+`npm run cron:match-status` 한 번으로 **경기 상태**와 **라운드 isFocus**를 모두 갱신합니다.
 
 ```bash
-# 프로젝트 루트에서, DATABASE_URL(또는 .env) 설정 후
+# 프로젝트 루트에서, DATABASE_URL(.env) 설정 후
 npm run cron:match-status
 ```
 
-### 2) 15분마다 실행 (crontab)
+### 수동으로 각각만 실행
+
+```bash
+# 경기 상태만
+npm run cron:match-status   # 내부에서 경기 상태 + isFocus 둘 다 수행
+
+# 라운드 isFocus만
+npm run cron:round-focus
+```
+
+`cron:match-status`가 이미 경기 상태와 isFocus를 같이 돌리므로, 크론에는 **`cron:match-status` 하나만** 걸어두면 됩니다.
+
+---
+
+## 4. 시스템 크론 설정 (crontab)
+
+Digital Ocean Droplet 등에서 15분마다 실행하려면:
 
 ```bash
 # 스크립트 실행 권한
@@ -31,8 +66,11 @@ chmod +x scripts/cron-update-match-status.sh
 
 # crontab 편집
 crontab -e
+```
 
-# 다음 한 줄 추가 (경로는 실제 프로젝트 루트로 변경)
+다음 한 줄 추가 (경로를 실제 프로젝트 루트로 변경):
+
+```cron
 */15 * * * * /path/to/seevar/scripts/cron-update-match-status.sh >> /var/log/seevar-cron.log 2>&1
 ```
 
@@ -41,13 +79,13 @@ crontab -e
 
 ---
 
-## 2. HTTP API 호출 (외부 스케줄러)
+## 5. HTTP API로 호출 (선택)
 
-앱이 배포된 **URL**에 15분마다 POST 요청을 보내는 방식입니다.  
-(예: cron-job.org, AWS EventBridge + Lambda, GitHub Actions scheduled workflow 등)
+앱이 떠 있는 상태에서, 외부 스케줄러가 HTTP로 호출하는 방식도 가능합니다.  
+(예: cron-job.org, AWS EventBridge 등)
 
-- **URL**: `POST https://<your-domain>/api/cron/update-match-status`
-- **인증**: 환경 변수 `CRON_SECRET`을 설정한 경우  
+- **경기 상태 갱신 API**: `POST https://<your-domain>/api/cron/update-match-status`
+- **인증**: 환경 변수 `CRON_SECRET` 설정 시  
   - `Authorization: Bearer <CRON_SECRET>`  
   - 또는 헤더 `x-cron-secret: <CRON_SECRET>`
 
@@ -59,27 +97,11 @@ curl -X POST \
   https://your-domain.com/api/cron/update-match-status
 ```
 
-`CRON_SECRET`이 없으면 인증 없이도 호출 가능(보안상 비권장).
+**참고**: 현재 HTTP 엔드포인트는 **경기 상태** 갱신만 수행합니다. **라운드 isFocus**까지 반영하려면 서버에서 `npm run cron:match-status`(또는 `scripts/cron-update-match-status.sh`)를 크론으로 돌리는 방식을 권장합니다.
 
 ---
 
-## 3. Vercel에 배포하는 경우
+## 6. Vercel에 배포하는 경우
 
-Vercel에서만 쓰는 경우, [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs)를 쓰면 됩니다.
-
-1. 프로젝트 루트에 `vercel.json` 추가:
-
-```json
-{
-  "crons": [
-    {
-      "path": "/api/cron/update-match-status",
-      "schedule": "*/15 * * * *"
-    }
-  ]
-}
-```
-
-2. Vercel 대시보드에서 환경 변수 `CRON_SECRET` 설정 (선택, 보안 권장).
-
-Vercel이 15분마다 위 path로 요청을 보내며, 설정한 경우 `CRON_SECRET`을 Bearer로 붙여 줍니다.
+Vercel에 배포할 때는 [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs)를 사용할 수 있습니다.  
+이 경우에도 **라운드 isFocus**는 위 API만으로는 갱신되지 않으므로, 필요 시 Vercel 외부 스케줄러에서 `npm run cron:match-status`를 실행하는 서버를 두거나, 별도 API를 추가해야 합니다.

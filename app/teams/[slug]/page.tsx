@@ -220,6 +220,7 @@ export default async function TeamDetailPage({
     status: m.status,
     scoreHome: m.scoreHome,
     scoreAway: m.scoreAway,
+    venue: m.venue ?? null,
     homeTeam: {
       id: m.homeTeam.id,
       name: m.homeTeam.name,
@@ -243,6 +244,18 @@ export default async function TeamDetailPage({
         .filter((y): y is number => y != null)
     ),
   ].sort((a, b) => b - a)
+
+  // 심판별 이 팀에게 부여한 옐로/레드 카드 (RefereeTeamStat)
+  const cardsByReferee = teamStats
+    .filter((s) => (s.totalYellowCards ?? 0) > 0 || (s.totalRedCards ?? 0) > 0)
+    .map((s) => ({
+      id: s.referee.id,
+      slug: s.referee.slug,
+      name: s.referee.name,
+      totalYellowCards: s.totalYellowCards ?? 0,
+      totalRedCards: s.totalRedCards ?? 0,
+    }))
+    .sort((a, b) => b.totalYellowCards + b.totalRedCards - (a.totalYellowCards + a.totalRedCards))
 
   const latestYear = availableYears[0] ?? null
   const effectiveYear =
@@ -297,6 +310,7 @@ export default async function TeamDetailPage({
         compatibility={compatibility}
         compatibilityList={combinedForCompatibility}
         assignments={assignments}
+        cardsByReferee={cardsByReferee}
         matches={matches}
         availableYears={availableYears}
         currentYear={effectiveYear}

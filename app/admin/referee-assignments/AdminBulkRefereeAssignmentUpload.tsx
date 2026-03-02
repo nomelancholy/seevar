@@ -8,7 +8,7 @@ import { Upload } from "lucide-react"
 const JSON_FORMAT = `{
   "assignments": [
     { "matchId": "경기ID(cuid)", "refereeSlug": "go-hyeongjin", "role": "MAIN" },
-    { "matchIdentifier": { "year": 2026, "leagueSlug": "kleague1", "roundNumber": 1, "roundOrder": 1 }, "refereeSlug": "seol-taehwan", "role": "VAR" }
+    { "matchIdentifier": { "year": 2026, "leagueSlug": "kleague1", "roundNumber": 1, "homeTeam": "인천", "awayTeam": "서울" }, "refereeSlug": "seol-taehwan", "role": "VAR" }
   ]
 }`
 
@@ -52,7 +52,7 @@ export function AdminBulkRefereeAssignmentUpload() {
         JSON 파일으로 심판 배정 일괄 추가
       </h4>
       <p className="text-xs text-muted-foreground mb-3">
-        경기(matchId 또는 matchIdentifier)와 심판(refereeSlug), 역할(role)을 배열로 넣으면 일괄 배정됩니다. 배정 시 RefereeStats·RefereeTeamStat에 자동 반영됩니다.
+        경기(matchId 또는 matchIdentifier)와 심판(refereeSlug), 역할(role)을 배열로 넣으면 일괄 배정됩니다. matchIdentifier는 year, leagueSlug, roundNumber에 homeTeam/awayTeam(약칭 예: 인천·서울)을 넣으면 됩니다. roundOrder도 하위 호환됩니다. 배정 시 RefereeStats·RefereeTeamStat에 자동 반영됩니다.
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <input

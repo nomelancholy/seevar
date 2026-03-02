@@ -25,6 +25,9 @@ export type ImportBulkMatchesResult =
 export type CreateSeasonResult = { ok: true; seasonId: string; year: number } | { ok: false; error: string }
 export type CreateLeagueResult = { ok: true; leagueId: string; slug: string } | { ok: false; error: string }
 export type CreateRoundResult = { ok: true; roundId: string; slug: string } | { ok: false; error: string }
+export type CreateRoundsInRangeResult =
+  | { ok: true; created: number; skipped: number }
+  | { ok: false; error: string }
 export type CreateMatchRefereeResult = { ok: true; id: string } | { ok: false; error: string }
 export type UpdateMatchRefereeResult = { ok: true } | { ok: false; error: string }
 export type DeleteMatchRefereeResult = { ok: true } | { ok: false; error: string }
@@ -382,6 +385,71 @@ export async function createRound(data: {
     console.error("createRound:", e)
     return { ok: false, error: "라운드 추가에 실패했습니다." }
   }
+}
+
+/** 라운드 번호 범위(from ~ to, 둘 다 포함)로 한 번에 생성. 이미 있는 번호는 건너뜀. */
+export async function createRoundsInRange(
+  leagueId: string,
+  fromNumber: number,
+  toNumber: number
+): Promise<CreateRoundsInRangeResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const from = Number(fromNumber)
+  const to = Number(toNumber)
+  if (!Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to < 1) {
+    return { ok: false, error: "시작·끝 번호는 1 이상 정수로 입력해 주세요." }
+  }
+  if (from > to) {
+    return { ok: false, error: "시작 번호가 끝 번호보다 클 수 없습니다." }
+  }
+  const limit = 200
+  if (to - from + 1 > limit) {
+    return { ok: false, error: `한 번에 ${limit}개까지 가능합니다. (${from}~${to} = ${to - from + 1}개)` }
+  }
+
+  const league = await prisma.league.findUnique({
+    where: { id: leagueId },
+    select: { id: true },
+  })
+  if (!league) return { ok: false, error: "리그를 찾을 수 없습니다." }
+
+  const existing = await prisma.round.findMany({
+    where: { leagueId, number: { gte: from, lte: to } },
+    select: { number: true },
+  })
+  const existingSet = new Set(existing.map((r) => r.number))
+
+  let created = 0
+  let skipped = 0
+  for (let num = from; num <= to; num++) {
+    if (existingSet.has(num)) {
+      skipped++
+      continue
+    }
+    const slugNorm = `round-${num}`
+    try {
+      await prisma.round.create({
+        data: { leagueId, number: num, slug: slugNorm },
+      })
+      created++
+    } catch (e) {
+      console.error("createRoundsInRange:", e)
+      revalidatePath("/admin")
+      revalidatePath("/admin/structure")
+      revalidatePath("/admin/matches")
+      revalidatePath("/matches")
+      return { ok: false, error: `라운드 ${num} 추가 중 오류가 발생했습니다.` }
+    }
+  }
+
+  revalidatePath("/admin")
+  revalidatePath("/admin/matches")
+  revalidatePath("/admin/structure")
+  revalidatePath("/matches")
+  return { ok: true, created, skipped }
 }
 
 export type SetRoundFocusResult = { ok: true } | { ok: false; error: string }

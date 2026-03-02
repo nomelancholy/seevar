@@ -1,4 +1,5 @@
 import { AdminRefereeAddForm } from "./AdminRefereeAddForm"
+import { AdminBulkRefereeUpload } from "./AdminBulkRefereeUpload"
 import { AdminRefereeRow } from "./AdminRefereeRow"
 
 type Referee = {
@@ -16,6 +17,9 @@ export function AdminRefereeList({ referees }: Props) {
     <div className="space-y-6">
       <div className="ledger-surface border border-border p-4">
         <AdminRefereeAddForm />
+      </div>
+      <div className="ledger-surface border border-border p-4">
+        <AdminBulkRefereeUpload />
       </div>
       <div className="ledger-surface border border-border overflow-hidden">
         <div className="grid grid-cols-12 gap-2 p-3 border-b border-border font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-card/50">

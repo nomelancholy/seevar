@@ -717,6 +717,11 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                       ))}
                     </div>
                   )}
+                  {m.venue?.trim() && (
+                    <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground">
+                      {m.venue.trim()}
+                    </p>
+                  )}
                 </div>
                 <div className="col-span-2 text-right">
                   <span className="border border-border px-4 py-2 text-[10px] font-bold font-mono group-hover:bg-foreground group-hover:text-background transition-all inline-block">

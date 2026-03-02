@@ -13,6 +13,14 @@ export default async function RefereesPage() {
     include: {
       stats: true,
       _count: { select: { matchReferees: true } },
+      matchReferees: {
+        select: {
+          homeYellowCards: true,
+          awayYellowCards: true,
+          homeRedCards: true,
+          awayRedCards: true,
+        },
+      },
     },
   })
 
@@ -21,12 +29,22 @@ export default async function RefereesPage() {
     const weightedSum = r.stats.reduce((sum: number, s: { avgRating: number; matchCount: number }) => sum + s.avgRating * s.matchCount, 0)
     const averageRating =
       totalMatches > 0 ? weightedSum / totalMatches : null
+    const totalYellowCards = r.matchReferees.reduce(
+      (sum, mr) => sum + mr.homeYellowCards + mr.awayYellowCards,
+      0
+    )
+    const totalRedCards = r.matchReferees.reduce(
+      (sum, mr) => sum + mr.homeRedCards + mr.awayRedCards,
+      0
+    )
     return {
       id: r.id,
       slug: (r as typeof r & { slug: string }).slug,
       name: r.name,
       averageRating,
       matchesCount: r._count.matchReferees,
+      totalYellowCards,
+      totalRedCards,
     }
   })
 

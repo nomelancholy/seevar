@@ -8,6 +8,9 @@ import { prisma } from "@/lib/prisma"
 export type CreateRefereeResult = { ok: true; refereeId: string } | { ok: false; error: string }
 export type UpdateRefereeResult = { ok: true } | { ok: false; error: string }
 export type DeleteRefereeResult = { ok: true } | { ok: false; error: string }
+export type ImportBulkRefereesResult =
+  | { ok: true; created: number; skipped: number }
+  | { ok: false; error: string }
 
 function slugFromName(name: string): string {
   return name
@@ -126,4 +129,68 @@ export async function deleteReferee(refereeId: string): Promise<DeleteRefereeRes
     console.error("deleteReferee:", e)
     return { ok: false, error: "심판 삭제에 실패했습니다." }
   }
+}
+
+/**
+ * JSON으로 심판 일괄 등록.
+ * 형식: { "referees": [ { "name": "고형진", "slug": "go-hyeongjin", "link": null } ] }
+ * name 필수. slug·link 생략 가능. 이미 존재하는 slug는 건너뜀.
+ */
+export async function importBulkRefereesFromJson(
+  jsonText: string
+): Promise<ImportBulkRefereesResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  let data: {
+    referees?: Array<{ name?: string; slug?: string | null; link?: string | null }>
+  }
+  try {
+    data = JSON.parse(jsonText) as typeof data
+  } catch {
+    return { ok: false, error: "JSON 형식이 올바르지 않습니다." }
+  }
+
+  const referees = data.referees
+  if (!Array.isArray(referees) || referees.length === 0) {
+    return { ok: false, error: '"referees" 배열을 입력해 주세요.' }
+  }
+
+  let created = 0
+  let skipped = 0
+
+  for (let i = 0; i < referees.length; i++) {
+    const row = referees[i]
+    const name = typeof row.name === "string" ? row.name.trim() : ""
+    if (!name) {
+      return { ok: false, error: `${i + 1}번째: name을 입력해 주세요.` }
+    }
+
+    const slug = row.slug?.trim() || slugFromName(name)
+    const existingBySlug = await prisma.referee.findUnique({ where: { slug }, select: { id: true } })
+    if (existingBySlug) {
+      skipped += 1
+      continue
+    }
+
+    try {
+      await prisma.referee.create({
+        data: {
+          name,
+          slug,
+          link: typeof row.link === "string" ? row.link.trim() || null : null,
+        },
+      })
+      created += 1
+    } catch (e) {
+      console.error("importBulkReferees create:", e)
+      return { ok: false, error: `${i + 1}번째 심판 등록 실패: ${name}` }
+    }
+  }
+
+  revalidatePath("/admin")
+  revalidatePath("/admin/referees")
+  revalidatePath("/referees")
+  return { ok: true, created, skipped }
 }

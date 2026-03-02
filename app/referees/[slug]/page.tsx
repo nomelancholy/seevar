@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { getMatchDetailPathWithBack } from "@/lib/match-url"
 import { RefereeRatingSection } from "@/components/referees/RefereeRatingSection"
 import { RefereeMatchRow } from "@/components/referees/RefereeMatchRow"
-import { RefereeAssignmentYearFilter } from "@/components/referees/RefereeAssignmentYearFilter"
+import { RefereeSectionWithTeamExpand } from "@/components/referees/RefereeSectionWithTeamExpand"
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -180,6 +180,25 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
   ) as Record<string, number>
   const totalAssignments = Object.values(countByRole).reduce((a, b) => a + b, 0)
 
+  const cardAggregate = await prisma.matchReferee.aggregate({
+    where: {
+      refereeId: referee.id,
+      ...(statsYear != null
+        ? { match: { round: { league: { season: { year: statsYear } } } } }
+        : {}),
+    },
+    _sum: {
+      homeYellowCards: true,
+      awayYellowCards: true,
+      homeRedCards: true,
+      awayRedCards: true,
+    },
+  })
+  const totalYellowCards =
+    (cardAggregate._sum.homeYellowCards ?? 0) + (cardAggregate._sum.awayYellowCards ?? 0)
+  const totalRedCards =
+    (cardAggregate._sum.homeRedCards ?? 0) + (cardAggregate._sum.awayRedCards ?? 0)
+
   // 역할별 평점: 리뷰 기준. 없으면 RefereeStats 폴백
   const ratingByRole: Record<string, number> = {}
   const roles = ["MAIN", "ASSISTANT", "VAR", "WAITING"] as const
@@ -235,6 +254,15 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
   const teamStatsForExpand = [...statsByTeamName.values()].sort(
     (a, b) => b.fanAverageRating - a.fanAverageRating
   )
+
+  const teamStatsForSections = referee.teamStats.map((ts) => ({
+    teamName: ts.team.name,
+    emblemPath: ts.team.emblemPath,
+    roleCounts: (ts.roleCounts as Record<string, number>) ?? null,
+    totalYellowCards: ts.totalYellowCards ?? 0,
+    totalRedCards: ts.totalRedCards ?? 0,
+    totalAssignments: ts.totalAssignments,
+  }))
 
   const reviewsByMatchId = new Map<string, typeof referee.reviews>()
   for (const r of referee.reviews) {
@@ -304,79 +332,103 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
       </section>
 
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
-        <div className="flex justify-between items-end mb-6 md:mb-8 gap-4 flex-wrap">
-          <h3 className="font-mono text-xs md:text-sm font-bold tracking-widest text-muted-foreground uppercase">
-            Assignment Statistics
-          </h3>
-          {availableYears.length > 0 && (
-            <RefereeAssignmentYearFilter
-              availableYears={availableYears}
-              currentYear={statsYear}
-              paramKey="stats"
-              showAllOption
-            />
-          )}
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          <div className="bg-card/30 p-4 border border-border/50 text-center">
-            <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
-              Referee
-            </p>
-            <p className="text-3xl md:text-4xl font-black italic font-mono">
-              {formatCount(countByRole.MAIN ?? 0)}
-            </p>
-            <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+        <RefereeSectionWithTeamExpand
+          title="Assignment Statistics"
+          availableYears={availableYears}
+          currentYear={statsYear}
+          paramKey="stats"
+          showAllOption
+          teamStats={teamStatsForSections}
+          variant="assignment"
+        >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="bg-card/30 p-4 border border-border/50 text-center">
+              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
+                Referee
+              </p>
+              <p className="text-3xl md:text-4xl font-black italic font-mono">
+                {formatCount(countByRole.MAIN ?? 0)}
+              </p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+            </div>
+            <div className="bg-card/30 p-4 border border-border/50 text-center">
+              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
+                Assistance
+              </p>
+              <p className="text-3xl md:text-4xl font-black italic font-mono">
+                {formatCount(countByRole.ASSISTANT ?? 0)}
+              </p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+            </div>
+            <div className="bg-card/30 p-4 border border-border/50 text-center">
+              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
+                Waiting
+              </p>
+              <p className="text-3xl md:text-4xl font-black italic font-mono">
+                {formatCount(countByRole.WAITING ?? 0)}
+              </p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+            </div>
+            <div className="bg-card/30 p-4 border border-border/50 text-center">
+              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
+                VAR
+              </p>
+              <p className="text-3xl md:text-4xl font-black italic font-mono">
+                {formatCount(countByRole.VAR ?? 0)}
+              </p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+            </div>
           </div>
-          <div className="bg-card/30 p-4 border border-border/50 text-center">
-            <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
-              Assistance
+          <div className="mt-4 pt-4 border-t border-border text-center">
+            <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-1">
+              Total Assignments
             </p>
-            <p className="text-3xl md:text-4xl font-black italic font-mono">
-              {formatCount(countByRole.ASSISTANT ?? 0)}
-            </p>
-            <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+            <p className="text-3xl md:text-4xl font-black italic font-mono">{totalAssignments}</p>
           </div>
-          <div className="bg-card/30 p-4 border border-border/50 text-center">
-            <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
-              Waiting
-            </p>
-            <p className="text-3xl md:text-4xl font-black italic font-mono">
-              {formatCount(countByRole.WAITING ?? 0)}
-            </p>
-            <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
-          </div>
-          <div className="bg-card/30 p-4 border border-border/50 text-center">
-            <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
-              VAR
-            </p>
-            <p className="text-3xl md:text-4xl font-black italic font-mono">
-              {formatCount(countByRole.VAR ?? 0)}
-            </p>
-            <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
-          </div>
-        </div>
-        <div className="mt-4 pt-4 border-t border-border text-center">
-          <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-1">
-            Total Assignments
-          </p>
-          <p className="text-3xl md:text-4xl font-black italic font-mono">{totalAssignments}</p>
-        </div>
+        </RefereeSectionWithTeamExpand>
       </section>
 
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
-        <div className="flex justify-between items-end mb-6 md:mb-8 gap-4 flex-wrap">
-          <h3 className="font-mono text-xs md:text-sm font-bold tracking-widest text-muted-foreground uppercase">
-            Match Assignments
-          </h3>
-          {availableYears.length > 0 && (
-            <RefereeAssignmentYearFilter
-              availableYears={availableYears}
-              currentYear={assignmentYear}
-              paramKey="year"
-            />
-          )}
-        </div>
-        <div className="space-y-3 md:space-y-4">
+        <RefereeSectionWithTeamExpand
+          title="Card Statistics"
+          availableYears={availableYears}
+          currentYear={statsYear}
+          paramKey="stats"
+          showAllOption
+          teamStats={teamStatsForSections}
+          variant="cards"
+        >
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="bg-card/30 p-4 border border-border/50 text-center">
+              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
+                Total Yellow Card
+              </p>
+              <p className="text-2xl md:text-3xl font-black italic font-mono text-yellow-600 dark:text-yellow-500">
+                {formatCount(totalYellowCards)}
+              </p>
+            </div>
+            <div className="bg-card/30 p-4 border border-border/50 text-center">
+              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
+                Total Red Card
+              </p>
+              <p className="text-2xl md:text-3xl font-black italic font-mono text-red-600 dark:text-red-500">
+                {formatCount(totalRedCards)}
+              </p>
+            </div>
+          </div>
+        </RefereeSectionWithTeamExpand>
+      </section>
+
+      <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
+        <RefereeSectionWithTeamExpand
+          title="Match Assignments"
+          availableYears={availableYears}
+          currentYear={assignmentYear}
+          paramKey="year"
+          teamStats={teamStatsForSections}
+          variant="match"
+        >
+          <div className="space-y-3 md:space-y-4">
           {matchAssignmentsList.map((mr) => {
             const m = mr.match
             const matchReviews = reviewsByMatchId.get(m.id) ?? []
@@ -408,6 +460,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
               <RefereeMatchRow
                 key={mr.id}
                 matchDate={dateStr}
+                venue={m.venue ?? null}
                 homeName={m.homeTeam.name}
                 awayName={m.awayTeam.name}
                 homeEmblem={m.homeTeam.emblemPath}
@@ -426,10 +479,11 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
               />
             )
           })}
-        </div>
-        {matchAssignmentsList.length === 0 && (
-          <p className="font-mono text-[10px] text-muted-foreground">배정된 경기가 없습니다.</p>
-        )}
+          </div>
+          {matchAssignmentsList.length === 0 && (
+            <p className="font-mono text-[10px] text-muted-foreground">배정된 경기가 없습니다.</p>
+          )}
+        </RefereeSectionWithTeamExpand>
       </section>
     </main>
   )
