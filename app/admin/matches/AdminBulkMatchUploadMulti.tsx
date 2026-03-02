@@ -50,8 +50,15 @@ export default function AdminBulkMatchUploadMulti() {
       const nextResults = data?.results
       setResults(Array.isArray(nextResults) ? nextResults : [])
       router.refresh()
-    } catch {
-      setResults([{ filename: "(전체)", ok: false, error: "요청 처리 중 오류가 발생했습니다." }])
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : "요청 처리 중 오류가 발생했습니다."
+      console.error("importBulkMatchesFromJsonMulti:", err)
+      setResults([{ filename: "(전체)", ok: false, error: message }])
     } finally {
       setPending(false)
       setProcessingFiles([])

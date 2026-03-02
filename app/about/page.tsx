@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Youtube, Instagram, Github } from "lucide-react";
 
 export const metadata = {
   title: "About | See VAR",
@@ -80,7 +79,7 @@ export default function AboutPage() {
 
         <div className="pt-8 md:pt-12 border-t border-border space-y-8 md:space-y-12">
           <div className="flex flex-col md:flex-row justify-between items-start gap-6 md:gap-8">
-            <div className="space-y-2">
+            <div className="space-y-4">
               <h4 className="font-mono text-[10px] md:text-xs font-black text-primary uppercase tracking-widest">
                 Contact Us
               </h4>
@@ -92,6 +91,38 @@ export default function AboutPage() {
                   takeknowledge@naver.com
                 </a>
               </p>
+              <div className="flex flex-wrap items-center gap-4 md:gap-6 pt-2">
+                <a
+                  href="https://www.youtube.com/@seevar.online"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-muted-foreground hover:text-[#FF0000] transition-colors font-mono text-sm"
+                  aria-label="YouTube @seevar.online"
+                >
+                  <Youtube className="size-5 md:size-6" />
+                  <span>YouTube</span>
+                </a>
+                <a
+                  href="https://www.instagram.com/seevar.online"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-muted-foreground hover:text-[#E4405F] transition-colors font-mono text-sm"
+                  aria-label="Instagram @seevar.online"
+                >
+                  <Instagram className="size-5 md:size-6" />
+                  <span>Instagram</span>
+                </a>
+                <a
+                  href="https://github.com/nomelancholy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-mono text-sm"
+                  aria-label="GitHub nomelancholy"
+                >
+                  <Github className="size-5 md:size-6" />
+                  <span>GitHub</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>

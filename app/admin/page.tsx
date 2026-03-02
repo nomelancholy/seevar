@@ -33,10 +33,10 @@ const sections = [
     comingSoon: false,
   },
   {
-    title: "심판 배정 정보",
-    description: "경기별 심판 배정(역할당 1명), JSON 일괄 업로드",
-    href: "/admin/referee-assignments",
-    icon: UserCog,
+    title: "경기 결과",
+    description: "경기 결과·상태 수동 반영",
+    href: "/admin/results",
+    icon: Trophy,
     comingSoon: false,
   },
   {
@@ -47,10 +47,10 @@ const sections = [
     comingSoon: false,
   },
   {
-    title: "경기 결과",
-    description: "경기 결과·상태 수동 반영",
-    href: "/admin/results",
-    icon: Trophy,
+    title: "심판 배정 정보",
+    description: "경기별 심판 배정(역할당 1명), JSON 일괄 업로드",
+    href: "/admin/referee-assignments",
+    icon: UserCog,
     comingSoon: false,
   },
   {

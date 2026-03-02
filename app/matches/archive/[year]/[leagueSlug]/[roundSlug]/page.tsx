@@ -706,6 +706,11 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                       </span>
                     </div>
                   </div>
+                  {m.venue?.trim() && (
+                    <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground text-center">
+                      {m.venue.trim()}
+                    </p>
+                  )}
                   {"matchReferees" in m && Array.isArray(m.matchReferees) && m.matchReferees.length > 0 && (
                     <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-mono text-[9px] md:text-[10px] text-muted-foreground">
                       {m.matchReferees.map((mr: { role: string; referee: { name: string } }) => (
@@ -716,11 +721,6 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                         </span>
                       ))}
                     </div>
-                  )}
-                  {m.venue?.trim() && (
-                    <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground">
-                      {m.venue.trim()}
-                    </p>
                   )}
                 </div>
                 <div className="col-span-2 text-right">
