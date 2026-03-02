@@ -43,18 +43,27 @@ jobs:
             # 2. 최신 코드 가져오기
             git pull origin ${{ github.ref_name }}
 
-            # 3. .env 파일 생성 및 환경변수 주입 (Secrets 이름은 GitHub 설정과 같아야 함)
+            # 3. .env 파일 생성 및 환경변수 주입 (GitHub Secrets에 등록된 이름과 동일해야 함)
             echo "DB_USER=${{ secrets.DB_USER }}" > .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
             echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
             echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_HOST=db" >> .env
             echo "DATABASE_URL=postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}" >> .env
 
-            echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env            
+            echo "AUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env
             echo "NEXTAUTH_SECRET=${{ secrets.AUTH_SECRET }}" >> .env
             echo "NEXTAUTH_URL=${{ steps.target.outputs.site_url }}" >> .env
             echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> .env
             echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> .env
+
+            echo "ADMIN_EMAILS=${{ secrets.ADMIN_EMAILS }}" >> .env
+            echo "ADMIN_USER_IDS=${{ secrets.ADMIN_USER_IDS }}" >> .env
+
+            echo "SPACES_BUCKET=${{ secrets.SPACES_BUCKET }}" >> .env
+            echo "SPACES_ENDPOINT=${{ secrets.SPACES_ENDPOINT }}" >> .env
+            echo "SPACES_KEY=${{ secrets.SPACES_KEY }}" >> .env
+            echo "SPACES_SECRET=${{ secrets.SPACES_SECRET }}" >> .env
 
             # 4. 컨테이너 빌드 및 실행
             docker compose up -d --build
