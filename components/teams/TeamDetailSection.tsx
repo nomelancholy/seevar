@@ -13,6 +13,20 @@ const ROLE_LABEL: Record<string, string> = {
   WAITING: "WAITING",
 }
 
+const ROLE_ORDER = ["MAIN", "ASSISTANT", "VAR", "WAITING"] as const
+
+function sortMatchRefereesByRoleThenName<
+  T extends { role: string; referee: { name: string } }
+>(list: T[]): T[] {
+  return [...list].sort((a, b) => {
+    const ia = ROLE_ORDER.indexOf(a.role as (typeof ROLE_ORDER)[number])
+    const ib = ROLE_ORDER.indexOf(b.role as (typeof ROLE_ORDER)[number])
+    const roleOrder = (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib)
+    if (roleOrder !== 0) return roleOrder
+    return a.referee.name.localeCompare(b.referee.name, "ko")
+  })
+}
+
 type RefereeStat = {
   id: string
   slug: string
@@ -328,7 +342,7 @@ export function TeamDetailSection({
                 </div>
                 {m.matchReferees.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4 pt-4 border-t border-border">
-                    {m.matchReferees.map((mr) => (
+                    {sortMatchRefereesByRoleThenName(m.matchReferees).map((mr) => (
                       <div key={mr.referee.id + mr.role} className="flex flex-col">
                         <span className="font-mono text-[8px] md:text-[10px] text-muted-foreground uppercase mb-1">
                           {ROLE_LABEL[mr.role] ?? mr.role}

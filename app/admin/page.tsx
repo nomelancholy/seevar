@@ -2,6 +2,7 @@ import Link from "next/link"
 import {
   Calendar,
   Layers,
+  Users,
   UserCheck,
   UserCog,
   Trophy,
@@ -10,6 +11,13 @@ import {
 } from "lucide-react"
 
 const sections = [
+  {
+    title: "팀 정보",
+    description: "팀 등록·수정·삭제, JSON 일괄 등록",
+    href: "/admin/teams",
+    icon: Users,
+    comingSoon: false,
+  },
   {
     title: "시즌·리그·라운드 관리",
     description: "시즌(연도), 리그, 라운드 추가 및 구조 관리",

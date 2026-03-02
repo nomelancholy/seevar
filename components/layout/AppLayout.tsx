@@ -9,15 +9,17 @@ type LayoutUser = Pick<User, "id" | "name" | "email" | "image"> & {
 export function AppLayout({
   children,
   user,
+  isAdmin = false,
   unreadNotificationCount = 0,
 }: {
   children: React.ReactNode
   user: LayoutUser | null
+  isAdmin?: boolean
   unreadNotificationCount?: number
 }) {
   return (
     <div className="min-h-screen p-4 md:p-8 md:px-12 lg:px-16">
-      <RedirectToOnboardingIfNeeded user={user} />
+      <RedirectToOnboardingIfNeeded user={user} isAdmin={isAdmin} />
       <SiteNav user={user} unreadNotificationCount={unreadNotificationCount} />
       <main className="max-w-7xl mx-auto">{children}</main>
     </div>

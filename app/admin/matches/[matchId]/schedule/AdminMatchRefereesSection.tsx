@@ -18,6 +18,16 @@ const ROLE_LABEL: Record<RefereeRole, string> = {
 
 const ROLES: RefereeRole[] = ["MAIN", "ASSISTANT", "VAR", "WAITING"]
 
+/** 역할 순서 → 같은 역할 내 이름 오름차순으로 정렬 (부심·VAR 2명 순서 고정) */
+function sortByRoleThenName(matchReferees: MatchRefereeItem[]): MatchRefereeItem[] {
+  return [...matchReferees].sort((a, b) => {
+    const ia = ROLES.indexOf(a.role)
+    const ib = ROLES.indexOf(b.role)
+    if (ia !== ib) return ia - ib
+    return a.referee.name.localeCompare(b.referee.name, "ko")
+  })
+}
+
 type MatchRefereeItem = {
   id: string
   role: RefereeRole
@@ -122,7 +132,7 @@ export function AdminMatchRefereesSection({
         {matchReferees.length === 0 ? (
           <p className="font-mono text-xs text-muted-foreground">배정된 심판이 없습니다.</p>
         ) : (
-          matchReferees.map((mr) =>
+          sortByRoleThenName(matchReferees).map((mr) =>
             editingId === mr.id ? (
               <form
                 key={mr.id}

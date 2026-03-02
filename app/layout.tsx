@@ -1,7 +1,7 @@
 /** 전역 스타일 — FOUC 방지를 위해 반드시 최상단에서 한 번만 임포트 */
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getIsAdmin } from "@/lib/auth";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SessionProvider } from "@/components/auth/SessionProvider";
@@ -37,6 +37,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getCurrentUser();
+  const isAdmin = user ? getIsAdmin(user) : false;
   const unreadNotificationCount = user
     ? await getUnreadNotificationCount(user.id)
     : 0;
@@ -62,6 +63,7 @@ export default async function RootLayout({
         <SessionProvider>
           <AppLayout
             user={user}
+            isAdmin={isAdmin}
             unreadNotificationCount={unreadNotificationCount}
           >
             {children}

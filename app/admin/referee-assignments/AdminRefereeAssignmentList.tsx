@@ -15,6 +15,14 @@ const ROLE_LABEL: Record<RefereeRole, string> = {
 
 const ROLES: RefereeRole[] = ["MAIN", "ASSISTANT", "VAR", "WAITING"]
 
+/** 역할별 최대 배정 인원 (부심·VAR 2명, 주심·대기심 1명) */
+const MAX_PER_ROLE: Record<RefereeRole, number> = {
+  MAIN: 1,
+  ASSISTANT: 2,
+  VAR: 2,
+  WAITING: 1,
+}
+
 type Match = {
   id: string
   roundOrder: number
@@ -53,14 +61,23 @@ export function AdminRefereeAssignmentList({
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleAdd(matchId: string, role: RefereeRole) {
-    if (!refereeId) {
+  async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const matchId = (form.elements.namedItem("matchId") as HTMLInputElement | null)?.value
+    const role = (form.elements.namedItem("role") as HTMLInputElement | null)?.value as RefereeRole | undefined
+    if (!matchId || !role || !ROLES.includes(role)) {
+      setError("잘못된 요청입니다.")
+      return
+    }
+    const selectedRefereeId = (form.elements.namedItem("refereeId") as HTMLSelectElement | null)?.value
+    if (!selectedRefereeId) {
       setError("심판을 선택해 주세요.")
       return
     }
     setPending(true)
     setError(null)
-    const result = await createMatchReferee(matchId, refereeId, role)
+    const result = await createMatchReferee(matchId, selectedRefereeId, role)
     setPending(false)
     if (result.ok) {
       setAdding(null)
@@ -84,8 +101,16 @@ export function AdminRefereeAssignmentList({
               <th className="text-left p-2 w-8">경기</th>
               <th className="text-center p-2 min-w-[160px]">매치업</th>
               {ROLES.map((role) => (
-                <th key={role} className="text-left p-2 w-24">
+                <th
+                  key={role}
+                  className={`text-left p-2 ${role === "ASSISTANT" || role === "VAR" ? "min-w-[100px] w-28" : "w-24"}`}
+                >
                   {ROLE_LABEL[role]}
+                  {MAX_PER_ROLE[role] > 1 && (
+                    <span className="block font-normal text-muted-foreground text-[9px]">
+                      (최대 {MAX_PER_ROLE[role]}명)
+                    </span>
+                  )}
                 </th>
               ))}
               <th className="text-right p-2 w-12">작업</th>
@@ -107,59 +132,72 @@ export function AdminRefereeAssignmentList({
                     {m.homeTeam.name} vs {m.awayTeam.name}
                   </td>
                   {ROLES.map((role) => {
-                    const assigned = m.matchReferees.find((r) => r.role === role)
+                    const assignedList = m.matchReferees
+                      .filter((r) => r.role === role)
+                      .sort((a, b) => a.referee.name.localeCompare(b.referee.name, "ko"))
+                    const maxForRole = MAX_PER_ROLE[role]
+                    const canAddMore = assignedList.length < maxForRole
                     const isAdding = adding?.matchId === m.id && adding?.role === role
                     return (
-                      <td key={role} className="p-2">
-                        {assigned ? (
-                          <span className="text-foreground">{assigned.referee.name}</span>
-                        ) : isAdding ? (
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault()
-                              handleAdd(m.id, role)
-                            }}
-                            className="flex flex-wrap items-center gap-1"
-                          >
-                            <select
-                              value={refereeId}
-                              onChange={(e) => setRefereeId(e.target.value)}
-                              className="bg-background border border-border px-1.5 py-0.5 text-[10px] focus:border-primary outline-none max-w-[90px]"
-                            >
-                              <option value="">선택</option>
-                              {allReferees.map((r) => (
-                                <option key={r.id} value={r.id}>
-                                  {r.name}
-                                </option>
+                      <td key={`${m.id}-${role}`} className="p-2 align-top">
+                        <div className="flex flex-col gap-1">
+                          {assignedList.length > 0 && (
+                            <div className="flex flex-col gap-0.5 text-foreground">
+                              {assignedList.map((a) => (
+                                <span key={a.id} className="text-[10px] md:text-xs">
+                                  {a.referee.name}
+                                </span>
                               ))}
-                            </select>
-                            <button
-                              type="submit"
-                              disabled={pending}
-                              className="text-[10px] text-primary hover:underline disabled:opacity-50"
+                            </div>
+                          )}
+                          {isAdding ? (
+                            <form
+                              onSubmit={handleAdd}
+                              className="flex flex-wrap items-center gap-1"
                             >
-                              추가
-                            </button>
+                              <input type="hidden" name="matchId" value={m.id} />
+                              <input type="hidden" name="role" value={role} />
+                              <select
+                                name="refereeId"
+                                value={refereeId}
+                                onChange={(e) => setRefereeId(e.target.value)}
+                                className="bg-background border border-border px-1.5 py-0.5 text-[10px] focus:border-primary outline-none max-w-[90px]"
+                              >
+                                <option value="">선택</option>
+                                {allReferees.map((r) => (
+                                  <option key={r.id} value={r.id}>
+                                    {r.name}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                type="submit"
+                                disabled={pending}
+                                className="text-[10px] text-primary hover:underline disabled:opacity-50"
+                              >
+                                추가
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAdding(null)
+                                  setError(null)
+                                }}
+                                className="text-[10px] text-muted-foreground hover:underline"
+                              >
+                                취소
+                              </button>
+                            </form>
+                          ) : canAddMore ? (
                             <button
                               type="button"
-                              onClick={() => {
-                                setAdding(null)
-                                setError(null)
-                              }}
-                              className="text-[10px] text-muted-foreground hover:underline"
+                              onClick={() => setAdding({ matchId: m.id, role })}
+                              className="text-[10px] text-primary hover:underline w-fit"
                             >
-                              취소
+                              {assignedList.length > 0 ? "+ 2번째 배정" : "+ 배정"}
                             </button>
-                          </form>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setAdding({ matchId: m.id, role })}
-                            className="text-[10px] text-primary hover:underline"
-                          >
-                            + 배정
-                          </button>
-                        )}
+                          ) : null}
+                        </div>
                       </td>
                     )
                   })}

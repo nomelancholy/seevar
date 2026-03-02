@@ -179,9 +179,11 @@ export default async function MatchDetailBySlugPage({
 
   const refereesByRole = ROLE_DISPLAY_ORDER.reduce(
     (acc, role) => {
-      acc[role] = match.matchReferees
+      const refs = match.matchReferees
         .filter((mr) => mr.role === role)
         .map((mr) => mr.referee)
+        .sort((a, b) => a.name.localeCompare(b.name, "ko"))
+      acc[role] = refs
       return acc
     },
     {} as Record<string, { id: string; name: string; slug: string; link?: string | null }[]>
