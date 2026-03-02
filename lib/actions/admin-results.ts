@@ -161,7 +161,7 @@ export async function importBulkMatchResultsFromJson(
       matchId = resolved.matchId
     }
     if (!matchId) {
-      return { ok: false, error: `${i + 1}번째: matchId 또는 matchIdentifier(year, leagueSlug, roundNumber, homeTeam, awayTeam)를 입력해 주세요.` }
+      return { ok: false, error: `${i + 1}번째: matchId 또는 matchIdentifier(year, leagueSlug, roundNumber, homeTeam/awayTeam 또는 roundOrder)를 입력해 주세요.` }
     }
 
     const status = row.status && validStatuses.includes(row.status) ? row.status : undefined

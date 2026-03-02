@@ -17,10 +17,16 @@ const JSON_FORMAT = `{
       ]
     },
     {
-      "matchIdentifier": { "year": 2026, "leagueSlug": "kleague1", "roundNumber": 1, "homeTeam": "인천", "awayTeam": "서울" },
+      "matchIdentifier": { "year": 2026, "leagueSlug": "K-league-1", "roundNumber": 1, "homeTeam": "인천", "awayTeam": "서울" },
       "status": "FINISHED",
       "scoreHome": 1,
       "scoreAway": 1
+    },
+    {
+      "matchIdentifier": { "year": 2026, "leagueSlug": "K-league-1", "roundNumber": 14, "roundOrder": 1 },
+      "status": "FINISHED",
+      "scoreHome": 0,
+      "scoreAway": 0
     }
   ]
 }`
@@ -65,7 +71,7 @@ export function AdminBulkResultUpload() {
         JSON 파일으로 경기 결과 일괄 반영
       </h4>
       <p className="text-xs text-muted-foreground mb-3">
-        경기(matchId 또는 matchIdentifier), 상태·스코어, 선택적으로 심판별 옐로/레드 카드(refereeCards)를 넣으면 일괄 반영됩니다. matchIdentifier는 year, leagueSlug, roundNumber에 homeTeam/awayTeam(약칭 예: 인천·서울)을 넣으면 됩니다. roundOrder도 하위 호환됩니다. 카드 정보는 RefereeTeamStat에 자동 반영됩니다.
+        경기(matchId 또는 matchIdentifier), 상태·스코어, 선택적으로 심판별 옐로/레드 카드(refereeCards)를 넣으면 일괄 반영됩니다. matchIdentifier는 (1) year, leagueSlug, roundNumber, homeTeam, awayTeam(약칭 예: 인천·서울) 또는 (2) year, leagueSlug, roundNumber, roundOrder(경기 숫자, 표에서 일자 옆 1·2·3…) 둘 다 사용 가능합니다. 카드 정보는 RefereeTeamStat에 자동 반영됩니다.
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <input

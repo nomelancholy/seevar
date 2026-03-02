@@ -24,7 +24,7 @@ export async function resolveMatchIdFromIdentifier(
     return { ok: false, error: `${itemLabel}: 시즌(연도 ${year})을 찾을 수 없습니다.` }
   }
   const league = await prisma.league.findFirst({
-    where: { seasonId: season.id, slug: leagueSlug },
+    where: { seasonId: season.id, slug: { equals: leagueSlug, mode: "insensitive" } },
     select: { id: true },
   })
   if (!league) {

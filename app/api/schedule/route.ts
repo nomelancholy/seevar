@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
  * 경기 일정 조회 API (외부 크롤러/일렉트론 등에서 호출).
  * 인증: CRAWLER_API_KEY 설정 시 Authorization: Bearer <key> 또는 x-crawler-api-key 헤더 필요.
  * 쿼리: year (선택, 시즌 연도), league 또는 leagueId (선택, 리그 slug. 예: K-league-1, kleague2).
- * 응답 matches[]: homeTeamName/awayTeamName/playedAt/venue 와 함께 크롤러용 별칭 home/away/date/stadium 도 포함.
+ * 응답 matches[]: roundOrder(경기 숫자, 라운드 내 1·2·3…), home/away/date/stadium 등 포함. roundOrder는 심판 배정·경기 결과 JSON의 matchIdentifier로 사용 가능.
  */
 export async function GET(request: NextRequest) {
   const apiKey = process.env.CRAWLER_API_KEY
