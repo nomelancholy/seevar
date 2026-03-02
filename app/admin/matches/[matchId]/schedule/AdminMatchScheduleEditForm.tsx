@@ -19,6 +19,8 @@ type Props = {
   initialTime: string
   initialVenue: string
   initialStatus: MatchStatus
+  initialYoutubeUrl?: string
+  initialInstagramUrl?: string
 }
 
 export function AdminMatchScheduleEditForm({
@@ -27,12 +29,16 @@ export function AdminMatchScheduleEditForm({
   initialTime,
   initialVenue,
   initialStatus,
+  initialYoutubeUrl = "",
+  initialInstagramUrl = "",
 }: Props) {
   const router = useRouter()
   const [date, setDate] = useState(initialDate)
   const [time, setTime] = useState(initialTime)
   const [venue, setVenue] = useState(initialVenue)
   const [status, setStatus] = useState<MatchStatus>(initialStatus)
+  const [youtubeUrl, setYoutubeUrl] = useState(initialYoutubeUrl)
+  const [instagramUrl, setInstagramUrl] = useState(initialInstagramUrl)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -50,6 +56,8 @@ export function AdminMatchScheduleEditForm({
       playedAt,
       venue: venue.trim() || null,
       status,
+      youtubeUrl: youtubeUrl.trim() || null,
+      instagramUrl: instagramUrl.trim() || null,
     })
     setPending(false)
     if (result.ok) {
@@ -103,6 +111,26 @@ export function AdminMatchScheduleEditForm({
             </option>
           ))}
         </select>
+      </label>
+      <label className="block font-mono text-xs">
+        <span className="block text-muted-foreground mb-1">YouTube URL (경기 하이라이트 등)</span>
+        <input
+          type="url"
+          value={youtubeUrl}
+          onChange={(e) => setYoutubeUrl(e.target.value)}
+          placeholder="https://www.youtube.com/watch?v=..."
+          className="w-full bg-background border border-border px-3 py-2 focus:border-primary outline-none"
+        />
+      </label>
+      <label className="block font-mono text-xs">
+        <span className="block text-muted-foreground mb-1">Instagram URL (카드뉴스 등)</span>
+        <input
+          type="url"
+          value={instagramUrl}
+          onChange={(e) => setInstagramUrl(e.target.value)}
+          placeholder="https://www.instagram.com/p/..."
+          className="w-full bg-background border border-border px-3 py-2 focus:border-primary outline-none"
+        />
       </label>
       {error && <p className="text-destructive text-xs font-mono">{error}</p>}
       <div className="flex gap-3">

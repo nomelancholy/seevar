@@ -63,6 +63,8 @@ export default async function AdminMatchScheduleEditPage({ params }: { params: P
           initialTime={timeStr}
           initialVenue={match.venue ?? ""}
           initialStatus={match.status}
+          initialYoutubeUrl={match.youtubeUrl ?? ""}
+          initialInstagramUrl={match.instagramUrl ?? ""}
         />
       </section>
 

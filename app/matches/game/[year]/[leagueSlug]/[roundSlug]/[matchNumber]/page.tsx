@@ -11,6 +11,7 @@ import { MatchMomentCards } from "@/components/matches/MatchMomentCards"
 import { MatchRefereeRatingSectionDynamic } from "@/components/matches/MatchRefereeRatingSectionDynamic"
 import { SeeVarButtonWithModal } from "@/components/matches/SeeVarButtonWithModal"
 import { getMatchDetailPath } from "@/lib/match-url"
+import { getYouTubeEmbedUrl, getInstagramEmbedUrl } from "@/lib/embed-urls"
 
 type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string; matchNumber: string }>
 
@@ -452,6 +453,50 @@ export default async function MatchDetailBySlugPage({
             심판 평가는 경기 종료 후 활성화됩니다.
           </div>
         </div>
+      )}
+
+      {/* MATCH MEDIA ARCHIVE - 경기별 유튜브·인스타 카드 (Round Media와 동일 패턴) */}
+      {(match.youtubeUrl || match.instagramUrl) && (
+        <section className="mt-8 md:mt-12">
+          <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-4">
+            MATCH MEDIA ARCHIVE
+          </h2>
+          <div className="flex flex-col gap-4 md:gap-6">
+            {getYouTubeEmbedUrl(match.youtubeUrl) && (
+              <div className="border border-border bg-card/60 p-3 md:p-4">
+                <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
+                  Match Review · YouTube
+                </p>
+                <div className="relative w-full pt-[56.25%] bg-black border border-border overflow-hidden">
+                  <iframe
+                    src={getYouTubeEmbedUrl(match.youtubeUrl)!}
+                    title="Match review video"
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            )}
+            {getInstagramEmbedUrl(match.instagramUrl) && (
+              <div className="border border-border bg-card/60 p-3 md:p-4">
+                <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
+                  Card News · Instagram
+                </p>
+                <div className="relative w-full pt-[125%] bg-black border border-border overflow-hidden">
+                  <iframe
+                    src={getInstagramEmbedUrl(match.instagramUrl)!}
+                    title="Match card news"
+                    className="absolute inset-0 w-full h-full"
+                    allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
       )}
     </main>
   )

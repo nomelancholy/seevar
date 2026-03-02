@@ -101,3 +101,40 @@ export function hasEmbedLinks(text: string): boolean {
     INSTAGRAM_REGEX.test(text)
   )
 }
+
+/** 단일 YouTube URL → embed URL (라운드/경기 미디어 아카이브용) */
+export function getYouTubeEmbedUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    let id: string | null = null
+    if (u.hostname.includes("youtu.be")) {
+      id = u.pathname.replace("/", "")
+    } else if (u.hostname.includes("youtube.com")) {
+      id = u.searchParams.get("v") || u.pathname.split("/").filter(Boolean).at(-1) || null
+      if (!id && u.pathname.includes("/shorts/")) {
+        id = u.pathname.split("/shorts/")[1]?.split("/")[0] ?? null
+      }
+    }
+    if (!id) return null
+    return `https://www.youtube.com/embed/${id}`
+  } catch {
+    return null
+  }
+}
+
+/** 단일 Instagram URL → embed URL (라운드/경기 미디어 아카이브용) */
+export function getInstagramEmbedUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    const parts = u.pathname.split("/").filter(Boolean)
+    if (parts.length < 2) return null
+    const type = parts[0] // p, reel, tv 등
+    const code = parts[1]
+    if (!code) return null
+    return `https://www.instagram.com/${type}/${code}/embed/`
+  } catch {
+    return null
+  }
+}

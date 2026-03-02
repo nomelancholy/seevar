@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import {
+  resolveMatchIdFromIdentifier,
+  type MatchIdentifier,
+} from "@/lib/resolve-match-identifier"
 import { syncRefereeTeamStatCardsForMatchReferee } from "@/lib/referee-stats-sync"
 import type { MatchStatus } from "@prisma/client"
 
@@ -117,7 +121,7 @@ export async function importBulkMatchResultsFromJson(
   let payload: {
     results?: Array<{
       matchId?: string
-      matchIdentifier?: { year: number; leagueSlug: string; roundNumber: number; roundOrder: number }
+      matchIdentifier?: MatchIdentifier
       status?: MatchStatus
       scoreHome?: number | null
       scoreAway?: number | null
@@ -148,36 +152,16 @@ export async function importBulkMatchResultsFromJson(
     const row = results[i]!
     let matchId: string | null = row.matchId ?? null
     if (!matchId && row.matchIdentifier) {
-      const { year, leagueSlug, roundNumber, roundOrder } = row.matchIdentifier
-      const season = await prisma.season.findUnique({ where: { year }, select: { id: true } })
-      if (!season) {
-        return { ok: false, error: `${i + 1}번째: 시즌(연도 ${year})을 찾을 수 없습니다.` }
-      }
-      const league = await prisma.league.findFirst({
-        where: { seasonId: season.id, slug: leagueSlug },
-        select: { id: true },
-      })
-      if (!league) {
-        return { ok: false, error: `${i + 1}번째: 리그 ${leagueSlug}를 찾을 수 없습니다.` }
-      }
-      const round = await prisma.round.findFirst({
-        where: { leagueId: league.id, number: roundNumber },
-        select: { id: true },
-      })
-      if (!round) {
-        return { ok: false, error: `${i + 1}번째: 라운드 ${roundNumber}를 찾을 수 없습니다.` }
-      }
-      const match = await prisma.match.findFirst({
-        where: { roundId: round.id, roundOrder },
-        select: { id: true },
-      })
-      if (!match) {
-        return { ok: false, error: `${i + 1}번째: 해당 경기(roundOrder ${roundOrder})를 찾을 수 없습니다.` }
-      }
-      matchId = match.id
+      const resolved = await resolveMatchIdFromIdentifier(
+        prisma,
+        row.matchIdentifier as MatchIdentifier,
+        `${i + 1}번째`
+      )
+      if (!resolved.ok) return { ok: false, error: resolved.error }
+      matchId = resolved.matchId
     }
     if (!matchId) {
-      return { ok: false, error: `${i + 1}번째: matchId 또는 matchIdentifier를 입력해 주세요.` }
+      return { ok: false, error: `${i + 1}번째: matchId 또는 matchIdentifier(year, leagueSlug, roundNumber, homeTeam, awayTeam)를 입력해 주세요.` }
     }
 
     const status = row.status && validStatuses.includes(row.status) ? row.status : undefined

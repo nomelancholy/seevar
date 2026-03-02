@@ -6,6 +6,10 @@ import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { SHORT_TO_EMBLEM, DISPLAY_NAME_TO_EMBLEM } from "@/lib/team-short-names"
 import {
+  resolveMatchIdFromIdentifier,
+  type MatchIdentifier,
+} from "@/lib/resolve-match-identifier"
+import {
   syncRefereeStatsOnMatchRefereeCreate,
   syncRefereeStatsOnMatchRefereeDelete,
   syncRefereeStatsOnMatchRefereeUpdate,
@@ -34,6 +38,8 @@ export async function updateMatchSchedule(
     playedAt?: Date | null
     venue?: string | null
     status?: MatchStatus
+    youtubeUrl?: string | null
+    instagramUrl?: string | null
   }
 ): Promise<UpdateMatchScheduleResult> {
   const user = await getCurrentUser()
@@ -50,10 +56,14 @@ export async function updateMatchSchedule(
     playedAt?: Date | null
     venue?: string | null
     status?: MatchStatus
+    youtubeUrl?: string | null
+    instagramUrl?: string | null
   } = {}
   if (data.playedAt !== undefined) updateData.playedAt = data.playedAt
   if (data.venue !== undefined) updateData.venue = data.venue?.trim() || null
   if (data.status !== undefined) updateData.status = data.status
+  if (data.youtubeUrl !== undefined) updateData.youtubeUrl = data.youtubeUrl?.trim() || null
+  if (data.instagramUrl !== undefined) updateData.instagramUrl = data.instagramUrl?.trim() || null
 
   try {
     await prisma.match.update({
@@ -781,7 +791,7 @@ export async function deleteMatchReferee(matchRefereeId: string): Promise<Delete
   }
 }
 
-/** JSON 파일로 심판 배정 일괄 추가. 형식: { "assignments": [ { "matchId": "...", "refereeSlug": "go-hyeongjin", "role": "MAIN" } ] } 또는 matchIdentifier: { "year": 2026, "leagueSlug": "kleague1", "roundNumber": 1, "roundOrder": 1 } */
+/** JSON 파일로 심판 배정 일괄 추가. 형식: { "assignments": [ { "matchId": "...", "refereeSlug": "go-hyeongjin", "role": "MAIN" } ] } 또는 matchIdentifier: { "year": 2026, "leagueSlug": "kleague1", "roundNumber": 1, "homeTeam": "인천", "awayTeam": "서울" } (roundOrder도 하위 호환) */
 export async function importBulkRefereeAssignmentsFromJson(
   jsonString: string
 ): Promise<ImportBulkRefereeAssignmentsResult> {
@@ -792,7 +802,7 @@ export async function importBulkRefereeAssignmentsFromJson(
   let payload: {
     assignments?: Array<{
       matchId?: string
-      matchIdentifier?: { year: number; leagueSlug: string; roundNumber: number; roundOrder: number }
+      matchIdentifier?: MatchIdentifier
       refereeSlug?: string
       refereeId?: string
       role: RefereeRole
@@ -822,36 +832,16 @@ export async function importBulkRefereeAssignmentsFromJson(
     }
     let matchId: string | null = row.matchId ?? null
     if (!matchId && row.matchIdentifier) {
-      const { year, leagueSlug, roundNumber, roundOrder } = row.matchIdentifier
-      const season = await prisma.season.findUnique({ where: { year }, select: { id: true } })
-      if (!season) {
-        return { ok: false, error: `${i + 1}번째: 시즌(연도 ${year})을 찾을 수 없습니다.` }
-      }
-      const league = await prisma.league.findFirst({
-        where: { seasonId: season.id, slug: leagueSlug },
-        select: { id: true },
-      })
-      if (!league) {
-        return { ok: false, error: `${i + 1}번째: 리그 ${leagueSlug}를 찾을 수 없습니다.` }
-      }
-      const round = await prisma.round.findFirst({
-        where: { leagueId: league.id, number: roundNumber },
-        select: { id: true },
-      })
-      if (!round) {
-        return { ok: false, error: `${i + 1}번째: 라운드 ${roundNumber}를 찾을 수 없습니다.` }
-      }
-      const match = await prisma.match.findFirst({
-        where: { roundId: round.id, roundOrder },
-        select: { id: true },
-      })
-      if (!match) {
-        return { ok: false, error: `${i + 1}번째: 해당 경기(roundOrder ${roundOrder})를 찾을 수 없습니다.` }
-      }
-      matchId = match.id
+      const resolved = await resolveMatchIdFromIdentifier(
+        prisma,
+        row.matchIdentifier as MatchIdentifier,
+        `${i + 1}번째`
+      )
+      if (!resolved.ok) return { ok: false, error: resolved.error }
+      matchId = resolved.matchId
     }
     if (!matchId) {
-      return { ok: false, error: `${i + 1}번째: matchId 또는 matchIdentifier를 입력해 주세요.` }
+      return { ok: false, error: `${i + 1}번째: matchId 또는 matchIdentifier(year, leagueSlug, roundNumber, homeTeam, awayTeam)를 입력해 주세요.` }
     }
     const refereeId = row.refereeId ?? (row.refereeSlug ? refereesBySlug.get(row.refereeSlug) : undefined)
     if (!refereeId) {

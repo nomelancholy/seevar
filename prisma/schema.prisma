@@ -197,6 +197,8 @@ model Match {
   venue           String?
   status          MatchStatus @default(SCHEDULED)
   kleagueDataUrl  String?     // 연맹 데이터 포털 링크
+  youtubeUrl      String?     // 경기 리뷰·하이라이트 유튜브
+  instagramUrl    String?     // 경기 카드 뉴스 인스타
 
   // 스코어 및 시간
   scoreHome       Int?        @default(0)
