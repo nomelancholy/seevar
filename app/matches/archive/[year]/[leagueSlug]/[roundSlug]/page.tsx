@@ -29,7 +29,10 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   const hasLeagueSlug = leagueSlug && leagueSlug !== "_"
   let league = hasLeagueSlug
     ? await prisma.league.findFirst({
-        where: { seasonId, slug: leagueSlug } as { seasonId: string; slug: string },
+        where: {
+          seasonId,
+          slug: { equals: leagueSlug, mode: "insensitive" },
+        },
       })
     : null
 
@@ -126,78 +129,80 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     matchLabel: string
   }[] = []
 
-  const getRoundDataCached = unstable_cache(
-    async (roundIdParam: string, seasonIdParam: string) => {
-      const [matchesRes, rawHotMomentsRes, reviewsRes] = await Promise.all([
-        prisma.match.findMany({
-          where: {
-            roundId: roundIdParam,
-            round: { league: { seasonId: seasonIdParam } },
-          },
-          take: 100,
-          orderBy: { playedAt: "desc" },
-          include: {
-            homeTeam: true,
-            awayTeam: true,
-            round: { include: { league: { include: { season: true } } } },
-            matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
-          },
-        }),
-        prisma.moment
-          .findMany({
+  function getRoundDataCached(roundIdParam: string, seasonIdParam: string) {
+    return unstable_cache(
+      async () => {
+        const [matchesRes, rawHotMomentsRes, reviewsRes] = await Promise.all([
+          prisma.match.findMany({
             where: {
+              roundId: roundIdParam,
+              round: { league: { seasonId: seasonIdParam } },
+            },
+            take: 100,
+            orderBy: { playedAt: "desc" },
+            include: {
+              homeTeam: true,
+              awayTeam: true,
+              round: { include: { league: { include: { season: true } } } },
+              matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
+            },
+          }),
+          prisma.moment
+            .findMany({
+              where: {
+                match: {
+                  roundId: roundIdParam,
+                  round: { league: { seasonId: seasonIdParam } },
+                },
+              },
+              take: 10,
+              orderBy: { seeVarCount: "desc" },
+              include: {
+                match: {
+                  include: {
+                    homeTeam: true,
+                    awayTeam: true,
+                    round: { include: { league: true } },
+                  },
+                },
+              },
+            })
+            .catch((e: { code?: string }) => (e?.code === "P2021" ? [] : Promise.reject(e))),
+          prisma.refereeReview.findMany({
+            where: {
+              status: "VISIBLE",
               match: {
                 roundId: roundIdParam,
                 round: { league: { seasonId: seasonIdParam } },
               },
             },
-            take: 10,
-            orderBy: { seeVarCount: "desc" },
             include: {
+              referee: true,
               match: {
                 include: {
                   homeTeam: true,
                   awayTeam: true,
-                  round: { include: { league: true } },
                 },
               },
-            },
-          })
-          .catch((e: { code?: string }) => (e?.code === "P2021" ? [] : Promise.reject(e))),
-        prisma.refereeReview.findMany({
-          where: {
-            status: "VISIBLE",
-            match: {
-              roundId: roundIdParam,
-              round: { league: { seasonId: seasonIdParam } },
-            },
-          },
-          include: {
-            referee: true,
-            match: {
-              include: {
-                homeTeam: true,
-                awayTeam: true,
+              fanTeam: {
+                select: { name: true, slug: true, emblemPath: true },
+              },
+              user: {
+                select: { name: true },
+              },
+              reactions: {
+                select: { type: true },
               },
             },
-            fanTeam: {
-              select: { name: true, slug: true, emblemPath: true },
-            },
-            user: {
-              select: { name: true },
-            },
-            reactions: {
-              select: { type: true },
-            },
-          },
-        }),
-      ])
+          }),
+        ])
 
-      return { matchesRes, rawHotMomentsRes, reviewsRes }
-    },
-    ["archive-round"],
-    { revalidate: 60 },
-  )
+        return { matchesRes, rawHotMomentsRes, reviewsRes }
+      },
+      ["archive-round", roundIdParam, seasonIdParam],
+      { revalidate: 60 },
+    )()
+  }
 
   // 필터: 시즌 → 해당 시즌의 모든 리그 → 해당 리그의 모든 라운드 (경기 일자와 무관하게 시즌 구조 기준으로 노출)
   const [seasonsRes, leaguesRes] = await Promise.all([
@@ -639,21 +644,25 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                   </p>
                 </div>
                 <div className="col-span-1 text-center">
-                  <span
-                    className={
-                      (m.round.league as unknown as { slug: string }).slug === "supercup"
-                        ? "bg-amber-600/90 text-white px-2 py-0.5 text-[9px] font-black italic"
-                        : (m.round.league as unknown as { slug: string }).slug === "kleague1"
-                          ? "bg-primary text-primary-foreground px-2 py-0.5 text-[9px] font-black italic"
-                          : "bg-muted text-primary px-2 py-0.5 text-[9px] font-black italic"
-                    }
-                  >
-                    {(m.round.league as unknown as { slug: string }).slug === "supercup"
-                      ? "SUPER CUP"
-                      : (m.round.league as unknown as { slug: string }).slug === "kleague1"
-                        ? "K1"
-                        : "K2"}
-                  </span>
+                  {(() => {
+                    const slug = (m.round.league as unknown as { slug: string }).slug
+                    const norm = slug?.toLowerCase().replace(/-/g, "") ?? ""
+                    const isK1 = norm === "kleague1"
+                    const isK2 = norm === "kleague2"
+                    return (
+                      <span
+                        className={
+                          slug === "supercup"
+                            ? "bg-amber-600/90 text-white px-2 py-0.5 text-[9px] font-black italic"
+                            : isK1
+                              ? "bg-primary text-primary-foreground px-2 py-0.5 text-[9px] font-black italic"
+                              : "bg-muted text-primary px-2 py-0.5 text-[9px] font-black italic"
+                        }
+                      >
+                        {slug === "supercup" ? "SUPER CUP" : isK1 ? "K1" : isK2 ? "K2" : slug?.toUpperCase() ?? "—"}
+                      </span>
+                    )
+                  })()}
                 </div>
                 <div className="col-span-7 flex flex-col gap-2">
                   <div className="flex items-center justify-center gap-4 md:gap-8">
