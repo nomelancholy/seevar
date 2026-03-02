@@ -5,6 +5,7 @@ import { useState } from "react"
 import { deriveMatchStatus } from "@/lib/utils/match-status"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { TeamMatchHistoryYearFilter } from "./TeamMatchHistoryYearFilter"
+import { TeamMatchHistorySortFilter } from "./TeamMatchHistorySortFilter"
 
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "MAIN",
@@ -52,6 +53,9 @@ type MatchRow = {
   scoreHome: number | null
   scoreAway: number | null
   venue: string | null
+  roundNumber: number
+  roundSlug: string
+  leagueName: string
   homeTeam: { id: string; name: string; emblemPath: string | null }
   awayTeam: { id: string; name: string; emblemPath: string | null }
   matchReferees: { role: string; referee: { id: string; slug: string; name: string } }[]
@@ -70,6 +74,8 @@ type Props = {
   matches: MatchRow[]
   availableYears: number[]
   currentYear: number | null
+  /** "round" = 라운드 순(1라운드부터), "date" = 날짜 순(최신부터) */
+  matchSortOrder?: "round" | "date"
 }
 
 function getRoleCount(roleCounts: Record<string, number> | null, role: string): number {
@@ -95,6 +101,7 @@ export function TeamDetailSection({
   matches,
   availableYears,
   currentYear,
+  matchSortOrder = "round",
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [modalTab, setModalTab] = useState<"ratings" | "assignments" | "cards">("ratings")
@@ -289,7 +296,10 @@ export function TeamDetailSection({
           <h3 className="font-mono text-[10px] md:text-sm font-black tracking-widest text-muted-foreground uppercase">
             {teamName} Match History
           </h3>
-          <TeamMatchHistoryYearFilter availableYears={availableYears} currentYear={currentYear} />
+          <div className="flex flex-wrap items-center gap-3 md:gap-4">
+            <TeamMatchHistoryYearFilter availableYears={availableYears} currentYear={currentYear} />
+            <TeamMatchHistorySortFilter currentSort={matchSortOrder} />
+          </div>
         </div>
         <div className="space-y-4">
           {matches.length === 0 ? (
@@ -303,6 +313,13 @@ export function TeamDetailSection({
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 md:mb-6">
                   <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
                     <div>
+                      {(m.leagueName || m.roundNumber > 0) && (
+                        <div className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                          {[m.leagueName, m.roundNumber > 0 ? `${m.roundNumber}라운드` : null]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </div>
+                      )}
                       <div className="font-mono text-xs md:text-sm text-muted-foreground">{formatDate(m.playedAt)}</div>
                       {m.venue?.trim() && (
                         <div className="font-mono text-[9px] md:text-[10px] text-muted-foreground mt-0.5">

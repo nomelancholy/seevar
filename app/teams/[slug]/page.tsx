@@ -7,7 +7,7 @@ import { TeamDetailSection } from "@/components/teams/TeamDetailSection"
 import { ChevronLeft } from "lucide-react"
 
 type Params = Promise<{ slug: string }>
-type SearchParams = Promise<{ back?: string; year?: string }>
+type SearchParams = Promise<{ back?: string; year?: string; sort?: string }>
 
 function sanitizeBackUrl(back: string | undefined): string {
   if (!back || typeof back !== "string") return "/teams"
@@ -48,13 +48,14 @@ export default async function TeamDetailPage({
   searchParams: SearchParams
 }) {
   const { slug } = await params
-  const { back: backParam, year: yearParam } = await searchParams
+  const { back: backParam, year: yearParam, sort: sortParam } = await searchParams
   const backHref = sanitizeBackUrl(backParam)
   const filterYear =
     yearParam != null && yearParam !== ""
       ? parseInt(yearParam, 10)
       : null
   const isYearValid = filterYear == null || Number.isInteger(filterYear)
+  const sortOrder = sortParam === "date" ? "date" : "round"
 
   const team = await findTeamForSlug(slug)
   if (!team) notFound()
@@ -213,29 +214,35 @@ export default async function TeamDetailPage({
   })
 
   const backPath = `/teams`
-  const allMatches = uniqueMatchList.map((m) => ({
-    id: m.id,
-    matchPath: getMatchDetailPathWithBack(m, backPath),
-    playedAt: m.playedAt,
-    status: m.status,
-    scoreHome: m.scoreHome,
-    scoreAway: m.scoreAway,
-    venue: m.venue ?? null,
-    homeTeam: {
-      id: m.homeTeam.id,
-      name: m.homeTeam.name,
-      emblemPath: m.homeTeam.emblemPath,
-    },
-    awayTeam: {
-      id: m.awayTeam.id,
-      name: m.awayTeam.name,
-      emblemPath: m.awayTeam.emblemPath,
-    },
-    matchReferees: m.matchReferees.map((mr) => ({
-      role: mr.role,
-      referee: { id: mr.referee.id, slug: mr.referee.slug, name: mr.referee.name },
-    })),
-  }))
+  const allMatches = uniqueMatchList.map((m) => {
+    const round = m.round as { number: number; slug: string; league: { name: string; slug: string } }
+    return {
+      id: m.id,
+      matchPath: getMatchDetailPathWithBack(m, backPath),
+      playedAt: m.playedAt,
+      status: m.status,
+      scoreHome: m.scoreHome,
+      scoreAway: m.scoreAway,
+      venue: m.venue ?? null,
+      roundNumber: round?.number ?? 0,
+      roundSlug: round?.slug ?? "",
+      leagueName: round?.league?.name ?? "",
+      homeTeam: {
+        id: m.homeTeam.id,
+        name: m.homeTeam.name,
+        emblemPath: m.homeTeam.emblemPath,
+      },
+      awayTeam: {
+        id: m.awayTeam.id,
+        name: m.awayTeam.name,
+        emblemPath: m.awayTeam.emblemPath,
+      },
+      matchReferees: m.matchReferees.map((mr) => ({
+        role: mr.role,
+        referee: { id: mr.referee.id, slug: mr.referee.slug, name: mr.referee.name },
+      })),
+    }
+  })
 
   const availableYears = [
     ...new Set(
@@ -263,13 +270,22 @@ export default async function TeamDetailPage({
       ? filterYear
       : latestYear
 
-  const matches =
+  const filteredByYear =
     effectiveYear != null
       ? allMatches.filter((m) => {
           const y = m.playedAt != null ? new Date(m.playedAt).getFullYear() : null
           return y === effectiveYear
         })
       : allMatches
+
+  const matches =
+    sortOrder === "date"
+      ? [...filteredByYear].sort((a, b) => {
+          const ta = a.playedAt?.getTime() ?? 0
+          const tb = b.playedAt?.getTime() ?? 0
+          return tb - ta
+        })
+      : [...filteredByYear].sort((a, b) => a.roundNumber - b.roundNumber)
 
   return (
     <main className="py-8 md:py-12">
@@ -314,6 +330,7 @@ export default async function TeamDetailPage({
         matches={matches}
         availableYears={availableYears}
         currentYear={effectiveYear}
+        matchSortOrder={sortOrder}
       />
     </main>
   )
