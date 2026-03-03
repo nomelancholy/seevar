@@ -8,9 +8,28 @@ export const metadata = {
 }
 
 type Params = Promise<{ matchId: string }>
+type SearchParams = Promise<{ year?: string; league?: string; round?: string }>
 
-export default async function AdminResultEditPage({ params }: { params: Params }) {
+function buildResultsListUrl(search: { year?: string; league?: string; round?: string }): string {
+  const p = new URLSearchParams()
+  if (search.year) p.set("year", search.year)
+  if (search.league) p.set("league", search.league)
+  if (search.round) p.set("round", search.round)
+  const q = p.toString()
+  return q ? `/admin/results?${q}` : "/admin/results"
+}
+
+export default async function AdminResultEditPage({
+  params,
+  searchParams,
+}: {
+  params: Params
+  searchParams: SearchParams
+}) {
   const { matchId } = await params
+  const query = await searchParams
+  const returnTo = buildResultsListUrl(query)
+
   const match = await prisma.match.findUnique({
     where: { id: matchId },
     include: {
@@ -36,7 +55,7 @@ export default async function AdminResultEditPage({ params }: { params: Params }
     <main className="max-w-2xl mx-auto pb-12">
       <div className="mb-6">
         <Link
-          href="/admin/results"
+          href={returnTo}
           className="inline-flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground"
         >
           ← 경기 결과 목록
@@ -49,6 +68,7 @@ export default async function AdminResultEditPage({ params }: { params: Params }
       </p>
       <AdminResultEditForm
         matchId={match.id}
+        returnTo={returnTo}
         initialStatus={match.status}
         initialScoreHome={match.scoreHome ?? null}
         initialScoreAway={match.scoreAway ?? null}

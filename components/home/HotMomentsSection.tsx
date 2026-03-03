@@ -56,12 +56,12 @@ export function HotMomentsSection({ hotMoments = [], title = "HOT MOMENTS OF FOC
               <div className="text-[8px] md:text-[10px] text-muted-foreground font-mono mb-1 md:mb-2">
                 {m.league}
               </div>
-              <div className="font-black italic text-xs md:text-sm mb-1 flex items-center gap-1 md:gap-2">
+              <div className="font-black italic text-xs md:text-sm mb-1 flex items-center gap-1 md:gap-2 min-w-0">
                 <EmblemImage src={m.homeEmblem} width={16} height={16} className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
-                <span className="hidden md:inline">{m.homeName}</span>
-                <span className="mx-0.5">vs</span>
+                <span className="truncate">{m.homeName}</span>
+                <span className="mx-0.5 shrink-0">vs</span>
                 <EmblemImage src={m.awayEmblem} width={16} height={16} className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
-                <span className="hidden md:inline">{m.awayName}</span>
+                <span className="truncate">{m.awayName}</span>
               </div>
               <div className="text-primary font-bold font-mono text-[10px] md:text-xs mb-2 md:mb-3">
                 {m.time}

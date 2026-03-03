@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useId, useRef, useState } from "react"
+import Image from "next/image"
 import { ImagePlus, Heart, Loader2, MessageCircle, Pencil, Flag, Trash2, X } from "lucide-react"
 import {
   createComment,
@@ -42,7 +43,12 @@ type HotMomentItem = {
   commentCount: number
 }
 
-type CommentAuthor = { id: string; name: string | null; image?: string | null }
+type CommentAuthor = {
+  id: string
+  name: string | null
+  image?: string | null
+  supportingTeam?: { emblemPath: string | null } | null
+}
 type CommentReaction = { type: string; userId: string }
 type CommentParent = { id: string; author?: { name: string | null } | null }
 type CommentRow = {
@@ -486,8 +492,8 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
       aria-modal="true"
       aria-label="모멘트 댓글"
     >
-      <div className="bg-card border border-border w-full max-w-[700px] h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
-        <div className="p-4 md:p-6 pr-12 border-b border-border shrink-0">
+      <div className="bg-card border border-border w-full max-w-[min(96vw,960px)] h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+        <div className="p-4 md:p-6 pr-6 md:pr-10 border-b border-border shrink-0">
           <div className="flex justify-between items-start gap-4">
             <div className="min-w-0 flex-1">
               <h4 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase">
@@ -507,12 +513,12 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
               <X className="size-6" />
             </button>
           </div>
-          <div className="mt-4 flex flex-wrap justify-end items-center gap-3">
-            <div className="text-right">
-              <span className="font-mono text-[10px] text-primary font-bold block">
+          <div className="mt-4 flex flex-nowrap justify-between items-center gap-3 w-full">
+            <div className="flex items-baseline gap-1.5 min-w-0">
+              <span className="font-mono text-[10px] text-primary font-bold uppercase tracking-wider">
                 CURRENT SEE VAR
               </span>
-              <span className="text-xl font-black italic font-mono text-primary">
+              <span className="text-base sm:text-xl font-black italic font-mono text-primary tabular-nums">
                 {varCount.toLocaleString()}
               </span>
             </div>
@@ -536,14 +542,14 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                   setSeeVarPending(false)
                 }
               }}
-              className={`font-black italic font-mono text-xs px-4 py-2 rounded transition-colors ${
+              className={`font-black italic font-mono text-[10px] sm:text-xs px-3 py-1.5 sm:px-4 sm:py-2 rounded border transition-colors shrink-0 ml-auto ${
                 isSeeVarByMe
-                  ? "bg-primary text-primary-foreground border border-primary shadow-inner cursor-default"
-                  : "border border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                  ? "bg-primary text-primary-foreground border-primary shadow-inner cursor-default"
+                  : "border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
               }`}
               title={isSeeVarByMe ? "이 순간에 공감했습니다" : "이 순간에 공감·추천"}
             >
-              {seeVarPending ? <Loader2 className="size-4 animate-spin inline-block" /> : null}
+              {seeVarPending ? <Loader2 className="size-3.5 sm:size-4 animate-spin inline-block" /> : null}
               SEE VAR
             </button>
           </div>
@@ -573,16 +579,29 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                   className="p-4 md:p-6 hover:bg-white/[0.02] transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
-                      {c.author?.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={c.author.image}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-[10px] text-muted-foreground font-mono">?</span>
+                    <div className="relative shrink-0">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
+                        {c.author?.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={c.author.image}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground font-mono">?</span>
+                        )}
+                      </div>
+                      {c.author?.supportingTeam?.emblemPath && (
+                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                          <Image
+                            src={c.author.supportingTeam.emblemPath}
+                            alt=""
+                            width={20}
+                            height={20}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -875,16 +894,29 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                             return (
                               <div key={r.id} className="space-y-1">
                                 <div className="flex items-start gap-3">
-                                  <div className="shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
-                                    {r.author?.image ? (
-                                      // eslint-disable-next-line @next/next/no-img-element
-                                      <img
-                                        src={r.author.image}
-                                        alt=""
-                                        className="w-full h-full object-cover"
-                                      />
-                                    ) : (
-                                      <span className="text-[10px] text-muted-foreground font-mono">?</span>
+                                  <div className="relative shrink-0">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
+                                      {r.author?.image ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
+                                          src={r.author.image}
+                                          alt=""
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <span className="text-[10px] text-muted-foreground font-mono">?</span>
+                                      )}
+                                    </div>
+                                    {r.author?.supportingTeam?.emblemPath && (
+                                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                                        <Image
+                                          src={r.author.supportingTeam.emblemPath}
+                                          alt=""
+                                          width={20}
+                                          height={20}
+                                          className="w-full h-full object-contain"
+                                        />
+                                      </div>
                                     )}
                                   </div>
                                   <div className="min-w-0 flex-1 flex flex-col gap-0.5">

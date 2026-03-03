@@ -75,7 +75,7 @@ type Props = {
   availableYears: number[]
   currentYear: number | null
   /** "round" = 라운드 순(1라운드부터), "date" = 날짜 순(최신부터) */
-  matchSortOrder?: "round" | "date"
+  matchSortOrder?: "round" | "roundDesc"
 }
 
 function getRoleCount(roleCounts: Record<string, number> | null, role: string): number {

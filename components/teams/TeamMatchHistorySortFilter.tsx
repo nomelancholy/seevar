@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { ChevronDown, Check } from "lucide-react"
 
-type SortOption = "round" | "date"
+type SortOption = "round" | "roundDesc"
 
 type Props = {
   currentSort: SortOption
@@ -12,7 +12,7 @@ type Props = {
 
 const OPTIONS: { value: SortOption; label: string }[] = [
   { value: "round", label: "라운드 순" },
-  { value: "date", label: "날짜 순" },
+  { value: "roundDesc", label: "라운드 역순" },
 ]
 
 export function TeamMatchHistorySortFilter({ currentSort }: Props) {

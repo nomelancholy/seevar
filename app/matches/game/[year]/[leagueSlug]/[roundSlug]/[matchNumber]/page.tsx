@@ -119,7 +119,7 @@ function getCachedMatch(
   return unstable_cache(
     () => resolveMatchBySlug(year, leagueSlug, roundSlug, matchNumber),
     ["match-detail", year, leagueSlug, roundSlug, matchNumber],
-    { revalidate: 60 }
+    { revalidate: 60, tags: ["match-details"] },
   )()
 }
 
@@ -162,19 +162,24 @@ export default async function MatchDetailBySlugPage({
   const isUpcoming = status === "SCHEDULED"
   const isLive = status === "LIVE"
   const isFinished = status === "FINISHED"
+  const tz = "Asia/Seoul"
   const dateStr = match.playedAt
-    ? new Date(match.playedAt).toLocaleDateString("ko-KR", {
+    ? new Intl.DateTimeFormat("en-CA", {
+        timeZone: tz,
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
-      }).replace(/\. /g, "/").replace(".", "")
+      })
+        .format(new Date(match.playedAt))
+        .replace(/-/g, "/")
     : ""
   const timeStr = match.playedAt
-    ? new Date(match.playedAt).toLocaleTimeString("ko-KR", {
+    ? new Intl.DateTimeFormat("ko-KR", {
+        timeZone: tz,
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
-      })
+      }).format(new Date(match.playedAt))
     : ""
 
   const refereesByRole = ROLE_DISPLAY_ORDER.reduce(
@@ -266,8 +271,10 @@ export default async function MatchDetailBySlugPage({
               </span>
             )}
             {dateStr && (
-              <span className="opacity-70 underline">
-                {dateStr} REGULAR SEASON
+              <span className="opacity-90">
+                {dateStr}
+                {timeStr ? ` ${timeStr} KST` : ""}
+                <span className="opacity-70 ml-1">REGULAR SEASON</span>
               </span>
             )}
           </div>
@@ -275,26 +282,26 @@ export default async function MatchDetailBySlugPage({
       </header>
 
       <section className="ledger-surface mb-6 md:mb-8 p-4 md:p-8 relative overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-3 items-center gap-8 md:gap-12">
-          <div className="flex flex-col items-center gap-4 md:gap-6">
+        <div className="grid grid-cols-3 items-start gap-3 sm:gap-6 md:gap-12">
+          <div className="flex flex-col items-center gap-2 md:gap-6 self-start">
             <Link
               href={teamDetailHref(match.homeTeam, matchPath)}
-              className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors"
+              className="w-14 h-14 sm:w-20 sm:h-20 md:w-32 md:h-32 rounded-full border-2 md:border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors shrink-0"
             >
               {match.homeTeam.emblemPath && (
                 <img
                   src={match.homeTeam.emblemPath}
                   alt=""
-                  className="w-14 h-14 md:w-20 md:h-20"
+                  className="w-8 h-8 sm:w-12 sm:h-12 md:w-20 md:h-20"
                 />
               )}
-              <span className="mt-2 text-[8px] md:text-[10px] font-black italic text-center text-foreground leading-tight px-1">
+              <span className="mt-0.5 md:mt-2 text-[7px] sm:text-[8px] md:text-[10px] font-black italic text-center text-foreground leading-tight px-0.5 line-clamp-2">
                 {match.homeTeam.name}
               </span>
             </Link>
           </div>
 
-          <div className="text-center flex flex-col items-center">
+          <div className="text-center flex flex-col items-center min-w-0">
             {isLive && (
               <>
                 <div className="font-mono text-primary text-xs md:text-sm mb-2 uppercase font-bold tracking-widest animate-pulse">
@@ -357,24 +364,44 @@ export default async function MatchDetailBySlugPage({
                 )}
               </>
             ))}
+          </div>
 
+          <div className="flex flex-col items-center gap-2 md:gap-6 self-start">
+            <Link
+              href={teamDetailHref(match.awayTeam, matchPath)}
+              className="w-14 h-14 sm:w-20 sm:h-20 md:w-32 md:h-32 rounded-full border-2 md:border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors shrink-0"
+            >
+              {match.awayTeam.emblemPath && (
+                <img
+                  src={match.awayTeam.emblemPath}
+                  alt=""
+                  className="w-8 h-8 sm:w-12 sm:h-12 md:w-20 md:h-20"
+                />
+              )}
+              <span className="mt-0.5 md:mt-2 text-[7px] sm:text-[8px] md:text-[10px] font-black italic text-center text-foreground leading-tight px-0.5 line-clamp-2">
+                {match.awayTeam.name}
+              </span>
+            </Link>
+          </div>
+
+          <div className="col-span-3 w-full min-w-0">
             <div className="w-full h-px bg-border my-6" />
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-3 md:gap-y-4 gap-x-4 md:gap-x-8 font-mono text-[10px] md:text-xs text-left mb-6 md:mb-8 w-full max-w-xs mx-auto">
+            <div className="grid grid-cols-4 sm:grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-3 sm:gap-x-3 md:gap-x-8 md:gap-y-4 font-mono text-left mb-6 md:mb-8 w-full">
               {ROLE_DISPLAY_ORDER.map((role) => {
                 const refs = refereesByRole[role] ?? []
                 const label = ROLE_LABEL[role] ?? role
                 return (
-                  <div key={role}>
-                    <p className="text-muted-foreground mb-1 uppercase tracking-tighter text-[8px] md:text-[10px]">
+                  <div key={role} className="min-w-0">
+                    <p className="text-muted-foreground mb-0.5 sm:mb-1 uppercase tracking-tighter text-[8px] sm:text-[10px] font-semibold">
                       {label}
                     </p>
                     {refs.length === 0 ? (
-                      <p className="text-muted-foreground">—</p>
+                      <p className="text-muted-foreground text-[10px] sm:text-xs">—</p>
                     ) : (
                       <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
                         {refs.map((ref, idx) => {
-                          const sep = idx > 0 ? <span className="text-muted-foreground">·</span> : null
+                          const sep = idx > 0 ? <span className="text-muted-foreground text-[10px]">·</span> : null
                           const slug = (ref as { slug?: string }).slug
                           const refereeHref = slug
                             ? `/referees/${slug}${matchPath ? `?back=${encodeURIComponent(matchPath)}` : ""}`
@@ -385,18 +412,18 @@ export default async function MatchDetailBySlugPage({
                                 {sep}
                                 <Link
                                   href={refereeHref}
-                                  className="font-bold hover:text-primary transition-colors inline-flex items-center gap-0.5"
+                                  className="font-bold text-[10px] sm:text-xs hover:text-primary transition-colors inline-flex items-center gap-0.5 whitespace-nowrap"
                                 >
                                   {ref.name}
-                                  <ChevronRight className="size-3" />
+                                  <ChevronRight className="size-2.5 sm:size-3 shrink-0" />
                                 </Link>
                               </span>
                             )
                           }
                           return (
-                            <span key={ref.id} className="inline-flex items-center gap-0.5">
+                            <span key={ref.id} className="inline-flex items-center gap-0.5 text-[10px] sm:text-xs font-bold whitespace-nowrap">
                               {sep}
-                              <span className="font-bold">{ref.name}</span>
+                              <span>{ref.name}</span>
                             </span>
                           )
                         })}
@@ -408,7 +435,9 @@ export default async function MatchDetailBySlugPage({
             </div>
 
             {isLive && (
-              <SeeVarButtonWithModal matchId={match.id} variant="live" />
+              <div className="flex justify-center">
+                <SeeVarButtonWithModal matchId={match.id} variant="live" />
+              </div>
             )}
             {isUpcoming && (
               <div className="bg-card border border-border px-6 md:px-8 py-3 md:py-4 font-mono text-[10px] md:text-xs text-muted-foreground italic">
@@ -416,26 +445,10 @@ export default async function MatchDetailBySlugPage({
               </div>
             )}
             {isFinished && (
-              <SeeVarButtonWithModal matchId={match.id} variant="finished" />
+              <div className="flex justify-center">
+                <SeeVarButtonWithModal matchId={match.id} variant="finished" />
+              </div>
             )}
-          </div>
-
-          <div className="flex flex-col items-center gap-4 md:gap-6">
-            <Link
-              href={teamDetailHref(match.awayTeam, matchPath)}
-              className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors"
-            >
-              {match.awayTeam.emblemPath && (
-                <img
-                  src={match.awayTeam.emblemPath}
-                  alt=""
-                  className="w-14 h-14 md:w-20 md:h-20"
-                />
-              )}
-              <span className="mt-2 text-[8px] md:text-[10px] font-black italic text-center text-foreground leading-tight px-1">
-                {match.awayTeam.name}
-              </span>
-            </Link>
           </div>
         </div>
       </section>

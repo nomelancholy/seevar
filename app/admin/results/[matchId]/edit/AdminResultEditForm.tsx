@@ -32,6 +32,7 @@ type MatchRefereeForForm = {
 
 type Props = {
   matchId: string
+  returnTo?: string
   initialStatus: MatchStatus
   initialScoreHome: number | null
   initialScoreAway: number | null
@@ -44,6 +45,7 @@ type Props = {
 
 export function AdminResultEditForm({
   matchId,
+  returnTo = "/admin/results",
   initialStatus,
   initialScoreHome,
   initialScoreAway,
@@ -126,7 +128,7 @@ export function AdminResultEditForm({
     })
     setPending(false)
     if (result.ok) {
-      router.push("/admin/results")
+      router.push(returnTo)
       router.refresh()
     } else {
       setError(result.error)
@@ -307,7 +309,7 @@ export function AdminResultEditForm({
           {pending ? "저장 중..." : "저장"}
         </button>
         <Link
-          href="/admin/results"
+          href={returnTo}
           className="border border-border px-4 py-2 font-mono text-xs uppercase tracking-wider text-muted-foreground hover:bg-muted/50"
         >
           취소

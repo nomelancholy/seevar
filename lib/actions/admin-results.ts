@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -234,6 +234,10 @@ export async function importBulkMatchResultsFromJson(
     }
   }
 
+  revalidateTag("focus-rounds")
+  revalidateTag("archive-rounds")
+  revalidateTag("match-details")
+  revalidatePath("/")
   revalidatePath("/admin")
   revalidatePath("/admin/results")
   revalidatePath("/matches")

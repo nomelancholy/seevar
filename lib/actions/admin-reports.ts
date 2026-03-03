@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
+import { XP_PENALTY_ON_HIDE } from "@/lib/utils/xp"
 import type { ContentStatus } from "@prisma/client"
 
 export type SetContentStatusResult = { ok: true } | { ok: false; error: string }
@@ -25,6 +26,7 @@ export async function setCommentStatus(
       userId: true,
       momentId: true,
       reportCount: true,
+      xpDeductedOnHide: true,
       moment: {
         select: {
           id: true,
@@ -50,10 +52,37 @@ export async function setCommentStatus(
   })
   if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
 
-  const data: { status: ContentStatus; filterReason?: string | null } = { status }
+  const data: {
+    status: ContentStatus
+    filterReason?: string | null
+    xpDeductedOnHide?: number | null
+  } = { status }
   if (status === "HIDDEN" && filterReason !== undefined) data.filterReason = filterReason?.trim() || null
 
   try {
+    if (status === "HIDDEN" && comment.userId && comment.xpDeductedOnHide == null) {
+      const user = await prisma.user.findUnique({
+        where: { id: comment.userId },
+        select: { xp: true },
+      })
+      if (user) {
+        const deduct = Math.min(XP_PENALTY_ON_HIDE, Math.max(0, user.xp))
+        if (deduct > 0) {
+          await prisma.user.update({
+            where: { id: comment.userId },
+            data: { xp: { decrement: deduct } },
+          })
+          data.xpDeductedOnHide = deduct
+        }
+      }
+    } else if (status === "VISIBLE" && (comment.xpDeductedOnHide ?? 0) > 0 && comment.userId) {
+      await prisma.user.update({
+        where: { id: comment.userId },
+        data: { xp: { increment: comment.xpDeductedOnHide! } },
+      })
+      data.xpDeductedOnHide = null
+    }
+
     await prisma.comment.update({
       where: { id: commentId },
       data,
@@ -94,6 +123,7 @@ export async function setCommentStatus(
     revalidatePath("/admin")
     revalidatePath("/admin/reports")
     revalidatePath("/")
+    revalidatePath("/my")
     return { ok: true }
   } catch (e) {
     console.error("setCommentStatus:", e)
@@ -112,14 +142,41 @@ export async function setReviewStatus(
 
   const review = await prisma.refereeReview.findUnique({
     where: { id: reviewId },
-    select: { id: true },
+    select: { id: true, userId: true, xpDeductedOnHide: true },
   })
   if (!review) return { ok: false, error: "평가를 찾을 수 없습니다." }
 
-  const data: { status: ContentStatus; filterReason?: string | null } = { status }
+  const data: {
+    status: ContentStatus
+    filterReason?: string | null
+    xpDeductedOnHide?: number | null
+  } = { status }
   if (status === "HIDDEN" && filterReason !== undefined) data.filterReason = filterReason?.trim() || null
 
   try {
+    if (status === "HIDDEN" && review.userId && review.xpDeductedOnHide == null) {
+      const user = await prisma.user.findUnique({
+        where: { id: review.userId },
+        select: { xp: true },
+      })
+      if (user) {
+        const deduct = Math.min(XP_PENALTY_ON_HIDE, Math.max(0, user.xp))
+        if (deduct > 0) {
+          await prisma.user.update({
+            where: { id: review.userId },
+            data: { xp: { decrement: deduct } },
+          })
+          data.xpDeductedOnHide = deduct
+        }
+      }
+    } else if (status === "VISIBLE" && (review.xpDeductedOnHide ?? 0) > 0 && review.userId) {
+      await prisma.user.update({
+        where: { id: review.userId },
+        data: { xp: { increment: review.xpDeductedOnHide! } },
+      })
+      data.xpDeductedOnHide = null
+    }
+
     await prisma.refereeReview.update({
       where: { id: reviewId },
       data,
@@ -128,6 +185,7 @@ export async function setReviewStatus(
     revalidatePath("/admin/reports")
     revalidatePath("/referees")
     revalidatePath("/matches")
+    revalidatePath("/my")
     return { ok: true }
   } catch (e) {
     console.error("setReviewStatus:", e)

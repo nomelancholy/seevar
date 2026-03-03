@@ -55,7 +55,7 @@ export default async function TeamDetailPage({
       ? parseInt(yearParam, 10)
       : null
   const isYearValid = filterYear == null || Number.isInteger(filterYear)
-  const sortOrder = sortParam === "date" ? "date" : "round"
+  const sortOrder = sortParam === "roundDesc" ? "roundDesc" : "round"
 
   const team = await findTeamForSlug(slug)
   if (!team) notFound()
@@ -279,12 +279,8 @@ export default async function TeamDetailPage({
       : allMatches
 
   const matches =
-    sortOrder === "date"
-      ? [...filteredByYear].sort((a, b) => {
-          const ta = a.playedAt?.getTime() ?? 0
-          const tb = b.playedAt?.getTime() ?? 0
-          return tb - ta
-        })
+    sortOrder === "roundDesc"
+      ? [...filteredByYear].sort((a, b) => b.roundNumber - a.roundNumber)
       : [...filteredByYear].sort((a, b) => a.roundNumber - b.roundNumber)
 
   return (

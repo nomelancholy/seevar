@@ -20,7 +20,7 @@ type RoundWithMatches = Awaited<
             awayTeam: true
             round: { include: { league: { include: { season: true } } } }
           }
-          orderBy: { playedAt: "asc" }
+          orderBy: [{ playedAt: "asc" }, { roundOrder: "asc" }]
         }
       }
     }>
@@ -80,7 +80,7 @@ const getFocusRoundsCached = unstable_cache(
       },
     }),
   ["home-focus-rounds"],
-  { revalidate: 60 },
+  { revalidate: 60, tags: ["focus-rounds"] },
 )
 
 export default async function HomePage() {
@@ -110,6 +110,8 @@ export default async function HomePage() {
     playedAt: Date | null
     venue: string | null
     roundOrder: number
+    scoreHome: number | null
+    scoreAway: number | null
     round: { slug: string; league: { slug: string; season: { year: number } } }
     homeTeam: { slug: string | null; emblemPath: string | null }
     awayTeam: { slug: string | null; emblemPath: string | null }
@@ -134,6 +136,8 @@ export default async function HomePage() {
       awayName: shortNameFromSlug(m.awayTeam.slug),
       homeEmblem: m.homeTeam.emblemPath ?? "",
       awayEmblem: m.awayTeam.emblemPath ?? "",
+      scoreHome: m.scoreHome ?? null,
+      scoreAway: m.scoreAway ?? null,
     }
   }
 

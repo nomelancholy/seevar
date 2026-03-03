@@ -15,6 +15,8 @@ export type FocusMatchItem = {
   awayName: string
   homeEmblem: string
   awayEmblem: string
+  scoreHome: number | null
+  scoreAway: number | null
 }
 
 function LeagueBlock({
@@ -75,7 +77,13 @@ function LeagueBlock({
               </div>
               <div className="flex items-center gap-3 md:gap-4 w-full justify-between">
                 <EmblemImage src={m.homeEmblem} width={32} height={32} className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
-                <span className="text-muted-foreground text-[10px]">vs</span>
+                {m.scoreHome != null && m.scoreAway != null ? (
+                  <span className="text-xs md:text-sm font-black tabular-nums">
+                    {m.scoreHome} : {m.scoreAway}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground text-[10px]">vs</span>
+                )}
                 <EmblemImage src={m.awayEmblem} width={32} height={32} className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
               </div>
               <div className="text-[10px] font-mono text-center">

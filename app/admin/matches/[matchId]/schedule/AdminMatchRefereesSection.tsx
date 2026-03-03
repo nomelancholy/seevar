@@ -16,7 +16,7 @@ const ROLE_LABEL: Record<RefereeRole, string> = {
   WAITING: "대기심",
 }
 
-const ROLES: RefereeRole[] = ["MAIN", "ASSISTANT", "VAR", "WAITING"]
+const ROLES: RefereeRole[] = ["MAIN", "ASSISTANT", "WAITING", "VAR"]
 
 /** 역할 순서 → 같은 역할 내 이름 오름차순으로 정렬 (부심·VAR 2명 순서 고정) */
 function sortByRoleThenName(matchReferees: MatchRefereeItem[]): MatchRefereeItem[] {

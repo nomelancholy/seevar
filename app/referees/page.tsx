@@ -12,6 +12,10 @@ export default async function RefereesPage() {
     take: 200,
     include: {
       stats: true,
+      reviews: {
+        where: { status: "VISIBLE" },
+        select: { rating: true },
+      },
       _count: { select: { matchReferees: true } },
       matchReferees: {
         select: {
@@ -25,10 +29,15 @@ export default async function RefereesPage() {
   })
 
   const list = referees.map((r) => {
+    const reviews = r.reviews as Array<{ rating: number }>
+    const totalVotes = reviews.length
+    const averageRatingFromReviews =
+      totalVotes > 0 ? reviews.reduce((sum, rev) => sum + rev.rating, 0) / totalVotes : null
     const totalMatches = r.stats.reduce((sum: number, s: { matchCount: number }) => sum + s.matchCount, 0)
     const weightedSum = r.stats.reduce((sum: number, s: { avgRating: number; matchCount: number }) => sum + s.avgRating * s.matchCount, 0)
     const averageRating =
-      totalMatches > 0 ? weightedSum / totalMatches : null
+      averageRatingFromReviews ??
+      (totalMatches > 0 ? weightedSum / totalMatches : null)
     const totalYellowCards = r.matchReferees.reduce(
       (sum, mr) => sum + mr.homeYellowCards + mr.awayYellowCards,
       0

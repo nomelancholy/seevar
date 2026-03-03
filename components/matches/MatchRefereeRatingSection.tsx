@@ -740,11 +740,6 @@ export function MatchRefereeRatingSection({
                               <span className="text-[10px] md:text-xs font-bold text-muted-foreground truncate">
                                 {rev.user.name ?? "Anonymous"}
                               </span>
-                              {rev.fanTeam && (
-                                <span className="text-[8px] font-mono text-muted-foreground truncate">
-                                  {rev.fanTeam.name}
-                                </span>
-                              )}
                             </div>
                           </div>
                           {rev.status !== "HIDDEN" && (
@@ -838,19 +833,16 @@ export function MatchRefereeRatingSection({
                                         </div>
                                       )}
                                     </div>
-                                    <div className="min-w-0 flex-1">
-                                      <span className="font-bold text-foreground/90">
-                                        {rp.user.name ?? "Anonymous"}
-                                      </span>
-                                      {rp.user.supportingTeam && (
-                                        <span className="text-[8px] font-mono text-muted-foreground ml-1">
-                                          {rp.user.supportingTeam.name}
+                                    <div className="min-w-0 flex-1 flex items-start justify-between gap-2">
+                                      <div className="min-w-0">
+                                        <span className="font-bold text-foreground/90">
+                                          {rp.user.name ?? "Anonymous"}
                                         </span>
-                                      )}
-                                      <span className="mx-1.5">·</span>
-                                      <span>{rp.content}</span>
+                                        <span className="mx-1.5">·</span>
+                                        <span>{rp.content}</span>
+                                      </div>
                                       {currentUserId && (
-                                        <div className="mt-1.5 flex items-center gap-1">
+                                        <div className="shrink-0 flex items-center gap-1">
                                           <button
                                             type="button"
                                             onClick={() => handleToggleReplyLike(rp.id)}

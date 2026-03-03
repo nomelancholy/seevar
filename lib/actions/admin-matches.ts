@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -846,6 +846,10 @@ export async function createMatchReferee(
       data: { matchId, refereeId, role },
     })
     await syncRefereeStatsOnMatchRefereeCreate(matchId, refereeId, role)
+    revalidateTag("focus-rounds")
+    revalidateTag("archive-rounds")
+    revalidateTag("match-details")
+    revalidatePath("/")
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
     revalidatePath("/admin/referee-assignments")
@@ -901,6 +905,10 @@ export async function updateMatchReferee(
       data.refereeId,
       data.role
     )
+    revalidateTag("focus-rounds")
+    revalidateTag("archive-rounds")
+    revalidateTag("match-details")
+    revalidatePath("/")
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
     revalidatePath("/admin/referee-assignments")
@@ -928,6 +936,10 @@ export async function deleteMatchReferee(matchRefereeId: string): Promise<Delete
   try {
     await syncRefereeStatsOnMatchRefereeDelete(mr.matchId, mr.refereeId, mr.role)
     await prisma.matchReferee.delete({ where: { id: matchRefereeId } })
+    revalidateTag("focus-rounds")
+    revalidateTag("archive-rounds")
+    revalidateTag("match-details")
+    revalidatePath("/")
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
     revalidatePath("/admin/referee-assignments")
@@ -1017,6 +1029,10 @@ export async function importBulkRefereeAssignmentsFromJson(
     }
   }
 
+  revalidateTag("focus-rounds")
+  revalidateTag("archive-rounds")
+  revalidateTag("match-details")
+  revalidatePath("/")
   revalidatePath("/admin")
   revalidatePath("/admin/matches")
   revalidatePath("/admin/referee-assignments")

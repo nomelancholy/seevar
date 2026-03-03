@@ -2,7 +2,7 @@ import type { User } from "@prisma/client"
 import { RedirectToOnboardingIfNeeded } from "@/components/auth/RedirectToOnboardingIfNeeded"
 import { SiteNav } from "./SiteNav"
 
-type LayoutUser = Pick<User, "id" | "name" | "email" | "image"> & {
+type LayoutUser = Pick<User, "id" | "name" | "email" | "image" | "xp"> & {
   supportingTeam: { id: string; name: string; emblemPath: string | null } | null
 }
 

@@ -13,7 +13,7 @@ const ROLE_LABEL: Record<RefereeRole, string> = {
   WAITING: "대기심",
 }
 
-const ROLES: RefereeRole[] = ["MAIN", "ASSISTANT", "VAR", "WAITING"]
+const ROLES: RefereeRole[] = ["MAIN", "ASSISTANT", "WAITING", "VAR"]
 
 /** 역할별 최대 배정 인원 (부심·VAR 2명, 주심·대기심 1명) */
 const MAX_PER_ROLE: Record<RefereeRole, number> = {

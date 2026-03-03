@@ -6,6 +6,11 @@ import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import type { ContentStatus } from "@prisma/client"
 import { checkProfanity } from "@/lib/filters/profanity"
+import {
+  XP_REVIEW_CREATE,
+  XP_REVIEW_REPLY_CREATE,
+  XP_CONTINUITY_BONUS,
+} from "@/lib/utils/xp"
 
 export type CreateRefereeReviewResult =
   | { ok: true; reviewId: string }
@@ -28,7 +33,7 @@ export async function createRefereeReview(
 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
-    select: { id: true, status: true },
+    select: { id: true, status: true, roundId: true },
   })
   if (!match) return { ok: false, error: "경기를 찾을 수 없습니다." }
   if (match.status !== "FINISHED") {
@@ -44,31 +49,59 @@ export async function createRefereeReview(
 
   const commentTrimmed = comment?.trim().slice(0, 100) ?? null
 
+  const existingReview = await prisma.refereeReview.findUnique({
+    where: {
+      matchId_refereeId_userId: { matchId, refereeId, userId: user.id },
+    },
+    select: { id: true },
+  })
+
   try {
-    const review = await prisma.refereeReview.upsert({
-      where: {
-        matchId_refereeId_userId: { matchId, refereeId, userId: user.id },
-      },
-      update: {
-        rating: r,
-        comment: commentTrimmed,
-        role,
-        fanTeamId: user.supportingTeamId ?? undefined,
-      },
-      create: {
-        matchId,
-        refereeId,
-        userId: user.id,
-        fanTeamId: user.supportingTeamId ?? undefined,
-        rating: r,
-        comment: commentTrimmed,
-        role,
-      },
-    })
+    const review = existingReview
+      ? await prisma.refereeReview.update({
+          where: { id: existingReview.id },
+          data: {
+            rating: r,
+            comment: commentTrimmed,
+            role,
+            fanTeamId: user.supportingTeamId ?? undefined,
+          },
+        })
+      : await prisma.refereeReview.create({
+          data: {
+            matchId,
+            refereeId,
+            userId: user.id,
+            fanTeamId: user.supportingTeamId ?? undefined,
+            rating: r,
+            comment: commentTrimmed,
+            role,
+          },
+        })
 
     const fanTeamId = review.fanTeamId ?? user.supportingTeamId ?? null
     if (fanTeamId) {
       await syncRefereeTeamStatForRefereeAndTeam(refereeId, fanTeamId)
+    }
+
+    if (!existingReview) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { xp: { increment: XP_REVIEW_CREATE } },
+      })
+      // 3경기 연속 평가 보너스: 같은 라운드에서 평가한 경기 수가 3개가 되면 +20 XP
+      const reviewsInRound = await prisma.refereeReview.count({
+        where: {
+          userId: user.id,
+          match: { roundId: match.roundId },
+        },
+      })
+      if (reviewsInRound === 3) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { xp: { increment: XP_CONTINUITY_BONUS } },
+        })
+      }
     }
 
     revalidatePath("/matches")
@@ -237,6 +270,10 @@ export async function createRefereeReviewReply(
         userId: user.id,
         content: parsed.data,
       },
+    })
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { xp: { increment: XP_REVIEW_REPLY_CREATE } },
     })
     revalidatePath("/matches")
     revalidatePath("/referees")

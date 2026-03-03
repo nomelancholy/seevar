@@ -9,8 +9,8 @@ import { Upload } from "lucide-react"
 const ROLE_GUIDE = [
   { role: "MAIN", label: "주심", max: 1 },
   { role: "ASSISTANT", label: "부심", max: 2 },
-  { role: "VAR", label: "VAR", max: 2 },
   { role: "WAITING", label: "대기심", max: 1 },
+  { role: "VAR", label: "VAR", max: 2 },
 ]
 
 const JSON_FORMAT = `{
@@ -107,8 +107,8 @@ export function AdminBulkRefereeAssignmentUpload() {
             <ul className="font-mono text-[10px] text-muted-foreground list-disc list-inside space-y-0.5">
               <li><strong>MAIN</strong> — 주심 (1명)</li>
               <li><strong>ASSISTANT</strong> — 부심 (최대 2명)</li>
-              <li><strong>VAR</strong> — VAR (최대 2명)</li>
               <li><strong>WAITING</strong> — 대기심 (1명)</li>
+              <li><strong>VAR</strong> — VAR (최대 2명)</li>
             </ul>
           </div>
           <pre className="p-2 bg-muted/50 border border-border text-[10px] font-mono overflow-x-auto whitespace-pre-wrap break-all">

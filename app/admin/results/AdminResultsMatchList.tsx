@@ -65,7 +65,7 @@ export function AdminResultsMatchList({
               </div>
               <div className="col-span-2 text-right">
                 <Link
-                  href={`/admin/results/${m.id}/edit`}
+                  href={`/admin/results/${m.id}/edit?year=${seasonYear}&league=${encodeURIComponent(leagueSlug)}&round=${encodeURIComponent(roundSlug)}`}
                   className="text-[10px] uppercase tracking-wider text-primary hover:underline"
                 >
                   결과 수정

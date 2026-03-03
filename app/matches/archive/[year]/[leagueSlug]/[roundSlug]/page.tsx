@@ -139,7 +139,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               round: { league: { seasonId: seasonIdParam } },
             },
             take: 100,
-            orderBy: { playedAt: "desc" },
+            orderBy: { playedAt: "asc" },
             include: {
               homeTeam: true,
               awayTeam: true,
@@ -200,7 +200,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         return { matchesRes, rawHotMomentsRes, reviewsRes }
       },
       ["archive-round", roundIdParam, seasonIdParam],
-      { revalidate: 60 },
+      { revalidate: 60, tags: ["archive-rounds"] },
     )()
   }
 
@@ -368,21 +368,26 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   }
   })
 
+  const tz = "Asia/Seoul"
   const formatDate = (d: Date | null) =>
     d
-      ? new Date(d).toLocaleDateString("ko-KR", {
+      ? new Intl.DateTimeFormat("en-CA", {
+          timeZone: tz,
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
-        }).replace(/\. /g, "/").replace(".", "")
+        })
+          .format(new Date(d))
+          .replace(/-/g, "/")
       : "—"
   const formatTime = (d: Date | null) =>
     d
-      ? new Date(d).toLocaleTimeString("ko-KR", {
+      ? new Intl.DateTimeFormat("ko-KR", {
+          timeZone: tz,
           hour: "2-digit",
           minute: "2-digit",
           hour12: false,
-        })
+        }).format(new Date(d))
       : "—"
 
   const getYouTubeEmbedUrl = (url: string | null | undefined) => {
@@ -619,7 +624,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
       )}
 
       <div className="ledger-surface overflow-hidden">
-        <div className="grid grid-cols-12 bg-card/50 p-4 border-b border-border font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+        <div className="hidden md:grid grid-cols-12 bg-card/50 p-4 border-b border-border font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
           <div className="col-span-2">Date / Time</div>
           <div className="col-span-1 text-center">League</div>
           <div className="col-span-7 text-center">Matchup</div>
@@ -635,65 +640,66 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               <Link
                 key={m.id}
                 href={getMatchDetailPathWithBack(m as unknown as MatchForPath, `/matches/archive/${yearStr}/${leagueSlug}/${roundSlug}`)}
-                className="grid grid-cols-12 p-4 md:p-6 items-center match-row group"
+                className="block p-4 md:p-6 match-row group md:grid md:grid-cols-12 md:items-center"
               >
-                <div className="col-span-2">
-                  <p className="font-mono text-xs font-bold">{formatDate(m.playedAt)}</p>
-                  <p className="font-mono text-[10px] text-muted-foreground">
-                    {formatTime(m.playedAt)} KST
-                  </p>
-                </div>
-                <div className="col-span-1 text-center">
-                  {(() => {
-                    const slug = (m.round.league as unknown as { slug: string }).slug
-                    const norm = slug?.toLowerCase().replace(/-/g, "") ?? ""
-                    const isK1 = norm === "kleague1"
-                    const isK2 = norm === "kleague2"
-                    return (
-                      <span
-                        className={
-                          slug === "supercup"
-                            ? "bg-amber-600/90 text-white px-2 py-0.5 text-[9px] font-black italic"
-                            : isK1
-                              ? "bg-primary text-primary-foreground px-2 py-0.5 text-[9px] font-black italic"
-                              : "bg-muted text-primary px-2 py-0.5 text-[9px] font-black italic"
-                        }
-                      >
-                        {slug === "supercup" ? "SUPER CUP" : isK1 ? "K1" : isK2 ? "K2" : slug?.toUpperCase() ?? "—"}
-                      </span>
-                    )
-                  })()}
-                </div>
-                <div className="col-span-7 flex flex-col gap-2">
-                  <div className="flex items-center justify-center gap-4 md:gap-8">
-                    <div className="flex items-center gap-2 md:gap-3 flex-1 justify-end">
-                      <span className="font-black italic text-sm md:text-lg uppercase truncate">
+                {/* 모바일: 카드형 세로 배치 */}
+                <div className="flex flex-col gap-3 md:hidden">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="font-mono text-sm font-bold">{formatDate(m.playedAt)}</p>
+                      <p className="font-mono text-xs text-muted-foreground">
+                        {formatTime(m.playedAt)} KST
+                      </p>
+                    </div>
+                    {(() => {
+                      const slug = (m.round.league as unknown as { slug: string }).slug
+                      const norm = slug?.toLowerCase().replace(/-/g, "") ?? ""
+                      const isK1 = norm === "kleague1"
+                      const isK2 = norm === "kleague2"
+                      return (
+                        <span
+                          className={
+                            slug === "supercup"
+                              ? "bg-amber-600/90 text-white px-2 py-1 text-[10px] font-black italic shrink-0"
+                              : isK1
+                                ? "bg-primary text-primary-foreground px-2 py-1 text-[10px] font-black italic shrink-0"
+                                : "bg-muted text-primary px-2 py-1 text-[10px] font-black italic shrink-0"
+                          }
+                        >
+                          {slug === "supercup" ? "SUPER CUP" : isK1 ? "K1" : isK2 ? "K2" : slug?.toUpperCase() ?? "—"}
+                        </span>
+                      )
+                    })()}
+                  </div>
+                  <div className="flex items-center justify-between gap-3 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+                      <span className="font-black italic text-sm uppercase truncate text-right">
                         {m.homeTeam.name}
                       </span>
                       {(m.homeTeam as unknown as { emblemPath: string | null }).emblemPath && (
                         <img
                           src={(m.homeTeam as unknown as { emblemPath: string | null }).emblemPath!}
                           alt=""
-                          className="w-6 h-6 md:w-8 md:h-8 shrink-0"
+                          className="w-8 h-8 shrink-0"
                         />
                       )}
                     </div>
-                    <div className="flex flex-col items-center shrink-0">
+                    <div className="flex flex-col items-center shrink-0 px-1">
                       {(() => {
                         const status = deriveMatchStatus(m.playedAt, { storedStatus: m.status })
                         return status === "LIVE" && m.scoreHome != null && m.scoreAway != null ? (
                           <>
-                            <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                            <span className="text-lg font-black italic tracking-tighter">
                               {m.scoreHome} : {m.scoreAway}
                             </span>
-                            <span className="font-mono text-[8px] text-primary font-bold">LIVE</span>
+                            <span className="font-mono text-[9px] text-primary font-bold">LIVE</span>
                           </>
                         ) : status === "FINISHED" && m.scoreHome != null && m.scoreAway != null ? (
                           <>
-                            <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                            <span className="text-lg font-black italic tracking-tighter">
                               {m.scoreHome} : {m.scoreAway}
                             </span>
-                            <span className="font-mono text-[8px] text-muted-foreground font-bold uppercase">
+                            <span className="font-mono text-[9px] text-muted-foreground font-bold uppercase">
                               Finished
                             </span>
                           </>
@@ -702,40 +708,142 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                         )
                       })()}
                     </div>
-                    <div className="flex items-center gap-2 md:gap-3 flex-1 justify-start">
+                    <div className="flex items-center gap-2 min-w-0 flex-1 justify-start">
                       {(m.awayTeam as unknown as { emblemPath: string | null }).emblemPath && (
                         <img
                           src={(m.awayTeam as unknown as { emblemPath: string | null }).emblemPath!}
                           alt=""
-                          className="w-6 h-6 md:w-8 md:h-8 shrink-0"
+                          className="w-8 h-8 shrink-0"
                         />
                       )}
-                      <span className="font-black italic text-sm md:text-lg uppercase truncate">
+                      <span className="font-black italic text-sm uppercase truncate text-left">
                         {m.awayTeam.name}
                       </span>
                     </div>
                   </div>
                   {m.venue?.trim() && (
-                    <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground text-center">
+                    <p className="font-mono text-xs text-muted-foreground">
                       {m.venue.trim()}
                     </p>
                   )}
                   {"matchReferees" in m && Array.isArray(m.matchReferees) && m.matchReferees.length > 0 && (
-                    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-mono text-[9px] md:text-[10px] text-muted-foreground">
+                    <div className="flex flex-wrap gap-x-2 gap-y-1 font-mono text-[10px] text-muted-foreground">
                       {m.matchReferees.map((mr: { role: string; referee: { name: string } }) => (
                         <span key={`${mr.role}-${mr.referee.name}`}>
                           <span className="uppercase font-bold text-foreground/80">{ROLE_LABEL[mr.role] ?? mr.role}</span>
-                          <span className="mx-1">·</span>
+                          <span className="mx-0.5">·</span>
                           <span>{mr.referee.name}</span>
                         </span>
                       ))}
                     </div>
                   )}
-                </div>
-                <div className="col-span-2 text-right">
-                  <span className="border border-border px-4 py-2 text-[10px] font-bold font-mono group-hover:bg-foreground group-hover:text-background transition-all inline-block">
+                  <span className="self-end border border-border px-4 py-2.5 text-[10px] font-bold font-mono group-hover:bg-foreground group-hover:text-background transition-all">
                     INSIDE GAME
                   </span>
+                </div>
+
+                {/* 데스크톱: 기존 12컬럼 그리드 */}
+                <div className="hidden md:contents">
+                  <div className="col-span-2">
+                    <p className="font-mono text-xs font-bold">{formatDate(m.playedAt)}</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">
+                      {formatTime(m.playedAt)} KST
+                    </p>
+                  </div>
+                  <div className="col-span-1 text-center">
+                    {(() => {
+                      const slug = (m.round.league as unknown as { slug: string }).slug
+                      const norm = slug?.toLowerCase().replace(/-/g, "") ?? ""
+                      const isK1 = norm === "kleague1"
+                      const isK2 = norm === "kleague2"
+                      return (
+                        <span
+                          className={
+                            slug === "supercup"
+                              ? "bg-amber-600/90 text-white px-2 py-0.5 text-[9px] font-black italic"
+                              : isK1
+                                ? "bg-primary text-primary-foreground px-2 py-0.5 text-[9px] font-black italic"
+                                : "bg-muted text-primary px-2 py-0.5 text-[9px] font-black italic"
+                          }
+                        >
+                          {slug === "supercup" ? "SUPER CUP" : isK1 ? "K1" : isK2 ? "K2" : slug?.toUpperCase() ?? "—"}
+                        </span>
+                      )
+                    })()}
+                  </div>
+                  <div className="col-span-7 flex flex-col gap-2">
+                    <div className="flex items-center justify-center gap-4 md:gap-8">
+                      <div className="flex items-center gap-2 md:gap-3 flex-1 justify-end">
+                        <span className="font-black italic text-sm md:text-lg uppercase truncate">
+                          {m.homeTeam.name}
+                        </span>
+                        {(m.homeTeam as unknown as { emblemPath: string | null }).emblemPath && (
+                          <img
+                            src={(m.homeTeam as unknown as { emblemPath: string | null }).emblemPath!}
+                            alt=""
+                            className="w-6 h-6 md:w-8 md:h-8 shrink-0"
+                          />
+                        )}
+                      </div>
+                      <div className="flex flex-col items-center shrink-0">
+                        {(() => {
+                          const status = deriveMatchStatus(m.playedAt, { storedStatus: m.status })
+                          return status === "LIVE" && m.scoreHome != null && m.scoreAway != null ? (
+                            <>
+                              <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                                {m.scoreHome} : {m.scoreAway}
+                              </span>
+                              <span className="font-mono text-[8px] text-primary font-bold">LIVE</span>
+                            </>
+                          ) : status === "FINISHED" && m.scoreHome != null && m.scoreAway != null ? (
+                            <>
+                              <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                                {m.scoreHome} : {m.scoreAway}
+                              </span>
+                              <span className="font-mono text-[8px] text-muted-foreground font-bold uppercase">
+                                Finished
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">VS</span>
+                          )
+                        })()}
+                      </div>
+                      <div className="flex items-center gap-2 md:gap-3 flex-1 justify-start">
+                        {(m.awayTeam as unknown as { emblemPath: string | null }).emblemPath && (
+                          <img
+                            src={(m.awayTeam as unknown as { emblemPath: string | null }).emblemPath!}
+                            alt=""
+                            className="w-6 h-6 md:w-8 md:h-8 shrink-0"
+                          />
+                        )}
+                        <span className="font-black italic text-sm md:text-lg uppercase truncate">
+                          {m.awayTeam.name}
+                        </span>
+                      </div>
+                    </div>
+                    {m.venue?.trim() && (
+                      <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground text-center">
+                        {m.venue.trim()}
+                      </p>
+                    )}
+                    {"matchReferees" in m && Array.isArray(m.matchReferees) && m.matchReferees.length > 0 && (
+                      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-mono text-[9px] md:text-[10px] text-muted-foreground">
+                        {m.matchReferees.map((mr: { role: string; referee: { name: string } }) => (
+                          <span key={`${mr.role}-${mr.referee.name}`}>
+                            <span className="uppercase font-bold text-foreground/80">{ROLE_LABEL[mr.role] ?? mr.role}</span>
+                            <span className="mx-1">·</span>
+                            <span>{mr.referee.name}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="col-span-2 text-right">
+                    <span className="border border-border px-4 py-2 text-[10px] font-bold font-mono group-hover:bg-foreground group-hover:text-background transition-all inline-block">
+                      INSIDE GAME
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))

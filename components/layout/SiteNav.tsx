@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { User, Menu } from "lucide-react";
+import { getLevelFromXp, getXpProgressPercent } from "@/lib/utils/xp";
 import {
   Sheet,
   SheetContent,
@@ -18,6 +19,7 @@ export type NavUser = {
   name: string | null;
   email: string | null;
   image: string | null;
+  xp: number;
   supportingTeam: {
     id: string;
     name: string;
@@ -93,7 +95,13 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
             }
           />
         ) : null}
-        {/* 모바일: 프로필(이미지) + 우하단 엠블럼 → 드로어 */}
+        {/* 모바일: 레벨/경험치 + 프로필(이미지) + 우하단 엠블럼 → 드로어 */}
+        {user ? (
+          <div className="md:hidden flex flex-col items-end text-[9px] leading-tight text-muted-foreground mr-1">
+            <span>Lv. {getLevelFromXp(user.xp ?? 0)}</span>
+            <span>{getXpProgressPercent(user.xp ?? 0)}%</span>
+          </div>
+        ) : null}
         <Sheet>
           <SheetTrigger asChild>
             <button
@@ -175,6 +183,10 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
                     <span className="text-[10px] text-foreground leading-none font-black italic">
                       {user.supportingTeam?.name ?? "미설정"}
                     </span>
+                  </div>
+                  <div className="flex flex-col items-end text-[10px] leading-tight text-muted-foreground">
+                    <span>Lv. {getLevelFromXp(user.xp ?? 0)}</span>
+                    <span>{getXpProgressPercent(user.xp ?? 0)}%</span>
                   </div>
                   <div className="relative shrink-0">
                     <div className="w-11 h-11 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center group-hover:border-foreground transition-colors relative">

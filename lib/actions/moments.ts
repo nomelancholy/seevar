@@ -1,9 +1,10 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import type { ReactionType } from "@prisma/client"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { XP_MOMENT_CREATE, XP_BEST_MOMENT } from "@/lib/utils/xp"
 
 export type CreateMomentResult = { ok: true; momentId: string } | { ok: false; error: string }
 export type UpdateMomentResult = { ok: true } | { ok: false; error: string }
@@ -93,8 +94,13 @@ export async function createMoment(
         data: updateData,
       })
     }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { xp: { increment: XP_MOMENT_CREATE } },
+    })
     revalidatePath("/matches")
     revalidatePath("/")
+    revalidateTag("match-details")
     return { ok: true, momentId: moment.id }
   } catch (e) {
     console.error("createMoment:", e)
@@ -122,7 +128,7 @@ export async function toggleMomentSeeVar(momentId: string): Promise<ToggleMoment
 
   const moment = await prisma.moment.findUnique({
     where: { id: momentId },
-    select: { id: true, seeVarCount: true },
+    select: { id: true, seeVarCount: true, userId: true },
   })
   if (!moment) return { ok: false, error: "모멘트를 찾을 수 없습니다." }
 
@@ -138,6 +144,8 @@ export async function toggleMomentSeeVar(momentId: string): Promise<ToggleMoment
     return { ok: true, seeVarCount: moment.seeVarCount, alreadyClicked: true }
   }
 
+  const isNewSeeVarByOther = moment.userId && moment.userId !== user.id
+
   await prisma.$transaction([
     prisma.reaction.create({
       data: {
@@ -151,6 +159,14 @@ export async function toggleMomentSeeVar(momentId: string): Promise<ToggleMoment
       where: { id: momentId },
       data: { seeVarCount: { increment: 1 } },
     }),
+    ...(isNewSeeVarByOther
+      ? [
+          prisma.user.update({
+            where: { id: moment.userId! },
+            data: { xp: { increment: XP_BEST_MOMENT } },
+          }),
+        ]
+      : []),
   ])
   revalidatePath("/")
   revalidatePath("/matches")
