@@ -270,6 +270,16 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
     }
   }, [open])
 
+  // 다른 유저의 좋아요/답글도 일정 주기로 동기화
+  useEffect(() => {
+    if (!open || !detail?.id) return
+    const id = detail.id
+    const interval = window.setInterval(() => {
+      refetchDetail(id, setDetail)
+    }, 5000)
+    return () => window.clearInterval(interval)
+  }, [open, detail?.id])
+
   const fetchDetail = useCallback(() => {
     if (!moment?.momentId) return
     setLoading(true)
