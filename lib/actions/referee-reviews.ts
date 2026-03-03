@@ -107,6 +107,7 @@ export async function createRefereeReview(
     revalidatePath("/matches")
     revalidatePath("/referees")
     revalidatePath("/teams")
+    revalidateTag(`match-reviews-${matchId}`)
     return { ok: true, reviewId: review.id }
   } catch (e) {
     console.error("createRefereeReview:", e)
@@ -122,7 +123,7 @@ export async function toggleRefereeReviewLike(reviewId: string): Promise<ToggleR
 
   const review = await prisma.refereeReview.findUnique({
     where: { id: reviewId },
-    select: { id: true },
+    select: { id: true, matchId: true },
   })
   if (!review) return { ok: false, error: "평가를 찾을 수 없습니다." }
 
@@ -137,6 +138,7 @@ export async function toggleRefereeReviewLike(reviewId: string): Promise<ToggleR
       await prisma.reaction.delete({ where: { id: existing.id } })
       revalidatePath("/matches")
       revalidatePath("/referees")
+      revalidateTag(`match-reviews-${review.matchId}`)
       return { ok: true, liked: false }
     }
 
@@ -149,6 +151,7 @@ export async function toggleRefereeReviewLike(reviewId: string): Promise<ToggleR
     })
     revalidatePath("/matches")
     revalidatePath("/referees")
+    revalidateTag(`match-reviews-${review.matchId}`)
     return { ok: true, liked: true }
   } catch (e) {
     console.error("toggleRefereeReviewLike:", e)

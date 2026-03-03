@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -142,7 +142,7 @@ export async function setReviewStatus(
 
   const review = await prisma.refereeReview.findUnique({
     where: { id: reviewId },
-    select: { id: true, userId: true, xpDeductedOnHide: true },
+    select: { id: true, userId: true, xpDeductedOnHide: true, matchId: true },
   })
   if (!review) return { ok: false, error: "평가를 찾을 수 없습니다." }
 
@@ -186,6 +186,7 @@ export async function setReviewStatus(
     revalidatePath("/referees")
     revalidatePath("/matches")
     revalidatePath("/my")
+    revalidateTag(`match-reviews-${review.matchId}`)
     return { ok: true }
   } catch (e) {
     console.error("setReviewStatus:", e)
