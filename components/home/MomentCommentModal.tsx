@@ -12,7 +12,11 @@ import {
 } from "@/lib/actions/comments"
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { toggleMomentSeeVar } from "@/lib/actions/moments"
-import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
+import {
+  uploadMomentMedia,
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB,
+} from "@/lib/actions/upload-moment-media"
 import {
   DndContext,
   closestCenter,
@@ -399,6 +403,11 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
     const file = e.target.files?.[0]
     e.target.value = ""
     if (!file || (!file.type.startsWith("image/") && !file.type.startsWith("video/"))) return
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setActionError(`사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다. (현재 ${(file.size / (1024 * 1024)).toFixed(1)}MB)`)
+      return
+    }
+    setActionError(null)
     if (replyPreviewUrlRef.current) {
       URL.revokeObjectURL(replyPreviewUrlRef.current)
       replyPreviewUrlRef.current = null
@@ -440,12 +449,29 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
       try {
         let mediaUrl: string | null = null
         if (fileToUpload) {
+          if (fileToUpload.size > MAX_FILE_SIZE_BYTES) {
+            setActionError(`사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다.`)
+            setReplyText(textToSend !== " " ? textToSend : "")
+            setReplyAttachment(fileToUpload)
+            if (fileToUpload) {
+              const url = URL.createObjectURL(fileToUpload)
+              replyPreviewUrlRef.current = url
+              setReplyPreviewUrl(url)
+            }
+            return
+          }
           const fd = new FormData()
           fd.append("file", fileToUpload)
           const upload = await uploadMomentMedia(fd)
           if (!upload.ok) {
             setActionError(upload.error)
             setReplyText(content || "")
+            setReplyAttachment(fileToUpload)
+            if (fileToUpload) {
+              const url = URL.createObjectURL(fileToUpload)
+              replyPreviewUrlRef.current = url
+              setReplyPreviewUrl(url)
+            }
             return
           }
           mediaUrl = upload.url
@@ -457,6 +483,26 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
         } else {
           setActionError(result.error)
           setReplyText(content || "")
+          if (fileToUpload) {
+            setReplyAttachment(fileToUpload)
+            const url = URL.createObjectURL(fileToUpload)
+            replyPreviewUrlRef.current = url
+            setReplyPreviewUrl(url)
+          }
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        if (message.includes("413") || message.toLowerCase().includes("too large") || message.includes("entity too large")) {
+          setActionError(`요청이 너무 큽니다. 사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하로 올려 주세요.`)
+        } else {
+          setActionError(`전송에 실패했습니다. ${message || "네트워크를 확인해 주세요."}`)
+        }
+        setReplyText(content || "")
+        if (fileToUpload) {
+          setReplyAttachment(fileToUpload)
+          const url = URL.createObjectURL(fileToUpload)
+          replyPreviewUrlRef.current = url
+          setReplyPreviewUrl(url)
         }
       } finally {
         setReplyPending(false)
@@ -753,7 +799,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                                 <label
                                   htmlFor={replyFileInputId}
                                   className="shrink-0 h-9 w-9 flex items-center justify-center border border-border rounded text-muted-foreground hover:text-foreground hover:border-primary transition-colors cursor-pointer"
-                                  title="사진/영상 첨부"
+                                  title={`사진/영상 첨부 (최대 ${MAX_FILE_SIZE_MB}MB)`}
                                 >
                                   <ImagePlus className="size-4" />
                                 </label>
@@ -1050,7 +1096,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                                           <label
                                             htmlFor={replyFileInputId}
                                             className="shrink-0 h-9 w-9 flex items-center justify-center border border-border rounded text-muted-foreground hover:text-foreground hover:border-primary transition-colors cursor-pointer"
-                                            title="사진/영상 첨부"
+                                            title={`사진/영상 첨부 (최대 ${MAX_FILE_SIZE_MB}MB)`}
                                           >
                                             <ImagePlus className="size-4" />
                                           </label>
@@ -1197,7 +1243,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
             <label
               htmlFor={fileInputId}
               className="shrink-0 h-10 w-10 flex items-center justify-center border border-border rounded text-muted-foreground hover:text-foreground hover:border-primary transition-colors cursor-pointer"
-              title="사진/영상 첨부"
+              title={`사진/영상 첨부 (최대 ${MAX_FILE_SIZE_MB}MB)`}
             >
               <ImagePlus className="size-5" />
               <span className="sr-only">사진 또는 영상 첨부</span>
@@ -1244,7 +1290,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
           >
             {attachments.length === 0 ? (
               <p className="text-[10px] font-mono text-muted-foreground text-center py-1">
-                사진/영상을 여기에 드래그 앤 드롭
+                사진/영상을 여기에 드래그 앤 드롭 (최대 {MAX_FILE_SIZE_MB}MB)
               </p>
             ) : (
               <DndContext

@@ -8,7 +8,12 @@ export type UploadMomentMediaResult = { ok: true; url: string } | { ok: false; e
 
 const ALLOWED_IMAGE = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 const ALLOWED_VIDEO = ["video/mp4", "video/webm", "video/quicktime"]
-const MAX_SIZE = 50 * 1024 * 1024 // 50MB
+
+/** 모멘트/댓글 사진·영상 업로드 최대 크기 (바이트). UI 검증 및 nginx client_max_body_size 참고용 */
+export const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024 // 50MB
+export const MAX_FILE_SIZE_MB = 50
+
+const MAX_SIZE = MAX_FILE_SIZE_BYTES
 
 export async function uploadMomentMedia(formData: FormData): Promise<UploadMomentMediaResult> {
   const user = await getCurrentUser()

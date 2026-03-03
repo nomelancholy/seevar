@@ -4,7 +4,11 @@ import { useRef, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, X, ImageIcon, Video } from "lucide-react"
 import { createMoment } from "@/lib/actions/moments"
-import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
+import {
+  uploadMomentMedia,
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB,
+} from "@/lib/actions/upload-moment-media"
 
 type Props = {
   open: boolean
@@ -31,6 +35,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [timeError, setTimeError] = useState<string | null>(null)
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
@@ -57,6 +62,11 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
     const isImage = file.type.startsWith("image/")
     const isVideo = file.type.startsWith("video/")
     if (!isImage && !isVideo) return
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setFileSizeError(`파일 크기는 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다. (현재 ${(file.size / (1024 * 1024)).toFixed(1)}MB)`)
+      return
+    }
+    setFileSizeError(null)
     if (attachedPreviewUrl) URL.revokeObjectURL(attachedPreviewUrl)
     setAttachedFile(file)
     setAttachedPreviewUrl(URL.createObjectURL(file))
@@ -66,6 +76,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
     if (attachedPreviewUrl) URL.revokeObjectURL(attachedPreviewUrl)
     setAttachedFile(null)
     setAttachedPreviewUrl(null)
+    setFileSizeError(null)
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: "image" | "video") => {
@@ -145,7 +156,12 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
       setTimeError(`모멘트 구간은 최대 ${MAX_DURATION}분까지 가능합니다`)
       return
     }
+    if (attachedFile && attachedFile.size > MAX_FILE_SIZE_BYTES) {
+      setSubmitError(`파일 크기는 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다.`)
+      return
+    }
     setSubmitError(null)
+    setFileSizeError(null)
     setPending(true)
     try {
       let mediaUrl: string | null = null
@@ -176,6 +192,14 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
         router.refresh()
       } else {
         setSubmitError(result.error)
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : String(err)
+      if (message.includes("413") || message.toLowerCase().includes("too large") || message.includes("entity too large")) {
+        setSubmitError(`요청이 너무 큽니다. 사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하로 올려 주세요. 서버(nginx) 제한을 확인해 주세요.`)
+      } else {
+        setSubmitError(`등록에 실패했습니다. ${message || "네트워크를 확인해 주세요."}`)
       }
     } finally {
       setPending(false)
@@ -262,6 +286,9 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
             <label className="block text-[10px] font-mono text-muted-foreground mb-1 uppercase">
               Description
             </label>
+            <p className="text-[9px] font-mono text-muted-foreground mb-1">
+              사진·영상 최대 {MAX_FILE_SIZE_MB}MB (이미지: jpeg/png/webp/gif, 영상: mp4/webm)
+            </p>
             <div
               className={`relative border-2 border-dashed transition-colors ${isDragging ? "border-primary bg-primary/5" : "border-border"}`}
               onDragOver={handleDragOver}
@@ -333,6 +360,14 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
                   <p className="text-[10px] font-mono text-primary truncate">
                     {attachedFile.type.startsWith("image/") ? "IMAGE" : "VIDEO"}: {attachedFile.name}
                   </p>
+                  <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                    {(attachedFile.size / (1024 * 1024)).toFixed(1)}MB
+                    {attachedFile.size <= MAX_FILE_SIZE_BYTES ? (
+                      <span className="text-primary ml-1">(제한 내)</span>
+                    ) : (
+                      <span className="text-destructive ml-1">(제한 초과)</span>
+                    )}
+                  </p>
                   <button
                     type="button"
                     onClick={clearAttachment}
@@ -342,6 +377,11 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
                   </button>
                 </div>
               </div>
+            )}
+            {fileSizeError && (
+              <p className="mt-2 text-[10px] font-mono text-destructive" role="alert">
+                {fileSizeError}
+              </p>
             )}
           </div>
 
