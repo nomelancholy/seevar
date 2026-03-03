@@ -4,11 +4,8 @@ import { useRef, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, X, ImageIcon, Video } from "lucide-react"
 import { createMoment } from "@/lib/actions/moments"
-import {
-  uploadMomentMedia,
-  MAX_FILE_SIZE_BYTES,
-  MAX_FILE_SIZE_MB,
-} from "@/lib/actions/upload-moment-media"
+import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/constants/upload"
 
 type Props = {
   open: boolean

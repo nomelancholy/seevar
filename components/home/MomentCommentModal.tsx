@@ -12,11 +12,8 @@ import {
 } from "@/lib/actions/comments"
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { toggleMomentSeeVar } from "@/lib/actions/moments"
-import {
-  uploadMomentMedia,
-  MAX_FILE_SIZE_BYTES,
-  MAX_FILE_SIZE_MB,
-} from "@/lib/actions/upload-moment-media"
+import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/constants/upload"
 import {
   DndContext,
   closestCenter,
