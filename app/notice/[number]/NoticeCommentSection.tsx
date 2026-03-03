@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createNoticeComment } from "@/lib/actions/notices"
 
@@ -21,30 +21,50 @@ export function NoticeCommentSection({ noticeId, comments: initialComments, curr
   const [content, setContent] = useState("")
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [optimisticComment, setOptimisticComment] = useState<CommentItem | null>(null)
+  const prevCommentsLengthRef = useRef(initialComments.length)
   const router = useRouter()
+
+  useEffect(() => {
+    if (initialComments.length > prevCommentsLengthRef.current) {
+      setOptimisticComment(null)
+    }
+    prevCommentsLengthRef.current = initialComments.length
+  }, [initialComments])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentUserId) return
     setPending(true)
     setError(null)
-    const result = await createNoticeComment(noticeId, content)
+    const textToSend = content.trim()
+    const result = await createNoticeComment(noticeId, textToSend)
     setPending(false)
     if (result.ok) {
       setContent("")
+      setOptimisticComment({
+        id: `opt-${Date.now()}`,
+        content: textToSend,
+        userName: null,
+        createdAt: new Date().toISOString(),
+      })
       router.refresh()
     } else {
       setError(result.error)
     }
   }
 
+  const displayComments = optimisticComment
+    ? [...initialComments, optimisticComment]
+    : initialComments
+
   return (
     <section className="ledger-surface p-4 md:p-8 border border-border">
       <h2 className="font-mono text-xs md:text-sm font-bold tracking-widest text-muted-foreground uppercase mb-4 md:mb-6">
-        댓글 ({initialComments.length})
+        댓글 ({displayComments.length})
       </h2>
       <ul className="space-y-4 mb-6 md:mb-8">
-        {initialComments.map((c) => (
+        {displayComments.map((c) => (
           <li key={c.id} className="py-3 border-b border-border last:border-b-0">
             <p className="text-sm text-foreground/90 whitespace-pre-wrap">{c.content}</p>
             <p className="font-mono text-[10px] text-muted-foreground mt-2">

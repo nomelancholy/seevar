@@ -30,6 +30,7 @@ type RoundWithMatches = Awaited<
 type RefFeedback = {
   id: string
   userName: string
+  userImage: string | null
   teamName: string | null
   teamSlug: string | null
   teamEmblem: string | null
@@ -44,6 +45,7 @@ type RoundHighlight = {
   bestReferee:
     | {
         id: string
+        slug: string
         name: string
         role: string
         avg: number
@@ -53,6 +55,7 @@ type RoundHighlight = {
   worstReferee:
     | {
         id: string
+        slug: string
         name: string
         role: string
         avg: number
@@ -200,7 +203,7 @@ export default async function HomePage() {
           select: { name: true, slug: true, emblemPath: true },
         },
         user: {
-          select: { name: true },
+          select: { name: true, image: true },
         },
         reactions: {
           select: { type: true },
@@ -216,6 +219,7 @@ export default async function HomePage() {
         string,
         {
           id: string
+          slug: string
           name: string
           role: string
           sum: number
@@ -236,6 +240,7 @@ export default async function HomePage() {
           ? {
               id: r.id,
               userName: r.user?.name || "Supporter",
+              userImage: r.user?.image ?? null,
               teamName: r.fanTeam?.name ?? null,
               teamSlug: r.fanTeam?.slug ?? null,
               teamEmblem: r.fanTeam?.emblemPath ?? null,
@@ -252,6 +257,7 @@ export default async function HomePage() {
         } else {
           byRef.set(key, {
             id: r.refereeId,
+            slug: (r.referee as { slug: string }).slug,
             name: r.referee.name,
             role: r.role,
             sum: r.rating,
@@ -263,6 +269,7 @@ export default async function HomePage() {
 
       const stats = [...byRef.values()].map((v) => ({
         id: v.id,
+        slug: v.slug,
         name: v.name,
         role: v.role,
         avg: v.count > 0 ? v.sum / v.count : 0,
@@ -381,7 +388,7 @@ export default async function HomePage() {
                                     Round Best Referee
                                   </p>
                                   <Link
-                                    href={`/referees/${h.bestReferee.id}`}
+                                    href={`/referees/${h.bestReferee.slug}`}
                                     className="text-xl md:text-2xl font-black italic uppercase leading-none hover:text-[#00ff41] transition-colors"
                                   >
                                     {h.bestReferee.name}
@@ -413,9 +420,18 @@ export default async function HomePage() {
                                         <div className="flex items-center gap-2 md:gap-3">
                                           <div className="relative">
                                             <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                                              <span className="text-[10px] text-zinc-400 font-mono">
-                                                {fb.userName.slice(0, 2).toUpperCase()}
-                                              </span>
+                                              {fb.userImage ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                  src={fb.userImage}
+                                                  alt={fb.userName}
+                                                  className="w-full h-full object-cover"
+                                                />
+                                              ) : (
+                                                <span className="text-[10px] text-zinc-400 font-mono">
+                                                  {fb.userName.slice(0, 2).toUpperCase()}
+                                                </span>
+                                              )}
                                             </div>
                                             {fb.teamEmblem && (
                                               <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
@@ -459,7 +475,7 @@ export default async function HomePage() {
                                     Round Worst Referee
                                   </p>
                                   <Link
-                                    href={`/referees/${h.worstReferee.id}`}
+                                    href={`/referees/${h.worstReferee.slug}`}
                                     className="text-xl md:text-2xl font-black italic uppercase leading-none hover:text-red-500 transition-colors"
                                   >
                                     {h.worstReferee.name}

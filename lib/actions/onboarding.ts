@@ -28,6 +28,17 @@ export async function completeOnboarding(
   }
 
   try {
+    const duplicated = await prisma.user.findFirst({
+      where: {
+        name: trimmedName,
+        NOT: { id: session.user.id },
+      },
+      select: { id: true },
+    })
+    if (duplicated) {
+      return { ok: false, error: "이미 사용 중인 닉네임입니다. 다른 닉네임을 선택해 주세요." }
+    }
+
     await prisma.user.update({
       where: { id: session.user.id },
       data: {

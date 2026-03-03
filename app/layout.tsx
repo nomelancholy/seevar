@@ -6,9 +6,30 @@ import { getUnreadNotificationCount } from "@/lib/notifications";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://seevar.online";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "See VAR",
-  description: "축구 판정 아카이브 및 커뮤니티",
+  description:
+    "축구 판정 아카이브와 팬 커뮤니티. K리그·해외 리그의 논란 순간을 SEE VAR로 추천하고, IFAB 규정에 따른 판정 토론을 나눕니다.",
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: siteUrl,
+    siteName: "See VAR",
+    title: "See VAR",
+    description:
+      "축구 판정 아카이브와 팬 커뮤니티. K리그·해외 리그의 논란 순간을 SEE VAR로 추천하고, IFAB 규정에 따른 판정 토론을 나눕니다.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "See VAR" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "See VAR",
+    description:
+      "축구 판정 아카이브와 팬 커뮤니티. K리그·해외 리그의 논란 순간을 SEE VAR로 추천하고, IFAB 규정에 따른 판정 토론을 나눕니다.",
+    images: ["/opengraph-image"],
+  },
 };
 
 export const viewport: Viewport = {

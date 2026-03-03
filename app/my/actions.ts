@@ -49,6 +49,22 @@ export async function updateProfile(formData: {
     }
   }
 
+  if (parsed.data.name) {
+    const trimmed = parsed.data.name.trim()
+    if (trimmed) {
+      const duplicated = await prisma.user.findFirst({
+        where: {
+          name: trimmed,
+          NOT: { id: user.id },
+        },
+        select: { id: true },
+      })
+      if (duplicated) {
+        return { ok: false, error: "이미 사용 중인 닉네임입니다. 다른 닉네임을 선택해 주세요." }
+      }
+    }
+  }
+
   const updateData: {
     name?: string | null
     supportingTeamId?: string | null

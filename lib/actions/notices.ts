@@ -112,8 +112,14 @@ export async function createNoticeComment(
     const comment = await prisma.noticeComment.create({
       data: { noticeId, userId: user.id, content: trimmed },
     })
-    const notice = await prisma.notice.findUnique({ where: { id: noticeId }, select: { number: true } })
-    if (notice) revalidatePath(`/notice/${notice.number}`)
+    const noticeWithNumber = await prisma.notice.findUnique({
+      where: { id: noticeId },
+      select: { number: true },
+    })
+    if (noticeWithNumber != null) {
+      revalidatePath(`/notice/${noticeWithNumber.number}`, "page")
+      revalidatePath("/notice", "layout")
+    }
     return { ok: true, id: comment.id }
   } catch (e) {
     console.error("createNoticeComment:", e)
