@@ -8,6 +8,7 @@ type Referee = {
   slug: string
   name: string
   averageRating: number | null
+  totalVotes: number
   matchesCount: number
   totalYellowCards: number
   totalRedCards: number
@@ -27,7 +28,7 @@ export function RefereeListWithSearch({ referees }: Props) {
   return (
     <>
       <div className="mb-6 md:mb-8">
-        <label className="font-mono text-[8px] md:text-[10px] text-muted-foreground uppercase block mb-2">
+        <label className="font-mono text-xs md:text-sm text-muted-foreground uppercase block mb-2">
           이름 검색
         </label>
         <input
@@ -58,36 +59,43 @@ export function RefereeListWithSearch({ referees }: Props) {
                   </h2>
                 </div>
                 <div className="text-right">
-                  <div className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-tighter mb-1">
-                    Global Rating
+                  <div className="font-mono text-xs md:text-sm text-muted-foreground uppercase tracking-tighter mb-1">
+                    총 평점
                   </div>
-                  <div
-                    className={`text-xl md:text-2xl font-black italic ${
-                      isTop ? "text-primary" : isLow ? "text-destructive" : "text-muted-foreground"
-                    }`}
-                  >
-                    {r.averageRating != null ? r.averageRating.toFixed(1) : "—"}
+                  <div className="flex items-baseline gap-1.5 justify-end">
+                    <span
+                      className={`text-xl md:text-2xl font-black italic ${
+                        isTop ? "text-primary" : isLow ? "text-destructive" : "text-muted-foreground"
+                      }`}
+                    >
+                      {r.averageRating != null ? r.averageRating.toFixed(1) : "—"}
+                    </span>
+                    {r.totalVotes > 0 && (
+                      <span className="font-mono text-xs md:text-sm text-muted-foreground">
+                        ({r.totalVotes})
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3 md:gap-4 border-t border-border pt-3 md:pt-4">
                 <div>
-                  <p className="font-mono text-[7px] md:text-[8px] text-muted-foreground uppercase">
-                    Total Matches
+                  <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-0.5">
+                    총 배정 경기
                   </p>
-                  <p className="font-mono text-[10px] md:text-xs font-bold">{r.matchesCount}</p>
+                  <p className="font-mono text-xs md:text-sm font-bold">{r.matchesCount}</p>
                 </div>
                 <div>
-                  <p className="font-mono text-[7px] md:text-[8px] text-muted-foreground uppercase">
-                    Total Yellow Card
+                  <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-0.5">
+                    총 부여 경고
                   </p>
-                  <p className="font-mono text-[10px] md:text-xs font-bold">{r.totalYellowCards}</p>
+                  <p className="font-mono text-xs md:text-sm font-bold">{r.totalYellowCards}</p>
                 </div>
                 <div>
-                  <p className="font-mono text-[7px] md:text-[8px] text-muted-foreground uppercase">
-                    Total Red Card
+                  <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-0.5">
+                    총 부여 퇴장
                   </p>
-                  <p className="font-mono text-[10px] md:text-xs font-bold">{r.totalRedCards}</p>
+                  <p className="font-mono text-xs md:text-sm font-bold">{r.totalRedCards}</p>
                 </div>
               </div>
             </Link>

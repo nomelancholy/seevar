@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma"
 import { RefereeListWithSearch } from "@/components/referees/RefereeListWithSearch"
 
 export const metadata = {
-  title: "REFEREE DATABASE | See VAR",
-  description: "K LEAGUE 공식 심판진의 활동 데이터 및 팬 평점",
+  title: "심판 정보 | See VAR",
+  description: "K LEAGUE 심판진의 활동 데이터 및 팬 평점을 확인할 수 있습니다.",
 }
 
 export default async function RefereesPage() {
@@ -51,6 +51,7 @@ export default async function RefereesPage() {
       slug: (r as typeof r & { slug: string }).slug,
       name: r.name,
       averageRating,
+      totalVotes,
       matchesCount: r._count.matchReferees,
       totalYellowCards,
       totalRedCards,
@@ -61,10 +62,10 @@ export default async function RefereesPage() {
     <main className="py-8 md:py-12">
       <header className="mb-8 md:mb-12">
         <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">
-          REFEREE DATABASE
+          심판 정보
         </h1>
         <p className="font-mono text-[10px] md:text-sm text-muted-foreground max-w-2xl">
-          K LEAGUE 공식 심판진의 활동 데이터 및 팬 평점을 확인할 수 있는 통합 데이터베이스입니다.
+          K LEAGUE 심판진의 활동 데이터 및 팬 평점을 확인할 수 있습니다.
         </p>
       </header>
 

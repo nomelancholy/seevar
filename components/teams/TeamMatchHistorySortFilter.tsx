@@ -51,7 +51,7 @@ export function TeamMatchHistorySortFilter({ currentSort }: Props) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest">
+      <span className="font-mono text-xs md:text-sm text-muted-foreground uppercase tracking-widest">
         정렬
       </span>
       <div className="relative">
@@ -62,7 +62,7 @@ export function TeamMatchHistorySortFilter({ currentSort }: Props) {
           aria-expanded={open}
           aria-haspopup="listbox"
           aria-label="정렬 선택"
-          className="group flex items-center gap-2 font-mono text-[9px] md:text-[10px] uppercase tracking-widest bg-card border border-border hover:border-primary/60 px-3 py-1.5 md:py-2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+          className="group flex items-center gap-2 font-mono text-xs md:text-sm uppercase tracking-widest bg-card border border-border hover:border-primary/60 px-3 py-1.5 md:py-2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
         >
           <span>{label}</span>
           <ChevronDown
@@ -88,7 +88,7 @@ export function TeamMatchHistorySortFilter({ currentSort }: Props) {
                 role="option"
                 aria-selected={currentSort === opt.value}
                 onClick={() => handleSelect(opt.value)}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-[9px] md:text-[10px] uppercase tracking-widest transition-colors hover:bg-muted/80 hover:text-foreground ${
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-xs md:text-sm uppercase tracking-widest transition-colors hover:bg-muted/80 hover:text-foreground ${
                   currentSort === opt.value
                     ? "bg-primary/10 text-primary border-l-2 border-primary"
                     : "text-muted-foreground"

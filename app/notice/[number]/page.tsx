@@ -7,6 +7,9 @@ import { ChevronLeft } from "lucide-react"
 import { NoticeDeleteButton } from "./NoticeDeleteButton"
 import { NoticeCommentSection } from "./NoticeCommentSection"
 
+/** 배포 후에도 항상 최신 공지·댓글을 DB에서 가져오도록 정적 캐시 비활성화 */
+export const dynamic = "force-dynamic"
+
 export async function generateMetadata({
   params,
 }: {
@@ -53,7 +56,7 @@ export default async function NoticeDetailPage({
           className="inline-flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="size-4" />
-          목록
+          뒤로 가기
         </Link>
       </div>
 
@@ -63,7 +66,7 @@ export default async function NoticeDetailPage({
             {notice.title}
           </h1>
           <p className="font-mono text-[10px] md:text-xs text-muted-foreground">
-            {notice.author.name ?? "운영자"} ·{" "}
+            {notice.author?.name ?? "운영자"} ·{" "}
             {new Date(notice.createdAt).toLocaleString("ko-KR")}
             {!notice.allowComments && " · 댓글 비허용"}
           </p>
@@ -89,8 +92,9 @@ export default async function NoticeDetailPage({
           noticeId={notice.id}
           comments={notice.comments.map((c) => ({
             id: c.id,
+            userId: c.userId,
             content: c.content,
-            userName: c.user.name,
+            userName: c.user?.name ?? null,
             createdAt: c.createdAt.toISOString(),
           }))}
           currentUserId={user?.id ?? null}

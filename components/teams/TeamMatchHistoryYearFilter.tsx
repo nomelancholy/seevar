@@ -49,7 +49,7 @@ export function TeamMatchHistoryYearFilter({ availableYears, currentYear }: Prop
 
   return (
     <div className="flex items-center gap-2">
-      <span className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest">
+      <span className="font-mono text-xs md:text-sm text-muted-foreground uppercase tracking-widest">
         연도
       </span>
       <div className="relative">
@@ -60,7 +60,7 @@ export function TeamMatchHistoryYearFilter({ availableYears, currentYear }: Prop
           aria-expanded={open}
           aria-haspopup="listbox"
           aria-label="연도 선택"
-          className="group flex items-center gap-2 font-mono text-[9px] md:text-[10px] uppercase tracking-widest bg-card border border-border hover:border-primary/60 px-3 py-1.5 md:py-2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+          className="group flex items-center gap-2 font-mono text-xs md:text-sm uppercase tracking-widest bg-card border border-border hover:border-primary/60 px-3 py-1.5 md:py-2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
         >
           <span className="tabular-nums">{label}</span>
           <ChevronDown
@@ -86,7 +86,7 @@ export function TeamMatchHistoryYearFilter({ availableYears, currentYear }: Prop
                 role="option"
                 aria-selected={activeYear === y}
                 onClick={() => handleSelect(y)}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-[9px] md:text-[10px] uppercase tracking-widest tabular-nums transition-colors hover:bg-muted/80 hover:text-foreground ${
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-xs md:text-sm uppercase tracking-widest tabular-nums transition-colors hover:bg-muted/80 hover:text-foreground ${
                   activeYear === y
                     ? "bg-primary/10 text-primary border-l-2 border-primary"
                     : "text-muted-foreground"

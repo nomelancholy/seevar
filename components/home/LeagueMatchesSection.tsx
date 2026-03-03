@@ -59,38 +59,38 @@ function LeagueBlock({
         </div>
       </button>
       <div className={`league-content ${open ? "open" : ""}`}>
-        <div className="match-slider-container">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
           {matches.length === 0 ? (
-            <p className="text-muted-foreground font-mono text-xs py-6 px-4">
+            <p className="col-span-full text-muted-foreground font-mono text-xs py-6 px-4">
               등록된 경기가 없습니다.
             </p>
           ) : (
-          matches.map((m, i) => (
+          matches.slice(0, 12).map((m) => (
             <Link
               key={m.id}
               href={m.matchPath}
-              className="match-card-mini flex flex-col items-center gap-2"
+              className="match-card-mini flex flex-col items-center gap-2 w-full min-w-0 p-4 md:p-5"
               title="경기 상세 보기"
             >
-              <div className="text-chart-2 font-bold font-mono text-[10px] md:text-xs">
+              <div className="text-chart-2 font-bold font-mono text-xs md:text-sm">
                 {m.date}
               </div>
               <div className="flex items-center gap-3 md:gap-4 w-full justify-between">
-                <EmblemImage src={m.homeEmblem} width={32} height={32} className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
+                <EmblemImage src={m.homeEmblem} width={40} height={40} className="w-8 h-8 md:w-10 md:h-10 shrink-0" />
                 {m.scoreHome != null && m.scoreAway != null ? (
-                  <span className="text-xs md:text-sm font-black tabular-nums">
+                  <span className="text-sm md:text-base font-black tabular-nums">
                     {m.scoreHome} : {m.scoreAway}
                   </span>
                 ) : (
-                  <span className="text-muted-foreground text-[10px]">vs</span>
+                  <span className="text-muted-foreground text-xs">vs</span>
                 )}
-                <EmblemImage src={m.awayEmblem} width={32} height={32} className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
+                <EmblemImage src={m.awayEmblem} width={40} height={40} className="w-8 h-8 md:w-10 md:h-10 shrink-0" />
               </div>
-              <div className="text-[10px] font-mono text-center">
+              <div className="text-xs md:text-sm font-mono text-center font-medium">
                 {m.homeName} vs {m.awayName}
               </div>
               {(m.venue || m.timeStr) && (
-                <div className="text-[8px] md:text-[10px] text-muted-foreground font-mono text-center">
+                <div className="text-[10px] md:text-xs text-muted-foreground font-mono text-center">
                   {[m.venue, m.timeStr].filter(Boolean).join(" | ")}
                 </div>
               )}
@@ -122,7 +122,7 @@ export function LeagueMatchesSection({
   return (
     <div className="mb-8 md:mb-12">
       <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
-        Focus Round
+        라운드 경기 일정
       </h2>
       {hasK1Focus && (
         <LeagueBlock

@@ -90,6 +90,10 @@ function refereeHref(slug: string, backPath: string): string {
   return `/referees/${slug}${back}`
 }
 
+function formatMatchCount(n: number): string {
+  return `${n}경기`
+}
+
 export function TeamDetailSection({
   teamName,
   teamId,
@@ -121,8 +125,8 @@ export function TeamDetailSection({
         {/* Referee Compatibility (Fan Choice) */}
         <div className="ledger-surface p-4 md:p-6 border border-border">
           <div className="flex items-center justify-between mb-6 md:mb-8 gap-2">
-            <h3 className="font-mono text-[10px] md:text-xs font-black tracking-widest text-primary uppercase italic">
-              Referee Compatibility (Fan Choice)
+            <h3 className="font-mono text-xs md:text-sm font-black tracking-widest text-primary uppercase italic">
+              팬들이 뽑은 심판 상성
             </h3>
             <button
               type="button"
@@ -130,15 +134,15 @@ export function TeamDetailSection({
                 setModalTab("ratings")
                 setModalOpen(true)
               }}
-              className="font-mono text-[9px] md:text-[10px] font-bold text-muted-foreground hover:text-foreground underline underline-offset-4"
+              className="font-mono text-xs md:text-sm font-bold text-muted-foreground hover:text-foreground underline underline-offset-4"
             >
-              VIEW ALL
+              전체 보기
             </button>
           </div>
           <div className="space-y-6 md:space-y-8">
             <div>
-              <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase mb-3 md:mb-4">
-                High Compatibility
+              <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-3 md:mb-4">
+                최고의 인연
               </p>
               {compatibility.high ? (
                 <div className="bg-card/50 border border-border p-3 md:p-4">
@@ -166,8 +170,8 @@ export function TeamDetailSection({
               )}
             </div>
             <div>
-              <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase mb-3 md:mb-4">
-                Low Compatibility
+              <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-3 md:mb-4">
+                최악의 악연
               </p>
               {compatibility.low ? (
                 <div className="bg-card/50 border border-border p-3 md:p-4">
@@ -200,8 +204,8 @@ export function TeamDetailSection({
         {/* Frequent Assignments */}
         <div className="ledger-surface p-4 md:p-6 border border-border">
           <div className="flex items-center justify-between mb-6 md:mb-8 gap-2">
-            <h3 className="font-mono text-[10px] md:text-xs font-black tracking-widest text-primary uppercase italic">
-              Frequent Assignments
+            <h3 className="font-mono text-xs md:text-sm font-black tracking-widest text-primary uppercase italic">
+              자주 만난 심판
             </h3>
             <button
               type="button"
@@ -209,9 +213,9 @@ export function TeamDetailSection({
                 setModalTab("assignments")
                 setModalOpen(true)
               }}
-              className="font-mono text-[9px] md:text-[10px] font-bold text-muted-foreground hover:text-foreground underline underline-offset-4"
+              className="font-mono text-xs md:text-sm font-bold text-muted-foreground hover:text-foreground underline underline-offset-4"
             >
-              VIEW ALL
+              전체 보기
             </button>
           </div>
           <div className="space-y-2">
@@ -227,13 +231,13 @@ export function TeamDetailSection({
                 >
                   <Link
                     href={refereeHref(ref.slug, refereeBackPath)}
-                    className="text-[10px] md:text-xs font-bold italic uppercase hover:text-primary transition-colors flex items-center gap-1"
+                    className="text-xs md:text-sm font-bold italic uppercase hover:text-primary transition-colors flex items-center gap-1"
                   >
                     {idx + 1}. {ref.name}
-                    <span className="text-[8px]">→</span>
+                    <span className="text-[10px]">→</span>
                   </Link>
-                  <span className="font-mono text-[9px] md:text-[10px] text-muted-foreground">
-                    {ref.totalAssignments} Matches
+                  <span className="font-mono text-sm md:text-base text-muted-foreground">
+                    {formatMatchCount(ref.totalAssignments)}
                   </span>
                 </div>
               ))
@@ -244,8 +248,8 @@ export function TeamDetailSection({
         {/* Cards by Referee (총합 카드 상위 5명, VIEW ALL 시 전체) */}
         <div className="ledger-surface p-4 md:p-6 border border-border">
           <div className="flex items-center justify-between mb-4 md:mb-6 gap-2">
-            <h3 className="font-mono text-[10px] md:text-xs font-black tracking-widest text-primary uppercase italic">
-              Cards by Referee
+            <h3 className="font-mono text-xs md:text-sm font-black tracking-widest text-primary uppercase italic">
+              심판별 카드 수
             </h3>
             {cardsByReferee.length > 5 && (
               <button
@@ -254,14 +258,14 @@ export function TeamDetailSection({
                   setModalTab("cards")
                   setModalOpen(true)
                 }}
-                className="font-mono text-[9px] md:text-[10px] font-bold text-muted-foreground hover:text-foreground underline underline-offset-4"
+                className="font-mono text-xs md:text-sm font-bold text-muted-foreground hover:text-foreground underline underline-offset-4"
               >
-                VIEW ALL
+                전체 보기
               </button>
             )}
           </div>
-          <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground mb-3 md:mb-4">
-            이 팀 경기에서 해당 심판이 부여한 옐로·레드 카드 수
+          <p className="font-mono text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
+            이 팀 경기에서 해당 심판이 부여한 경고 퇴장 수
           </p>
           {cardsByReferee.length === 0 ? (
             <p className="font-mono text-[10px] text-muted-foreground py-2">카드 부여 기록이 없습니다.</p>
@@ -294,7 +298,7 @@ export function TeamDetailSection({
       <div className="lg:col-span-8 ledger-surface p-4 md:p-6 border border-border">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6 md:mb-8">
           <h3 className="font-mono text-[10px] md:text-sm font-black tracking-widest text-muted-foreground uppercase">
-            {teamName} Match History
+            {teamName} 경기 기록
           </h3>
           <div className="flex flex-wrap items-center gap-3 md:gap-4">
             <TeamMatchHistoryYearFilter availableYears={availableYears} currentYear={currentYear} />
@@ -354,7 +358,7 @@ export function TeamDetailSection({
                     href={m.matchPath}
                     className="border border-border px-3 md:px-4 py-1.5 md:py-2 text-[8px] md:text-[10px] font-bold font-mono text-primary hover:bg-primary hover:text-primary-foreground transition-all inline-flex items-center gap-2 w-fit"
                   >
-                    INSIDE GAME →
+                    경기 상세 →
                   </Link>
                 </div>
                 {m.matchReferees.length > 0 && (
@@ -401,35 +405,35 @@ export function TeamDetailSection({
               <button
                 type="button"
                 onClick={() => setModalTab("ratings")}
-                className={`flex-1 py-3 text-[10px] md:text-xs font-mono tracking-widest uppercase ${
+                className={`flex-1 py-3 text-xs md:text-sm font-mono tracking-widest uppercase ${
                   modalTab === "ratings"
                     ? "bg-card text-primary border-b-2 border-primary"
                     : "bg-muted/30 text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Fan Ratings
+                팬 평점
               </button>
               <button
                 type="button"
                 onClick={() => setModalTab("assignments")}
-                className={`flex-1 py-3 text-[10px] md:text-xs font-mono tracking-widest uppercase ${
+                className={`flex-1 py-3 text-xs md:text-sm font-mono tracking-widest uppercase ${
                   modalTab === "assignments"
                     ? "bg-card text-primary border-b-2 border-primary"
                     : "bg-muted/30 text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Assignment Stats
+                배정 통계
               </button>
               <button
                 type="button"
                 onClick={() => setModalTab("cards")}
-                className={`flex-1 py-3 text-[10px] md:text-xs font-mono tracking-widest uppercase ${
+                className={`flex-1 py-3 text-xs md:text-sm font-mono tracking-widest uppercase ${
                   modalTab === "cards"
                     ? "bg-card text-primary border-b-2 border-primary"
                     : "bg-muted/30 text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Cards by Referee
+                심판별 카드 수
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3">

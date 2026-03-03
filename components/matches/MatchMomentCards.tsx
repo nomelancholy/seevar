@@ -12,6 +12,8 @@ export type MomentForCard = {
   endMinute: number | null
   seeVarCount: number
   commentCount: number
+  /** 첫 댓글 내용 일부 (카드 미리보기용) */
+  firstCommentPreview?: string | null
 }
 
 export type MatchInfoForCards = {
@@ -102,14 +104,6 @@ export function MatchMomentCards({
 
   if (moments.length === 0) return null
 
-  // SEE VAR 수 상위 5개 id (hot variant에서 HOT 태그용)
-  const hotMomentIds = new Set(
-    [...moments]
-      .sort((a, b) => (b.seeVarCount ?? 0) - (a.seeVarCount ?? 0))
-      .slice(0, 5)
-      .map((m) => m.id)
-  )
-
   const gridClass =
     variant === "list"
       ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
@@ -124,7 +118,6 @@ export function MatchMomentCards({
             variant === "list"
               ? "ledger-surface p-4 rounded-md border border-border hover:border-primary transition-colors text-left cursor-pointer w-full"
               : "hot-moment-card block w-full text-left cursor-pointer"
-          const isHot = variant === "hot" && hotMomentIds.has(mom.id)
 
           return (
             <button
@@ -150,22 +143,25 @@ export function MatchMomentCards({
               )}
               {variant === "hot" && (
                 <>
-                  {isHot && (
-                    <div className="absolute -top-2.5 -left-2.5 bg-primary text-primary-foreground font-black italic px-2 py-0.5 text-[10px] z-10">
-                      HOT
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center text-xs md:text-sm font-mono font-semibold text-foreground mb-1.5">
-                    <span>SEE VAR {mom.seeVarCount.toLocaleString()}</span>
-                    <span className="flex items-center gap-1.5">
-                      <MessageCircle className="size-4" />
-                      {mom.commentCount}
-                    </span>
-                  </div>
-                  <div className="text-primary font-bold font-mono text-[10px] md:text-xs">
+                  <div className="rank-badge">{i + 1}</div>
+                  <div className="text-primary font-bold font-mono text-[10px] md:text-xs mb-2 md:mb-3">
                     {mom.startMinute != null && mom.endMinute != null
                       ? `${mom.startMinute}' ~ ${mom.endMinute}'`
                       : mom.title ?? "—"}
+                  </div>
+                  {mom.firstCommentPreview && (
+                    <p className="text-xs md:text-sm text-white line-clamp-2 mb-2 italic">
+                      {mom.firstCommentPreview}
+                    </p>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-[8px] md:text-[10px] font-mono text-muted-foreground">
+                      VAR {mom.seeVarCount.toLocaleString()}
+                    </span>
+                    <div className="flex items-center gap-1 text-[8px] md:text-[10px] font-mono text-muted-foreground">
+                      <MessageCircle className="size-3 md:size-[10px]" />
+                      <span>{mom.commentCount}</span>
+                    </div>
                   </div>
                 </>
               )}

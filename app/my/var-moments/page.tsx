@@ -24,7 +24,7 @@ type MomentWithMatch = {
 }
 
 export const metadata = {
-  title: "My VAR Moments | See VAR",
+  title: "내 참여 | See VAR",
   description: "내가 생성하거나 참여한 논란의 순간들을 확인하세요.",
 }
 
@@ -191,14 +191,14 @@ export default async function MyVarMomentsPage() {
           >
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
-          BACK
+          뒤로 가기
         </Link>
       </div>
 
       <header className="mb-8 md:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
           <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">
-            MY VAR MOMENTS
+            내 참여
           </h1>
           <p className="font-mono text-[10px] md:text-sm text-muted-foreground">
             내가 생성하거나 참여한 논란의 순간들을 확인하세요.

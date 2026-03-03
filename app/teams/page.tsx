@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 
 export const metadata = {
-  title: "TEAM ANALYSIS | See VAR",
+  title: "팀 정보 | See VAR",
   description: "팀별 경기 데이터와 심판 상성 데이터",
 }
 
@@ -22,7 +22,7 @@ export default async function TeamsPage() {
     <main className="py-8 md:py-12">
       <header className="mb-8 md:mb-12">
         <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">
-          TEAM ANALYSIS
+          팀 정보
         </h1>
         <p className="font-mono text-[10px] md:text-sm text-muted-foreground">
           팀별 경기 데이터와 심판 상성 데이터를 확인하세요.
@@ -31,7 +31,7 @@ export default async function TeamsPage() {
 
       <div className="ledger-surface p-4 md:p-8 mb-8 md:mb-12 border border-border">
         <h3 className="font-mono text-[10px] md:text-sm font-black tracking-widest text-muted-foreground uppercase mb-6 md:mb-8">
-          Select Team
+          팀을 선택하세요
         </h3>
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
           {teams.map((t) => {
@@ -40,16 +40,16 @@ export default async function TeamsPage() {
               <Link
                 key={t.id}
                 href={`/teams/${teamPath}`}
-                className="team-btn flex flex-col items-center gap-2 group border rounded-md p-3 transition-all duration-300 hover:-translate-y-0.5 opacity-60 hover:opacity-100 border-border hover:border-primary"
+                className="team-btn flex flex-col items-center gap-2 md:gap-3 group border rounded-md p-3 md:p-4 transition-all duration-300 hover:-translate-y-0.5 opacity-60 hover:opacity-100 border-border hover:border-primary"
               >
-                <div className="w-16 h-16 bg-card border border-border flex items-center justify-center overflow-hidden rounded">
+                <div className="w-20 h-20 md:w-24 md:h-24 bg-card border border-border flex items-center justify-center overflow-hidden rounded">
                   {t.emblemPath ? (
-                    <EmblemImage src={t.emblemPath} width={48} height={48} className="w-12 h-12 object-contain" />
+                    <EmblemImage src={t.emblemPath} width={80} height={80} className="w-14 h-14 md:w-20 md:h-20 object-contain" />
                   ) : (
-                    <span className="text-muted-foreground text-xs">—</span>
+                    <span className="text-muted-foreground text-sm">—</span>
                   )}
                 </div>
-                <span className="font-mono text-xs font-bold text-center leading-tight">{t.name}</span>
+                <span className="font-mono text-sm md:text-base font-bold text-center leading-tight">{t.name}</span>
               </Link>
             )
           })}

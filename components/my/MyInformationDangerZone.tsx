@@ -28,24 +28,24 @@ export function MyInformationDangerZone() {
 
   return (
     <div className="p-6 md:p-8 border border-destructive/30 bg-destructive/5">
-      <h3 className="text-xs md:text-sm font-black italic text-destructive uppercase mb-2">
-        Danger Zone
+      <h3 className="text-sm md:text-base font-black italic text-destructive uppercase mb-2">
+        계정 삭제
       </h3>
-      <p className="text-[10px] md:text-xs text-muted-foreground mb-6">
+      <p className="text-xs md:text-sm text-muted-foreground mb-6">
         계정을 삭제하면 모든 데이터가 소멸되며 복구할 수 없습니다.
       </p>
       <button
         type="button"
         onClick={handleDelete}
         disabled={pending}
-        className="border border-destructive text-destructive px-6 py-2.5 text-[9px] md:text-[10px] font-black italic font-mono hover:bg-destructive hover:text-destructive-foreground transition-all disabled:opacity-50 inline-flex items-center gap-2"
+        className="border border-destructive text-destructive px-6 py-2.5 text-xs md:text-sm font-black italic font-mono hover:bg-destructive hover:text-destructive-foreground transition-all disabled:opacity-50 inline-flex items-center gap-2"
       >
         {pending && <Loader2 className="size-3.5 shrink-0 animate-spin" />}
         {pending
           ? "처리 중…"
           : confirm
             ? "정말 삭제하려면 다시 클릭"
-            : "DELETE ACCOUNT"}
+            : "계정 삭제"}
       </button>
     </div>
   )

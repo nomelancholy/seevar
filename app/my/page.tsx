@@ -5,7 +5,7 @@ import { MyInformationForm } from "@/components/my/MyInformationForm"
 import { MyInformationDangerZone } from "@/components/my/MyInformationDangerZone"
 
 export const metadata = {
-  title: "My Information | See VAR",
+  title: "내 정보 | See VAR",
   description: "내 프로필 정보를 관리하세요.",
 }
 
@@ -33,13 +33,13 @@ export default async function MyInformationPage() {
           >
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
-          BACK
+          뒤로 가기
         </Link>
       </div>
 
       <header className="mb-8 md:mb-12">
         <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">
-          MY INFORMATION
+          내 정보
         </h1>
         <p className="font-mono text-[10px] md:text-sm text-muted-foreground">
           내 프로필 정보를 관리하세요.

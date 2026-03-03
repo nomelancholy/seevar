@@ -1,30 +1,36 @@
 "use client"
 
 import Link from "next/link"
-import { Heart, CalendarDays, CircleUser, Trophy } from "lucide-react"
+import { Heart, FileText, CalendarDays, CircleUser, Trophy } from "lucide-react"
 
 const NAV_ITEMS = [
   {
     href: "/about",
-    label: "ABOUT",
+    label: "서비스 소개",
     Icon: Heart,
     description: "See VAR가 무엇인지, 어떤 가치로 운영되는지 소개합니다.",
   },
   {
+    href: "/notice",
+    label: "공지사항",
+    Icon: FileText,
+    description: "운영 공지와 이용 안내를 확인하세요.",
+  },
+  {
     href: "/matches",
-    label: "ARCHIVE",
+    label: "경기 기록",
     Icon: CalendarDays,
     description: "과거·현재 경기 목록과 VAR 모멘트, 판정 토론을 한곳에서 확인하세요.",
   },
   {
     href: "/referees",
-    label: "REFEREES",
+    label: "심판 정보",
     Icon: CircleUser,
     description: "주심·부심·VAR 등 심판 정보와 경기별 배정·평가를 볼 수 있습니다.",
   },
   {
     href: "/teams",
-    label: "TEAMS",
+    label: "팀 정보",
     Icon: Trophy,
     description: "K리그 팀 정보와 엠블럼, 관련 경기를 모아서 볼 수 있습니다.",
   },

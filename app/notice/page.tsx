@@ -22,24 +22,11 @@ export default async function NoticeListPage() {
 
   return (
     <main className="max-w-4xl mx-auto py-8 md:py-12">
-      <div className="mb-6 md:mb-8">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ChevronLeft className="size-4" />
-          BACK
-        </Link>
-      </div>
-
       <header className="mb-8 md:mb-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase mb-2">
+          <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase">
             공지
           </h1>
-          <p className="font-mono text-[10px] md:text-sm text-muted-foreground">
-            사이트 운영에 대한 공지입니다.
-          </p>
         </div>
         {isAdmin && (
           <div className="flex flex-wrap items-center gap-2">

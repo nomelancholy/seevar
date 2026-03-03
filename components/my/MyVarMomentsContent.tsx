@@ -55,42 +55,42 @@ export function MyVarMomentsContent({
         <button
           type="button"
           onClick={() => setTab("created")}
-          className={`pb-4 text-[10px] md:text-xs font-black italic font-mono whitespace-nowrap transition-colors border-b-2 ${
+          className={`pb-4 text-sm md:text-base font-black italic font-mono whitespace-nowrap transition-colors border-b-2 ${
             tab === "created"
               ? "border-primary text-foreground"
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
-          CREATED BY ME
+          생성
         </button>
         <button
           type="button"
           onClick={() => setTab("participated")}
-          className={`pb-4 text-[10px] md:text-xs font-black italic font-mono whitespace-nowrap transition-colors border-b-2 ${
+          className={`pb-4 text-sm md:text-base font-black italic font-mono whitespace-nowrap transition-colors border-b-2 ${
             tab === "participated"
               ? "border-primary text-foreground"
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
-          PARTICIPATED
+          참여
         </button>
         <button
           type="button"
           onClick={() => setTab("ratings")}
-          className={`pb-4 text-[10px] md:text-xs font-black italic font-mono whitespace-nowrap transition-colors border-b-2 ${
+          className={`pb-4 text-sm md:text-base font-black italic font-mono whitespace-nowrap transition-colors border-b-2 ${
             tab === "ratings"
               ? "border-primary text-foreground"
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
-          REFEREE RATINGS
+          평가
         </button>
       </div>
 
       {tab === "ratings" ? (
         <div className="space-y-3">
           {ratings.length === 0 ? (
-            <div className="border border-border bg-card p-8 text-center text-muted-foreground font-mono text-[10px] md:text-xs">
+            <div className="border border-border bg-card p-8 text-center text-muted-foreground font-mono text-xs md:text-sm">
               아직 남긴 심판 평점이 없습니다.
             </div>
           ) : (
@@ -101,7 +101,7 @@ export function MyVarMomentsContent({
               >
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[8px] font-mono">
+                    <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] md:text-xs font-mono">
                       {new Date(r.createdAt).toLocaleDateString("ko-KR", {
                         year: "numeric",
                         month: "2-digit",
@@ -110,27 +110,27 @@ export function MyVarMomentsContent({
                         .replace(/\. /g, "/")
                         .replace(".", "")}
                     </span>
-                    <span className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase">
+                    <span className="font-mono text-xs md:text-sm text-muted-foreground uppercase">
                       {r.leagueRound}
                     </span>
                   </div>
                   <h3 className="text-sm md:text-base font-black italic uppercase">
                     {r.matchTitle}
                   </h3>
-                  <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground mt-1">
-                    Referee: <span className="font-bold">{r.refereeName}</span>{" "}
-                    <span className="uppercase text-xs">({r.role})</span>
+                  <p className="font-mono text-xs md:text-sm text-muted-foreground mt-1">
+                    심판: <span className="font-bold">{r.refereeName}</span>{" "}
+                    <span className="uppercase text-sm">({r.role})</span>
                   </p>
                 </div>
                 <div className="flex items-center justify-between md:justify-end gap-4">
-                  <span className="font-mono text-[10px] md:text-xs text-primary font-bold">
-                    RATING {r.rating.toFixed(1)}
+                  <span className="font-mono text-xs md:text-sm text-primary font-bold">
+                    평점 {r.rating.toFixed(1)}
                   </span>
                   <Link
                     href={r.matchDetailPath}
-                    className="text-primary font-black italic flex items-center gap-1 hover:underline text-[10px] md:text-xs"
+                    className="text-primary font-black italic flex items-center gap-1 hover:underline text-xs md:text-sm"
                   >
-                    DETAILS
+                    경기 상세
                     <ChevronRight className="size-3" />
                   </Link>
                 </div>
@@ -146,7 +146,7 @@ export function MyVarMomentsContent({
               className="border border-border bg-card p-4 md:p-6 transition-all hover:border-primary hover:-translate-y-0.5"
             >
               <div className="flex justify-between items-start mb-4">
-                <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[8px] font-mono">
+                <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[10px] md:text-xs font-mono">
                   {new Date(mom.createdAt).toLocaleDateString("ko-KR", {
                     year: "numeric",
                     month: "2-digit",
@@ -156,21 +156,21 @@ export function MyVarMomentsContent({
                     .replace(".", "")}
                 </span>
                 <span
-                  className={`text-[8px] font-mono font-bold ${
+                  className={`text-[10px] md:text-xs font-mono font-bold ${
                     mom.isArchived ? "text-muted-foreground" : "text-primary"
                   }`}
                 >
-                  {mom.isArchived ? "ARCHIVED" : "ACTIVE"}
+                  {mom.isArchived ? "보관됨" : "진행 중"}
                 </span>
               </div>
               <h3 className="text-base md:text-lg font-black italic uppercase mb-1">
                 {mom.matchTitle}
               </h3>
-              <p className="text-[10px] font-mono text-muted-foreground mb-4">
+              <p className="text-xs md:text-sm font-mono text-muted-foreground mb-4">
                 {mom.leagueRound}
               </p>
               <div className="bg-muted/50 p-3 border border-border mb-4">
-                <p className="text-xs text-muted-foreground italic line-clamp-2">
+                <p className="text-sm md:text-base text-muted-foreground italic line-clamp-2">
                   {mom.description
                     ? `"${mom.description.slice(0, 80)}${
                         mom.description.length > 80 ? "…" : ""
@@ -178,16 +178,16 @@ export function MyVarMomentsContent({
                     : "—"}
                 </p>
               </div>
-              <div className="flex justify-between items-center text-[10px] font-mono">
+              <div className="flex justify-between items-center text-xs md:text-sm font-mono">
                 <div className="flex gap-4">
                   <span className="text-muted-foreground">
-                    SEE VAR{" "}
+                    판정 토론{" "}
                     <span className="text-foreground font-bold">
                       {mom.seeVarCount.toLocaleString()}
                     </span>
                   </span>
                   <span className="text-muted-foreground">
-                    COMMENTS{" "}
+                    댓글{" "}
                     <span className="text-foreground font-bold">
                       {mom.commentCount}
                     </span>
@@ -197,7 +197,7 @@ export function MyVarMomentsContent({
                   href={mom.matchDetailPath}
                   className="text-primary font-black italic flex items-center gap-1 hover:underline"
                 >
-                  DETAILS
+                  경기 상세
                   <ChevronRight className="size-3" />
                 </Link>
               </div>

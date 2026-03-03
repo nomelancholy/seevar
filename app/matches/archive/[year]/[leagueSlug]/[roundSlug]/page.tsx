@@ -11,7 +11,7 @@ import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
 
 export const metadata = {
-  title: "MATCH CENTER | See VAR",
+  title: "경기 기록 | See VAR",
   description: "시즌별, 라운드별 경기 일정 및 VAR 판정 데이터",
 }
 
@@ -82,10 +82,26 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   >[number]
 
   const ROLE_LABEL: Record<string, string> = {
-    MAIN: "MAIN",
-    ASSISTANT: "ASST",
-    VAR: "VAR",
-    WAITING: "WAITING",
+    MAIN: "주심",
+    ASSISTANT: "부심",
+    WAITING: "대기심",
+    VAR: "VAR (비디오 판독)",
+  }
+
+  const REFEREE_ROLE_ORDER = ["MAIN", "ASSISTANT", "WAITING", "VAR"] as const
+  function formatMatchReferees(matchReferees: { role: string; referee: { name: string } }[]) {
+    const byRole = new Map<string, string[]>()
+    for (const mr of matchReferees) {
+      const list = byRole.get(mr.role) ?? []
+      list.push(mr.referee.name)
+      byRole.set(mr.role, list)
+    }
+    const parts: { key: string; label: string; names: string[] }[] = []
+    for (const role of REFEREE_ROLE_ORDER) {
+      const names = byRole.get(role)
+      if (names?.length) parts.push({ key: role, label: role === "VAR" ? "VAR" : (ROLE_LABEL[role] ?? role), names })
+    }
+    return parts
   }
 
   type MatchWithRound = Awaited<
@@ -106,8 +122,8 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   let roundsForFilter: { slug: string; number: number }[] = []
   let matches: MatchWithRound[] = []
   let rawHotMoments: MomentWithMatch[] = []
-  let bestReferee: { refereeId: string; name: string; role: string; avg: number } | null = null
-  let worstReferee: { refereeId: string; name: string; role: string; avg: number } | null = null
+  let bestReferee: { refereeId: string; name: string; role: string; avg: number; voteCount: number } | null = null
+  let worstReferee: { refereeId: string; name: string; role: string; avg: number; voteCount: number } | null = null
   let bestRefFeedbacks: {
     id: string
     userName: string
@@ -164,6 +180,12 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                     awayTeam: true,
                     round: { include: { league: true } },
                   },
+                },
+                comments: {
+                  where: { parentId: null, status: "VISIBLE" },
+                  take: 1,
+                  orderBy: { createdAt: "asc" },
+                  select: { content: true },
                 },
               },
             })
@@ -334,6 +356,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         name: v.name,
         role: v.role,
         avg: v.count > 0 ? v.sum / v.count : 0,
+        voteCount: v.count,
         reviews: v.reviews.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
       }))
 
@@ -342,8 +365,20 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         const byWorst = [...stats].sort((a, b) => a.avg - b.avg)
         const best = byBest[0]
         const worst = byWorst[0]
-        bestReferee = { refereeId: best.refereeId, name: best.name, role: best.role, avg: best.avg }
-        worstReferee = { refereeId: worst.refereeId, name: worst.name, role: worst.role, avg: worst.avg }
+        bestReferee = {
+          refereeId: best.refereeId,
+          name: best.name,
+          role: best.role,
+          avg: best.avg,
+          voteCount: best.voteCount,
+        }
+        worstReferee = {
+          refereeId: worst.refereeId,
+          name: worst.name,
+          role: worst.role,
+          avg: worst.avg,
+          voteCount: worst.voteCount,
+        }
         bestRefFeedbacks = best.reviews
         worstRefFeedbacks = worst.reviews
       }
@@ -353,6 +388,11 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   const hotList = rawHotMoments.map((mom, i) => {
     const homeTeam = mom.match.homeTeam as unknown as { name: string; slug: string | null; emblemPath: string | null }
     const awayTeam = mom.match.awayTeam as unknown as { name: string; slug: string | null; emblemPath: string | null }
+    const comments = (mom as { comments?: { content: string }[] }).comments
+    const firstContent = comments?.[0]?.content
+    const firstCommentPreview = firstContent
+      ? firstContent.replace(/\s+/g, " ").trim().slice(0, 40) + (firstContent.length > 40 ? "…" : "")
+      : undefined
     return {
     rank: i + 1,
     momentId: mom.id,
@@ -365,6 +405,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     time: mom.title ?? `${mom.startMinute ?? 0}' ~ ${mom.endMinute ?? 0}'`,
     varCount: mom.seeVarCount,
     commentCount: mom.commentCount,
+    firstCommentPreview,
   }
   })
 
@@ -432,7 +473,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
       <header className="mb-8 md:mb-12 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div>
           <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">
-            MATCH CENTER
+            경기 기록
           </h1>
           <p className="font-mono text-xs md:text-sm text-muted-foreground">
             시즌별, 라운드별 경기 일정 및 VAR 판정 데이터를 확인하세요.
@@ -457,9 +498,9 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           <div className="ledger-surface p-4 md:p-6 border-l-4 border-[#00ff41]">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="font-mono text-[8px] md:text-[10px] font-black tracking-widest text-[#00ff41] uppercase mb-1">
-                  Round Best Referee
-                </h2>
+                <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1">
+                  라운드 베스트 심판
+                </p>
                 <Link
                   href={`/referees/${bestReferee.refereeId}`}
                   className="text-xl md:text-2xl font-black italic uppercase leading-none hover:text-[#00ff41] transition-colors"
@@ -467,25 +508,25 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                   {bestReferee.name}
                 </Link>
                 <div className="mt-3 flex items-center gap-2">
-                  <span className="bg-zinc-800 text-white px-2 py-0.5 text-[8px] md:text-[9px] font-bold font-mono uppercase">
+                  <span className="bg-zinc-800 text-white px-2 py-0.5 text-[10px] md:text-xs font-bold font-mono">
                     {ROLE_LABEL[bestReferee.role] ?? bestReferee.role}
                   </span>
                 </div>
               </div>
               <div className="text-right">
-                <span className="bg-[#00ff41] text-black px-2 py-0.5 text-[7px] md:text-[8px] font-black uppercase">
-                  Top Rated
+                <span className="bg-[#00ff41] text-black px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
+                  최고점
                 </span>
-                <p className="font-mono text-[9px] md:text-[10px] text-zinc-500 mt-1">
-                  AVG: {bestReferee.avg.toFixed(1)} / 5.0
+                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1">
+                  AVG: {bestReferee.avg.toFixed(1)} / 5.0 ({bestReferee.voteCount}명)
                 </p>
               </div>
             </div>
 
             {bestRefFeedbacks.length > 0 && (
               <div className="space-y-4">
-                <p className="font-mono text-[8px] text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
-                  Top Fan Feedbacks
+                <p className="font-mono text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
+                  베스트 팬 한줄평
                 </p>
                 {bestRefFeedbacks.map((fb) => (
                   <div key={fb.id} className="bg-zinc-900/50 p-3 border border-zinc-800">
@@ -493,35 +534,36 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                       <div className="flex items-center gap-2 md:gap-3">
                         <div className="relative">
                           <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                            <span className="text-[10px] text-zinc-400 font-mono">
+                            <span className="text-xs text-zinc-400 font-mono">
                               {fb.userName.slice(0, 2).toUpperCase()}
                             </span>
                           </div>
                           {fb.teamEmblem && (
                             <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={fb.teamEmblem} alt={fb.teamName ?? ""} className="w-full h-full" />
                             </div>
                           )}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[9px] md:text-[10px] font-black italic text-white">
+                          <span className="text-xs md:text-sm font-black italic text-white">
                             {fb.userName}
                           </span>
                           {fb.teamName && (
-                            <span className="text-[7px] md:text-[8px] font-mono text-zinc-500 uppercase">
+                            <span className="text-[10px] md:text-xs font-mono text-zinc-500 uppercase">
                               {fb.teamName} SUPPORTING
                             </span>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-blue-400">
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
-                        <span className="font-mono text-[7px] md:text-[8px] font-black">{fb.likeCount}</span>
+                        <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
                       </div>
                     </div>
-                    <div className="text-xs md:text-sm text-zinc-300 italic">
+                    <div className="text-sm md:text-base text-zinc-300 italic">
                       <TextWithEmbedPreview text={fb.comment} />
                     </div>
                   </div>
@@ -534,9 +576,9 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           <div className="ledger-surface p-4 md:p-6 border-l-4 border-red-600">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="font-mono text-[8px] md:text-[10px] font-black tracking-widest text-red-500 uppercase mb-1">
-                  Round Worst Referee
-                </h2>
+                <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1">
+                  라운드 워스트 심판
+                </p>
                 <Link
                   href={`/referees/${worstReferee.refereeId}`}
                   className="text-xl md:text-2xl font-black italic uppercase leading-none hover:text-red-500 transition-colors"
@@ -544,25 +586,25 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                   {worstReferee.name}
                 </Link>
                 <div className="mt-3 flex items-center gap-2">
-                  <span className="bg-zinc-800 text-white px-2 py-0.5 text-[8px] md:text-[9px] font-bold font-mono uppercase">
+                  <span className="bg-zinc-800 text-white px-2 py-0.5 text-[10px] md:text-xs font-bold font-mono">
                     {ROLE_LABEL[worstReferee.role] ?? worstReferee.role}
                   </span>
                 </div>
               </div>
               <div className="text-right">
-                <span className="bg-red-600 text-white px-2 py-0.5 text-[7px] md:text-[8px] font-black uppercase">
-                  Low Rated
+                <span className="bg-red-600 text-white px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
+                  최저점
                 </span>
-                <p className="font-mono text-[9px] md:text-[10px] text-zinc-500 mt-1">
-                  AVG: {worstReferee.avg.toFixed(1)} / 5.0
+                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1">
+                  AVG: {worstReferee.avg.toFixed(1)} / 5.0 ({worstReferee.voteCount}명)
                 </p>
               </div>
             </div>
 
             {worstRefFeedbacks.length > 0 && (
               <div className="space-y-4">
-                <p className="font-mono text-[8px] text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
-                  Top Fan Feedbacks
+                <p className="font-mono text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
+                  베스트 팬 한줄평
                 </p>
                 {worstRefFeedbacks.map((fb) => (
                   <div key={fb.id} className="bg-zinc-900/50 p-3 border border-zinc-800">
@@ -570,35 +612,36 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                       <div className="flex items-center gap-2 md:gap-3">
                         <div className="relative">
                           <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                            <span className="text-[10px] text-zinc-400 font-mono">
+                            <span className="text-xs text-zinc-400 font-mono">
                               {fb.userName.slice(0, 2).toUpperCase()}
                             </span>
                           </div>
                           {fb.teamEmblem && (
                             <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={fb.teamEmblem} alt={fb.teamName ?? ""} className="w-full h-full" />
                             </div>
                           )}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[9px] md:text-[10px] font-black italic text-white">
+                          <span className="text-xs md:text-sm font-black italic text-white">
                             {fb.userName}
                           </span>
                           {fb.teamName && (
-                            <span className="text-[7px] md:text-[8px] font-mono text-zinc-500 uppercase">
+                            <span className="text-[10px] md:text-xs font-mono text-zinc-500 uppercase">
                               {fb.teamName} SUPPORTING
                             </span>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-blue-400">
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
-                        <span className="font-mono text-[7px] md:text-[8px] font-black">{fb.likeCount}</span>
+                        <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
                       </div>
                     </div>
-                    <div className="text-xs md:text-sm text-zinc-300 italic">
+                    <div className="text-sm md:text-base text-zinc-300 italic">
                       <TextWithEmbedPreview text={fb.comment} />
                     </div>
                   </div>
@@ -613,14 +656,14 @@ export default async function MatchesArchivePage({ params }: { params: Params })
       {hotList.length === 0 ? (
         <section className="mb-8 md:mb-12">
           <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
-            HOT MOMENTS OF THIS ROUND
+            라운드 화제의 순간
           </h2>
           <p className="text-sm text-muted-foreground font-mono">
             등록된 모멘트가 없습니다.
           </p>
         </section>
       ) : (
-        <HotMomentsSection hotMoments={hotList} title="HOT MOMENTS OF THIS ROUND" />
+        <HotMomentsSection hotMoments={hotList} title="라운드 화제의 순간" />
       )}
 
       <div className="ledger-surface overflow-hidden">
@@ -722,23 +765,43 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                     </div>
                   </div>
                   {m.venue?.trim() && (
-                    <p className="font-mono text-xs text-muted-foreground">
+                    <p className="font-mono text-sm text-muted-foreground text-center">
                       {m.venue.trim()}
                     </p>
                   )}
-                  {"matchReferees" in m && Array.isArray(m.matchReferees) && m.matchReferees.length > 0 && (
-                    <div className="flex flex-wrap gap-x-2 gap-y-1 font-mono text-[10px] text-muted-foreground">
-                      {m.matchReferees.map((mr: { role: string; referee: { name: string } }) => (
-                        <span key={`${mr.role}-${mr.referee.name}`}>
-                          <span className="uppercase font-bold text-foreground/80">{ROLE_LABEL[mr.role] ?? mr.role}</span>
+                  {"matchReferees" in m && Array.isArray(m.matchReferees) && m.matchReferees.length > 0 && (() => {
+                    const parts = formatMatchReferees(m.matchReferees)
+                    const row1 = parts.filter((p) => p.key === "MAIN" || p.key === "ASSISTANT")
+                    const row2 = parts.filter((p) => p.key === "WAITING" || p.key === "VAR")
+                    const renderPart = ({ key, label, names }: { key: string; label: string; names: string[] }) =>
+                      key === "VAR" ? (
+                        <span key={key}>
+                          <span className="font-bold text-foreground/80">{label}</span>
                           <span className="mx-0.5">·</span>
-                          <span>{mr.referee.name}</span>
+                          <span>{names.join(", ")}</span>
                         </span>
-                      ))}
-                    </div>
-                  )}
+                      ) : (
+                        names.map((name, i) => (
+                          <span key={`${key}-${name}-${i}`}>
+                            <span className="font-bold text-foreground/80">{label}</span>
+                            <span className="mx-0.5">·</span>
+                            <span>{name}</span>
+                          </span>
+                        ))
+                      )
+                    return (
+                      <div className="flex flex-col gap-1 items-center text-center">
+                        <div className="flex flex-wrap justify-center gap-x-2 gap-y-0.5 font-mono text-sm text-muted-foreground">
+                          {row1.map((p) => renderPart(p))}
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-x-2 gap-y-0.5 font-mono text-sm text-muted-foreground">
+                          {row2.map((p) => renderPart(p))}
+                        </div>
+                      </div>
+                    )
+                  })()}
                   <span className="self-end border border-border px-4 py-2.5 text-[10px] font-bold font-mono group-hover:bg-foreground group-hover:text-background transition-all">
-                    INSIDE GAME
+                    경기 상세
                   </span>
                 </div>
 
@@ -823,25 +886,35 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                       </div>
                     </div>
                     {m.venue?.trim() && (
-                      <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground text-center">
+                      <p className="font-mono text-xs md:text-sm text-muted-foreground text-center">
                         {m.venue.trim()}
                       </p>
                     )}
                     {"matchReferees" in m && Array.isArray(m.matchReferees) && m.matchReferees.length > 0 && (
-                      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-mono text-[9px] md:text-[10px] text-muted-foreground">
-                        {m.matchReferees.map((mr: { role: string; referee: { name: string } }) => (
-                          <span key={`${mr.role}-${mr.referee.name}`}>
-                            <span className="uppercase font-bold text-foreground/80">{ROLE_LABEL[mr.role] ?? mr.role}</span>
-                            <span className="mx-1">·</span>
-                            <span>{mr.referee.name}</span>
-                          </span>
-                        ))}
+                      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-mono text-xs md:text-sm text-muted-foreground">
+                        {formatMatchReferees(m.matchReferees).map(({ key, label, names }) =>
+                          key === "VAR" ? (
+                            <span key={key}>
+                              <span className="font-bold text-foreground/80">{label}</span>
+                              <span className="mx-1">·</span>
+                              <span>{names.join(", ")}</span>
+                            </span>
+                          ) : (
+                            names.map((name, i) => (
+                              <span key={`${key}-${name}-${i}`}>
+                                <span className="font-bold text-foreground/80">{label}</span>
+                                <span className="mx-1">·</span>
+                                <span>{name}</span>
+                              </span>
+                            ))
+                          )
+                        )}
                       </div>
                     )}
                   </div>
                   <div className="col-span-2 text-right">
                     <span className="border border-border px-4 py-2 text-[10px] font-bold font-mono group-hover:bg-foreground group-hover:text-background transition-all inline-block">
-                      INSIDE GAME
+                      경기 상세
                     </span>
                   </div>
                 </div>
@@ -851,11 +924,11 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         </div>
       </div>
 
-      {/* ROUND MEDIA ARCHIVE - 페이지 가장 하단 */}
+      {/* 라운드 판정 리포트 - 페이지 가장 하단 */}
       {(youtubeEmbedUrl || instagramEmbedUrl) && (
         <section className="mt-8 md:mt-12">
           <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-4">
-            ROUND MEDIA ARCHIVE
+            라운드 판정 리포트
           </h2>
           <div className="flex flex-col gap-4 md:gap-6">
             {youtubeEmbedUrl && (

@@ -49,6 +49,7 @@ type RoundHighlight = {
         name: string
         role: string
         avg: number
+        voteCount: number
         feedbacks: RefFeedback[]
       }
     | null
@@ -59,6 +60,7 @@ type RoundHighlight = {
         name: string
         role: string
         avg: number
+        voteCount: number
         feedbacks: RefFeedback[]
       }
     | null
@@ -273,16 +275,26 @@ export default async function HomePage() {
         name: v.name,
         role: v.role,
         avg: v.count > 0 ? v.sum / v.count : 0,
+        voteCount: v.count,
         feedbacks: v.feedbacks.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
       }))
 
       if (stats.length > 0) {
-        const byBest = [...stats].sort((a, b) => b.avg - a.avg)
-        const byWorst = [...stats].sort((a, b) => a.avg - b.avg)
-        const best = byBest[0]
-        const worst = byWorst[0]
-        bestReferee = best
-        worstReferee = worst
+        if (stats.length === 1) {
+          const single = stats[0]
+          if (single.avg >= 2.5) {
+            bestReferee = single
+            worstReferee = null
+          } else {
+            bestReferee = null
+            worstReferee = single
+          }
+        } else {
+          const byBest = [...stats].sort((a, b) => b.avg - a.avg)
+          const byWorst = [...stats].sort((a, b) => a.avg - b.avg)
+          bestReferee = byBest[0]
+          worstReferee = byWorst[0]
+        }
       }
     }
 
@@ -324,6 +336,7 @@ export default async function HomePage() {
     time: string
     varCount: number
     commentCount: number
+    firstCommentPreview?: string
   }> = []
   if (focusMatchIds.length > 0) {
     try {
@@ -339,25 +352,45 @@ export default async function HomePage() {
               round: { include: { league: true } },
             },
           },
+          comments: {
+            where: { parentId: null, status: "VISIBLE" },
+            take: 1,
+            orderBy: { createdAt: "asc" },
+            select: { content: true },
+          },
         },
       })
-      hotMoments = rows.map((mom, i) => ({
-        rank: i + 1,
-        momentId: mom.id,
-        matchId: mom.matchId,
-        league: mom.match.round.league.name.toUpperCase(),
-        homeName: shortNameFromSlug(mom.match.homeTeam.slug),
-        awayName: shortNameFromSlug(mom.match.awayTeam.slug),
-        homeEmblem: mom.match.homeTeam.emblemPath ?? "",
-        awayEmblem: mom.match.awayTeam.emblemPath ?? "",
-        time: mom.title ?? `${mom.startMinute ?? 0}' ~ ${mom.endMinute ?? 0}'`,
-        varCount: mom.seeVarCount,
-        commentCount: mom.commentCount,
-      }))
+      hotMoments = rows.map((mom, i) => {
+        const firstContent = (mom as { comments?: { content: string }[] }).comments?.[0]?.content
+        const firstCommentPreview = firstContent
+          ? firstContent.replace(/\s+/g, " ").trim().slice(0, 40) + (firstContent.length > 40 ? "…" : "")
+          : null
+        return {
+          rank: i + 1,
+          momentId: mom.id,
+          matchId: mom.matchId,
+          league: mom.match.round.league.name.toUpperCase(),
+          homeName: shortNameFromSlug(mom.match.homeTeam.slug),
+          awayName: shortNameFromSlug(mom.match.awayTeam.slug),
+          homeEmblem: mom.match.homeTeam.emblemPath ?? "",
+          awayEmblem: mom.match.awayTeam.emblemPath ?? "",
+          time: mom.title ?? `${mom.startMinute ?? 0}' ~ ${mom.endMinute ?? 0}'`,
+          varCount: mom.seeVarCount,
+          commentCount: mom.commentCount,
+          firstCommentPreview: firstCommentPreview ?? undefined,
+        }
+      })
     } catch (e: unknown) {
       const err = e as { code?: string }
       if (err?.code !== "P2021") throw e
     }
+  }
+
+  const REFEREE_ROLE_LABEL: Record<string, string> = {
+    MAIN: "주심",
+    ASSISTANT: "부심",
+    WAITING: "대기심",
+    VAR: "VAR (비디오 판독)",
   }
 
   return (
@@ -367,7 +400,7 @@ export default async function HomePage() {
           {(k1Highlight || k2Highlight) && (
             <section className="mb-8 md:mb-12">
               <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
-                Focus Round Highlights
+                라운드 베스트/워스트 심판
               </h2>
               <div className="space-y-8">
                 {[k1Highlight, k2Highlight].map(
@@ -378,14 +411,15 @@ export default async function HomePage() {
                           {h.leagueName} · Round {h.roundNumber}
                         </p>
 
-                        {h.bestReferee && h.worstReferee && (
+                        {(h.bestReferee || h.worstReferee) && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-4">
                             {/* BEST */}
+                            {h.bestReferee && (
                             <div className="ledger-surface p-4 md:p-6 border-l-4 border-[#00ff41]">
                               <div className="flex justify-between items-start mb-6">
                                 <div>
-                                  <p className="font-mono text-[8px] md:text-[10px] font-black tracking-widest text-[#00ff41] uppercase mb-1">
-                                    Round Best Referee
+                                  <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1">
+                                    라운드 베스트 심판
                                   </p>
                                   <Link
                                     href={`/referees/${h.bestReferee.slug}`}
@@ -394,25 +428,25 @@ export default async function HomePage() {
                                     {h.bestReferee.name}
                                   </Link>
                                   <div className="mt-3 flex items-center gap-2">
-                                    <span className="bg-zinc-800 text-white px-2 py-0.5 text-[8px] md:text-[9px] font-bold font-mono uppercase">
-                                      {h.bestReferee.role}
+                                    <span className="bg-zinc-800 text-white px-2 py-0.5 text-[10px] md:text-xs font-bold font-mono">
+                                      {REFEREE_ROLE_LABEL[h.bestReferee.role] ?? h.bestReferee.role}
                                     </span>
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <span className="bg-[#00ff41] text-black px-2 py-0.5 text-[7px] md:text-[8px] font-black uppercase">
-                                    Top Rated
+                                  <span className="bg-[#00ff41] text-black px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
+                                    최고점
                                   </span>
-                                  <p className="font-mono text-[9px] md:text-[10px] text-zinc-500 mt-1">
-                                    AVG: {h.bestReferee.avg.toFixed(1)} / 5.0
+                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1">
+                                    AVG: {h.bestReferee.avg.toFixed(1)} / 5.0 ({h.bestReferee.voteCount}명)
                                   </p>
                                 </div>
                               </div>
 
                               {h.bestReferee.feedbacks.length > 0 && (
                                 <div className="space-y-4">
-                                  <p className="font-mono text-[8px] text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
-                                    Top Fan Feedbacks
+                                  <p className="font-mono text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
+                                    베스트 팬 한줄평
                                   </p>
                                   {h.bestReferee.feedbacks.map((fb) => (
                                     <div key={fb.id} className="bg-zinc-900/50 p-3 border border-zinc-800">
@@ -428,7 +462,7 @@ export default async function HomePage() {
                                                   className="w-full h-full object-cover"
                                                 />
                                               ) : (
-                                                <span className="text-[10px] text-zinc-400 font-mono">
+                                                <span className="text-xs text-zinc-400 font-mono">
                                                   {fb.userName.slice(0, 2).toUpperCase()}
                                                 </span>
                                               )}
@@ -441,24 +475,24 @@ export default async function HomePage() {
                                             )}
                                           </div>
                                           <div className="flex flex-col">
-                                            <span className="text-[9px] md:text-[10px] font-black italic text-white">
+                                            <span className="text-xs md:text-sm font-black italic text-white">
                                               {fb.userName}
                                             </span>
                                             {fb.teamName && (
-                                              <span className="text-[7px] md:text-[8px] font-mono text-zinc-500 uppercase">
+                                              <span className="text-[10px] md:text-xs font-mono text-zinc-500 uppercase">
                                                 {fb.teamName} SUPPORTING
                                               </span>
                                             )}
                                           </div>
                                         </div>
                                         <div className="flex items-center gap-1 text-blue-400">
-                                          <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                           </svg>
-                                          <span className="font-mono text-[7px] md:text-[8px] font-black">{fb.likeCount}</span>
+                                          <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
                                         </div>
                                       </div>
-                                      <div className="text-xs md:text-sm text-zinc-300 italic">
+                                      <div className="text-sm md:text-base text-zinc-300 italic">
                                         <TextWithEmbedPreview text={fb.comment} />
                                       </div>
                                     </div>
@@ -466,13 +500,15 @@ export default async function HomePage() {
                                 </div>
                               )}
                             </div>
+                            )}
 
                             {/* WORST */}
+                            {h.worstReferee && (
                             <div className="ledger-surface p-4 md:p-6 border-l-4 border-red-600">
                               <div className="flex justify-between items-start mb-6">
                                 <div>
-                                  <p className="font-mono text-[8px] md:text-[10px] font-black tracking-widest text-red-500 uppercase mb-1">
-                                    Round Worst Referee
+                                  <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1">
+                                    라운드 워스트 심판
                                   </p>
                                   <Link
                                     href={`/referees/${h.worstReferee.slug}`}
@@ -481,25 +517,25 @@ export default async function HomePage() {
                                     {h.worstReferee.name}
                                   </Link>
                                   <div className="mt-3 flex items-center gap-2">
-                                    <span className="bg-zinc-800 text-white px-2 py-0.5 text-[8px] md:text-[9px] font-bold font-mono uppercase">
-                                      {h.worstReferee.role}
+                                    <span className="bg-zinc-800 text-white px-2 py-0.5 text-[10px] md:text-xs font-bold font-mono">
+                                      {REFEREE_ROLE_LABEL[h.worstReferee.role] ?? h.worstReferee.role}
                                     </span>
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <span className="bg-red-600 text-white px-2 py-0.5 text-[7px] md:text-[8px] font-black uppercase">
-                                    Low Rated
+                                  <span className="bg-red-600 text-white px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
+                                    최저점
                                   </span>
-                                  <p className="font-mono text-[9px] md:text-[10px] text-zinc-500 mt-1">
-                                    AVG: {h.worstReferee.avg.toFixed(1)} / 5.0
+                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1">
+                                    AVG: {h.worstReferee.avg.toFixed(1)} / 5.0 ({h.worstReferee.voteCount}명)
                                   </p>
                                 </div>
                               </div>
 
                               {h.worstReferee.feedbacks.length > 0 && (
                                 <div className="space-y-4">
-                                  <p className="font-mono text-[8px] text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
-                                    Top Fan Feedbacks
+                                  <p className="font-mono text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
+                                    베스트 팬 한줄평
                                   </p>
                                   {h.worstReferee.feedbacks.map((fb) => (
                                     <div key={fb.id} className="bg-zinc-900/50 p-3 border border-zinc-800">
@@ -507,9 +543,18 @@ export default async function HomePage() {
                                         <div className="flex items-center gap-2 md:gap-3">
                                           <div className="relative">
                                             <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                                              <span className="text-[10px] text-zinc-400 font-mono">
-                                                {fb.userName.slice(0, 2).toUpperCase()}
-                                              </span>
+                                              {fb.userImage ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                  src={fb.userImage}
+                                                  alt={fb.userName}
+                                                  className="w-full h-full object-cover"
+                                                />
+                                              ) : (
+                                                <span className="text-xs text-zinc-400 font-mono">
+                                                  {fb.userName.slice(0, 2).toUpperCase()}
+                                                </span>
+                                              )}
                                             </div>
                                             {fb.teamEmblem && (
                                               <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
@@ -519,24 +564,24 @@ export default async function HomePage() {
                                             )}
                                           </div>
                                           <div className="flex flex-col">
-                                            <span className="text-[9px] md:text-[10px] font-black italic text-white">
+                                            <span className="text-xs md:text-sm font-black italic text-white">
                                               {fb.userName}
                                             </span>
                                             {fb.teamName && (
-                                              <span className="text-[7px] md:text-[8px] font-mono text-zinc-500 uppercase">
+                                              <span className="text-[10px] md:text-xs font-mono text-zinc-500 uppercase">
                                                 {fb.teamName} SUPPORTING
                                               </span>
                                             )}
                                           </div>
                                         </div>
                                         <div className="flex items-center gap-1 text-blue-400">
-                                          <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                           </svg>
-                                          <span className="font-mono text-[7px] md:text-[8px] font-black">{fb.likeCount}</span>
+                                          <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
                                         </div>
                                       </div>
-                                      <div className="text-xs md:text-sm text-zinc-300 italic">
+                                      <div className="text-sm md:text-base text-zinc-300 italic">
                                         <TextWithEmbedPreview text={fb.comment} />
                                       </div>
                                     </div>
@@ -544,6 +589,7 @@ export default async function HomePage() {
                                 </div>
                               )}
                             </div>
+                            )}
                           </div>
                         )}
 
@@ -562,14 +608,14 @@ export default async function HomePage() {
             hasK2Focus={k2Round1 !== null}
           />
 
-          {/* ROUND MEDIA ARCHIVE - 메인 페이지 가장 하단 */}
+          {/* 라운드 판정 리포트 - 메인 페이지 가장 하단 */}
           {(k1Highlight?.youtubeEmbedUrl ||
             k1Highlight?.instagramEmbedUrl ||
             k2Highlight?.youtubeEmbedUrl ||
             k2Highlight?.instagramEmbedUrl) && (
             <section className="mb-8 md:mb-12">
               <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
-                ROUND MEDIA ARCHIVE
+                라운드 판정 리포트
               </h2>
               <div className="space-y-8">
                 {[k1Highlight, k2Highlight].map(

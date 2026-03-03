@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Heart, Flag, Loader2, Pencil, MessageCircle, User } from "lucide-react"
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
@@ -89,9 +89,9 @@ function StarRatingDisplay({ rating, size = "normal" }: { rating: number; size?:
 }
 
 const ROLE_LABEL: Record<string, string> = {
-  MAIN: "Main",
-  ASSISTANT: "Asst",
-  WAITING: "WAITING",
+  MAIN: "주심",
+  ASSISTANT: "부심",
+  WAITING: "대기심",
   VAR: "VAR",
 }
 
@@ -99,6 +99,49 @@ type RefereeItem = {
   id: string
   role: string
   referee: { id: string; name: string; slug: string }
+}
+
+/** MAIN/ASSISTANT/WAITING: 1 slot per referee. VAR: 1 slot for all VAR referees. */
+type RatingSlot = {
+  slotId: string
+  role: string
+  refereeIds: string[]
+  label: string
+  names: string
+}
+
+function buildRatingSlots(matchReferees: RefereeItem[]): RatingSlot[] {
+  const order: (keyof typeof ROLE_LABEL)[] = ["MAIN", "ASSISTANT", "WAITING", "VAR"]
+  const byRole = new Map<string, RefereeItem[]>()
+  for (const mr of matchReferees) {
+    const list = byRole.get(mr.role) ?? []
+    list.push(mr)
+    byRole.set(mr.role, list)
+  }
+  const slots: RatingSlot[] = []
+  for (const role of order) {
+    const refs = byRole.get(role) ?? []
+    if (role === "VAR" && refs.length > 0) {
+      slots.push({
+        slotId: `var-${refs.map((r) => r.referee.id).join("-")}`,
+        role: "VAR",
+        refereeIds: refs.map((r) => r.referee.id),
+        label: ROLE_LABEL.VAR,
+        names: refs.map((r) => r.referee.name).join(", "),
+      })
+    } else {
+      for (const mr of refs) {
+        slots.push({
+          slotId: mr.id,
+          role: mr.role,
+          refereeIds: [mr.referee.id],
+          label: ROLE_LABEL[mr.role] ?? mr.role,
+          names: mr.referee.name,
+        })
+      }
+    }
+  }
+  return slots
 }
 
 function hiddenReviewMessage(): string {
@@ -185,23 +228,36 @@ export function MatchRefereeRatingSection({
   const router = useRouter()
   const reviews = initialReviews
 
+  const ratingSlots = useMemo(() => buildRatingSlots(matchReferees), [matchReferees])
+
   useEffect(() => {
-    const sel = matchReferees[selectedIdx]
-    const refId = sel?.referee.id
-    const selReviews = refId ? initialReviews.filter((r) => r.refereeId === refId) : []
+    const slot = ratingSlots[selectedIdx]
+    if (!slot) return
+    const selReviews = initialReviews.filter((r) => slot.refereeIds.includes(r.refereeId))
     const mine = currentUserId ? selReviews.find((r) => r.userId === currentUserId) : null
     setRating(mine?.rating ?? 0)
     setComment(mine?.comment ?? "")
     setError(null)
     setIsEditing(false)
-  }, [selectedIdx, matchReferees, initialReviews, currentUserId])
+  }, [selectedIdx, ratingSlots, initialReviews, currentUserId])
 
-  const selected = matchReferees[selectedIdx]
-  const selectedRefereeId = selected?.referee.id
-  const selectedReviews = selectedRefereeId
-    ? reviews.filter((r) => r.refereeId === selectedRefereeId)
+  const selected = ratingSlots[selectedIdx]
+  const selectedReviews = selected
+    ? reviews.filter((r) => selected.refereeIds.includes(r.refereeId))
     : []
-  const visibleReviews = selectedReviews.filter((r) => r.status !== "HIDDEN")
+  // VAR slot: one user can have two reviews (same content); show one per user for display
+  const visibleReviews = (() => {
+    const filtered = selectedReviews.filter((r) => r.status !== "HIDDEN")
+    if (selected?.refereeIds.length && selected.refereeIds.length > 1) {
+      const seen = new Set<string>()
+      return filtered.filter((r) => {
+        if (seen.has(r.userId)) return false
+        seen.add(r.userId)
+        return true
+      })
+    }
+    return filtered
+  })()
   const myReview = currentUserId
     ? selectedReviews.find((r) => r.userId === currentUserId)
     : null
@@ -382,9 +438,9 @@ export function MatchRefereeRatingSection({
     }
   }
 
-  // 베스트(좋아요 5개 이상) 상단 고정: 최대 3개
+  // 베스트(좋아요 5개 이상) 상단 고정: 최대 3개. VAR 슬롯은 visibleReviews(유저당 1건) 기준으로 정렬.
   const orderedSelectedReviews: ReviewItem[] = (() => {
-    const withLikes = selectedReviews.map((rev) => ({
+    const withLikes = visibleReviews.map((rev) => ({
       rev,
       likeCount: getLikeState(rev).likeCount,
     }))
@@ -394,7 +450,7 @@ export function MatchRefereeRatingSection({
       .slice(0, 3)
       .map(({ rev }) => rev)
     const bestIds = new Set(best.map((r) => r.id))
-    const rest = selectedReviews.filter((r) => !bestIds.has(r.id))
+    const rest = visibleReviews.filter((r) => !bestIds.has(r.id))
     return [...best, ...rest]
   })()
 
@@ -406,25 +462,23 @@ export function MatchRefereeRatingSection({
     }
     setPending(true)
     setError(null)
-    const result = await createRefereeReview(
-      matchId,
-      selected.referee.id,
-      selected.role as "MAIN" | "ASSISTANT" | "VAR" | "WAITING",
-      rating,
-      comment || null
-    )
-    setPending(false)
-    if (result.ok) {
-      if (!myReview) {
-        setRating(0)
-        setComment("")
-      } else {
-        setIsEditing(false)
+    const role = selected.role as "MAIN" | "ASSISTANT" | "VAR" | "WAITING"
+    for (const refereeId of selected.refereeIds) {
+      const result = await createRefereeReview(matchId, refereeId, role, rating, comment || null)
+      if (!result.ok) {
+        setPending(false)
+        setError(result.error)
+        return
       }
-      router.refresh()
-    } else {
-      setError(result.error)
     }
+    setPending(false)
+    if (!myReview) {
+      setRating(0)
+      setComment("")
+    } else {
+      setIsEditing(false)
+    }
+    router.refresh()
   }
 
   if (matchReferees.length === 0) return null
@@ -433,19 +487,15 @@ export function MatchRefereeRatingSection({
     <div className="mb-8 border border-border bg-card/50">
       <div className="border-b border-border px-4 md:px-6 py-3">
         <span className="font-mono text-xs font-black tracking-widest text-primary uppercase">
-          REFEREE RATING
+          심판 평가
         </span>
       </div>
       <div className="p-4 md:p-8">
-        <p className="font-mono text-[8px] md:text-[9px] text-muted-foreground italic mb-6">
-          * 각 심판별로 팬들의 평가와 한줄평을 확인하세요.
-        </p>
-
         {/* Referee selector */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-8">
-          {matchReferees.map((mr, idx) => (
+          {ratingSlots.map((slot, idx) => (
             <button
-              key={mr.id}
+              key={slot.slotId}
               type="button"
               onClick={() => setSelectedIdx(idx)}
               className={`text-left p-3 border transition-colors ${
@@ -454,10 +504,10 @@ export function MatchRefereeRatingSection({
                   : "border-border bg-card/30 hover:border-muted-foreground/50"
               }`}
             >
-              <p className="text-[7px] md:text-[8px] font-mono text-muted-foreground uppercase">
-                {ROLE_LABEL[mr.role] ?? mr.role}
+              <p className="text-xs md:text-sm font-mono text-muted-foreground uppercase font-bold">
+                {slot.label}
               </p>
-              <p className="text-[10px] md:text-xs font-bold truncate">{mr.referee.name}</p>
+              <p className="text-base md:text-lg font-bold truncate mt-0.5">{slot.names}</p>
             </button>
           ))}
         </div>
@@ -470,28 +520,28 @@ export function MatchRefereeRatingSection({
                 <div className="bg-muted/30 border border-border p-4 md:p-6">
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-[9px] md:text-[10px] font-black font-mono text-primary uppercase">
-                      Rate this Referee
+                      이 심판 평가
                     </span>
                     <span className="bg-muted text-primary px-2 py-0.5 text-[7px] md:text-[8px] font-mono">
-                      PENDING
+                      미제출
                     </span>
                   </div>
                   <div className="space-y-6">
                     <div>
-                      <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase font-mono mb-2">
-                        {ROLE_LABEL[selected.role]}: {selected.referee.name}
+                      <p className="text-xs md:text-sm text-muted-foreground uppercase font-mono mb-2">
+                        {selected.label}: {selected.names}
                       </p>
                       <StarRatingInput value={rating} onChange={setRating} />
                     </div>
                     <div>
-                      <label className="block text-[8px] md:text-[9px] text-muted-foreground uppercase font-mono mb-2">
-                        Short Review
+                      <label className="block text-xs md:text-sm text-muted-foreground uppercase font-mono mb-2">
+                        한줄평
                       </label>
                       <textarea
                         value={comment}
                         onChange={(e) => setComment(e.target.value.slice(0, 100))}
                         rows={3}
-                        placeholder="한줄평 (유튜브·인스타 링크 붙여넣기 시 미리보기 표시)"
+                        placeholder="한줄평을 입력하세요"
                         className="w-full bg-background border border-border p-3 text-[10px] md:text-xs font-mono focus:border-primary outline-none resize-none"
                       />
                     </div>
@@ -504,7 +554,7 @@ export function MatchRefereeRatingSection({
                       disabled={pending || rating < 1}
                       className="w-full border border-primary bg-primary text-primary-foreground font-black py-3 text-[9px] md:text-[10px] tracking-tighter italic uppercase hover:opacity-90 disabled:opacity-50"
                     >
-                      {pending ? "저장 중..." : "SUBMIT RATING"}
+                      {pending ? "저장 중..." : "평가 제출"}
                     </button>
                   </div>
                 </div>
@@ -512,12 +562,12 @@ export function MatchRefereeRatingSection({
               {currentUserId && myReview && !isEditing && (
                 <div className="bg-muted/30 border border-border p-4 md:p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-[10px] font-black font-mono text-blue-500 uppercase">
-                      My Rating
+                    <span className="text-xs md:text-sm font-black font-mono text-blue-500 uppercase">
+                      내 평가
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="bg-muted text-muted-foreground px-2 py-0.5 text-[8px] font-mono">
-                        SUBMITTED
+                      <span className="bg-muted text-muted-foreground px-2 py-0.5 text-xs font-mono">
+                        제출됨
                       </span>
                       {myReview.status !== "HIDDEN" && (
                         <button
@@ -527,17 +577,17 @@ export function MatchRefereeRatingSection({
                             setComment(myReview.comment ?? "")
                             setIsEditing(true)
                           }}
-                          className="flex items-center gap-1.5 border border-border hover:border-primary bg-card px-2.5 py-1.5 text-[8px] md:text-[9px] font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                          className="flex items-center gap-1.5 border border-border hover:border-primary bg-card px-2.5 py-1.5 text-xs md:text-sm font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                         >
                           <Pencil className="size-3" aria-hidden />
-                          Edit
+                          수정
                         </button>
                       )}
                     </div>
                   </div>
                   <div className="space-y-2">
                     <p className="text-[10px] text-muted-foreground font-mono">
-                      {ROLE_LABEL[selected.role]}: {selected.referee.name}
+                      {selected.label}: {selected.names}
                     </p>
                     {myReview.status === "HIDDEN" ? (
                       <p className="text-xs text-muted-foreground italic">
@@ -559,26 +609,26 @@ export function MatchRefereeRatingSection({
               {currentUserId && myReview && isEditing && (
                 <div className="bg-muted/30 border border-border p-4 md:p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-[9px] md:text-[10px] font-black font-mono text-primary uppercase">
-                      Edit Rating
+                    <span className="text-xs md:text-sm font-black font-mono text-primary uppercase">
+                      평가 수정
                     </span>
                   </div>
                   <div className="space-y-6">
                     <div>
-                      <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase font-mono mb-2">
-                        {ROLE_LABEL[selected.role]}: {selected.referee.name}
+                      <p className="text-xs md:text-sm text-muted-foreground uppercase font-mono mb-2">
+                        {selected.label}: {selected.names}
                       </p>
                       <StarRatingInput value={rating} onChange={setRating} />
                     </div>
                     <div>
-                      <label className="block text-[8px] md:text-[9px] text-muted-foreground uppercase font-mono mb-2">
-                        Short Review
+                      <label className="block text-xs md:text-sm text-muted-foreground uppercase font-mono mb-2">
+                        한줄평
                       </label>
                       <textarea
                         value={comment}
                         onChange={(e) => setComment(e.target.value.slice(0, 100))}
                         rows={3}
-                        placeholder="한줄평 (유튜브·인스타 링크 붙여넣기 시 미리보기 표시)"
+                        placeholder="한줄평을 입력하세요"
                         className="w-full bg-background border border-border p-3 text-[10px] md:text-xs font-mono focus:border-primary outline-none resize-none"
                       />
                     </div>
@@ -588,18 +638,18 @@ export function MatchRefereeRatingSection({
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => setIsEditing(false)}
-                        className="flex-1 border border-border py-3 text-[9px] md:text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:bg-muted/50 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
                         onClick={handleSubmit}
                         disabled={pending || rating < 1}
                         className="flex-1 border border-primary bg-primary text-primary-foreground font-black py-3 text-[9px] md:text-[10px] tracking-tighter italic uppercase hover:opacity-90 disabled:opacity-50"
                       >
-                        {pending ? "저장 중..." : "UPDATE RATING"}
+                        {pending ? "저장 중..." : "수정"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="flex-1 border border-border py-3 text-[9px] md:text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:bg-muted/50 transition-colors"
+                      >
+                        취소
                       </button>
                     </div>
                   </div>
@@ -611,29 +661,36 @@ export function MatchRefereeRatingSection({
                 </p>
               )}
 
-              {/* Community Summary */}
+              {/* 팬 요약 */}
               <div className="space-y-4">
-                <h4 className="text-[9px] md:text-[10px] font-black font-mono text-muted-foreground uppercase tracking-widest">
-                  Community Summary
+                <h4 className="text-xs md:text-sm font-black font-mono text-muted-foreground uppercase tracking-widest">
+                  팬 요약
                 </h4>
                 <div className="flex items-end gap-4 flex-wrap">
                   <span className="text-4xl md:text-5xl font-black italic tracking-tighter">
-                    {avgRating != null ? avgRating.toFixed(1) : "—"}
+                    {avgRating != null ? (
+                      <>
+                        {avgRating.toFixed(1)}
+                        {count > 0 && (
+                          <span className="ml-2 text-2xl md:text-3xl align-baseline">
+                            ({count})
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </span>
                   {avgRating != null && (
                     <div className="flex items-center gap-2 mb-1">
                       <StarRatingDisplay rating={avgRating} size="small" />
                     </div>
                   )}
-                  <div className="w-full basis-full" />
-                  <span className="text-[7px] md:text-[8px] font-mono text-muted-foreground">
-                    BASED ON {count} RATING{count !== 1 ? "S" : ""}
-                  </span>
                 </div>
                 {/* Fan breakdown */}
                 <div className="space-y-3 pt-2 border-t border-border">
                   <div className="flex items-center gap-3">
-                    <span className="text-[8px] md:text-[9px] font-mono text-muted-foreground shrink-0 w-36">
+                    <span className="text-[10px] md:text-xs font-mono text-muted-foreground shrink-0 w-36">
                       홈팀 팬 평점 종합
                     </span>
                     <div className="flex-1 h-2 bg-muted/50 overflow-hidden">
@@ -649,7 +706,7 @@ export function MatchRefereeRatingSection({
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[8px] md:text-[9px] font-mono text-muted-foreground shrink-0 w-36">
+                    <span className="text-[10px] md:text-xs font-mono text-muted-foreground shrink-0 w-36">
                       원정팀 팬 평점 종합
                     </span>
                     <div className="flex-1 h-2 bg-muted/50 overflow-hidden">
@@ -665,7 +722,7 @@ export function MatchRefereeRatingSection({
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[8px] md:text-[9px] font-mono text-muted-foreground shrink-0 w-36">
+                    <span className="text-[10px] md:text-xs font-mono text-muted-foreground shrink-0 w-36">
                       제3자 팀팬 평점 종합
                     </span>
                     <div className="flex-1 h-2 bg-muted/50 overflow-hidden">
@@ -684,14 +741,14 @@ export function MatchRefereeRatingSection({
               </div>
             </div>
 
-            {/* Community Feedbacks */}
+            {/* 실시간 팬 반응 */}
             <div className="lg:col-span-2">
-              <h4 className="text-[9px] md:text-[10px] font-black font-mono text-muted-foreground uppercase tracking-widest mb-4">
-                Community Feedbacks
+              <h4 className="text-xs md:text-sm font-black font-mono text-muted-foreground uppercase tracking-widest mb-4">
+                실시간 팬 반응
               </h4>
               <div className="space-y-0 border border-border bg-black/20 max-h-[400px] overflow-y-auto">
                 {orderedSelectedReviews.length === 0 ? (
-                  <div className="p-8 text-center font-mono text-[10px] text-muted-foreground">
+                  <div className="p-8 text-center font-mono text-sm md:text-base text-muted-foreground">
                     아직 평가가 없습니다.
                   </div>
                 ) : (

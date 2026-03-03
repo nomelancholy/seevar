@@ -17,6 +17,8 @@ export type HotMomentItem = {
   time: string
   varCount: number
   commentCount: number
+  /** 첫 댓글 내용 일부 (카드 미리보기용) */
+  firstCommentPreview?: string
 }
 
 type Props = {
@@ -24,7 +26,7 @@ type Props = {
   title?: string
 }
 
-export function HotMomentsSection({ hotMoments = [], title = "HOT MOMENTS OF FOCUS ROUND" }: Props) {
+export function HotMomentsSection({ hotMoments = [], title = "라운드 화제의 순간" }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedMoment, setSelectedMoment] = useState<HotMomentItem | null>(null)
 
@@ -66,6 +68,11 @@ export function HotMomentsSection({ hotMoments = [], title = "HOT MOMENTS OF FOC
               <div className="text-primary font-bold font-mono text-[10px] md:text-xs mb-2 md:mb-3">
                 {m.time}
               </div>
+              {m.firstCommentPreview && (
+                <p className="text-xs md:text-sm text-white line-clamp-2 mb-2 italic">
+                  {m.firstCommentPreview}
+                </p>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-[8px] md:text-[10px] font-mono text-muted-foreground">
                   VAR {m.varCount.toLocaleString()}

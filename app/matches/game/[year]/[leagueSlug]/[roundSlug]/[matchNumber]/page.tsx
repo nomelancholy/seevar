@@ -46,9 +46,9 @@ type MatchReviewWithRelations = {
 
 /** DB RefereeRole → 표시 라벨 (경기 상세 심판 그리드용) */
 const ROLE_LABEL: Record<string, string> = {
-  MAIN: "Referee",
-  ASSISTANT: "Assistance",
-  WAITING: "WAITING",
+  MAIN: "주심",
+  ASSISTANT: "부심",
+  WAITING: "대기심",
   VAR: "VAR",
 }
 /** 표시 순서: 주심 → 부심 → 대기심 → VAR */
@@ -89,7 +89,17 @@ async function resolveMatchBySlug(
       awayTeam: true,
       round: { include: { league: { include: { season: true } } } },
       matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
-      moments: { orderBy: { startMinute: "asc" } },
+      moments: {
+        orderBy: { startMinute: "asc" },
+        include: {
+          comments: {
+            where: { parentId: null, status: "VISIBLE" },
+            take: 1,
+            orderBy: { createdAt: "asc" },
+            select: { content: true },
+          },
+        },
+      },
     },
   }).catch((e: { code?: string }) => {
     if (e?.code === "P2021") return null
@@ -211,6 +221,23 @@ export default async function MatchDetailBySlugPage({
     cardTotals.awayRed > 0
 
   const sortedMoments = sortMomentsByStartThenDuration(match.moments ?? [])
+  const momentsWithFirstComment = sortedMoments.map((m) => {
+    const comments = (m as { comments?: { content: string }[] }).comments
+    const firstContent = comments?.[0]?.content
+    const firstCommentPreview = firstContent
+      ? firstContent.replace(/\s+/g, " ").trim().slice(0, 40) + (firstContent.length > 40 ? "…" : "")
+      : null
+    return {
+      id: m.id,
+      title: m.title,
+      description: m.description ?? null,
+      startMinute: m.startMinute,
+      endMinute: m.endMinute,
+      seeVarCount: m.seeVarCount,
+      commentCount: m.commentCount,
+      firstCommentPreview,
+    }
+  })
 
   const matchReviewsRaw =
     status === "FINISHED" &&
@@ -274,7 +301,6 @@ export default async function MatchDetailBySlugPage({
               <span className="opacity-90">
                 {dateStr}
                 {timeStr ? ` ${timeStr} KST` : ""}
-                <span className="opacity-70 ml-1">REGULAR SEASON</span>
               </span>
             )}
           </div>
@@ -393,15 +419,15 @@ export default async function MatchDetailBySlugPage({
                 const label = ROLE_LABEL[role] ?? role
                 return (
                   <div key={role} className="min-w-0">
-                    <p className="text-muted-foreground mb-0.5 sm:mb-1 uppercase tracking-tighter text-[8px] sm:text-[10px] font-semibold">
+                    <p className="text-muted-foreground mb-0.5 sm:mb-1 uppercase tracking-tighter text-[10px] sm:text-xs font-semibold">
                       {label}
                     </p>
                     {refs.length === 0 ? (
-                      <p className="text-muted-foreground text-[10px] sm:text-xs">—</p>
+                      <p className="text-muted-foreground text-xs sm:text-sm">—</p>
                     ) : (
                       <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
                         {refs.map((ref, idx) => {
-                          const sep = idx > 0 ? <span className="text-muted-foreground text-[10px]">·</span> : null
+                          const sep = idx > 0 ? <span className="text-muted-foreground text-xs">·</span> : null
                           const slug = (ref as { slug?: string }).slug
                           const refereeHref = slug
                             ? `/referees/${slug}${matchPath ? `?back=${encodeURIComponent(matchPath)}` : ""}`
@@ -412,16 +438,16 @@ export default async function MatchDetailBySlugPage({
                                 {sep}
                                 <Link
                                   href={refereeHref}
-                                  className="font-bold text-[10px] sm:text-xs hover:text-primary transition-colors inline-flex items-center gap-0.5 whitespace-nowrap"
+                                  className="font-bold text-xs sm:text-sm hover:text-primary transition-colors inline-flex items-center gap-0.5 whitespace-nowrap"
                                 >
                                   {ref.name}
-                                  <ChevronRight className="size-2.5 sm:size-3 shrink-0" />
+                                  <ChevronRight className="size-3 sm:size-4 shrink-0" />
                                 </Link>
                               </span>
                             )
                           }
                           return (
-                            <span key={ref.id} className="inline-flex items-center gap-0.5 text-[10px] sm:text-xs font-bold whitespace-nowrap">
+                            <span key={ref.id} className="inline-flex items-center gap-0.5 text-xs sm:text-sm font-bold whitespace-nowrap">
                               {sep}
                               <span>{ref.name}</span>
                             </span>
@@ -453,15 +479,15 @@ export default async function MatchDetailBySlugPage({
         </div>
       </section>
 
-      {(isLive || isFinished) && sortedMoments.length > 0 && (
+      {(isLive || isFinished) && momentsWithFirstComment.length > 0 && (
         <section className="mb-8 md:mb-12">
           <div className="flex justify-between items-end mb-6">
             <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase">
-              MATCH MOMENTS
+              경기 화제의 순간
             </h2>
           </div>
           <MatchMomentCards
-            moments={sortedMoments}
+            moments={momentsWithFirstComment}
             match={{
               homeTeam: match.homeTeam,
               awayTeam: match.awayTeam,
@@ -539,7 +565,7 @@ export default async function MatchDetailBySlugPage({
               className="px-4 md:px-6 py-3 font-mono text-xs font-black tracking-widest text-muted-foreground opacity-50 cursor-default"
               disabled
             >
-              REFEREE RATING (LOCKED)
+              심판 평가 (잠김)
             </button>
           </div>
           <div className="p-8 text-center font-mono text-xs text-muted-foreground">
@@ -548,11 +574,11 @@ export default async function MatchDetailBySlugPage({
         </div>
       )}
 
-      {/* MATCH MEDIA ARCHIVE - 경기별 유튜브·인스타 카드 (Round Media와 동일 패턴) */}
+      {/* 경기 판정 리포트 - 경기별 유튜브·인스타 카드 (Round Media와 동일 패턴) */}
       {((match as MatchWithMedia).youtubeUrl || (match as MatchWithMedia).instagramUrl) && (
         <section className="mt-8 md:mt-12">
           <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-4">
-            MATCH MEDIA ARCHIVE
+            경기 판정 리포트
           </h2>
           <div className="flex flex-col gap-4 md:gap-6">
             {getYouTubeEmbedUrl((match as MatchWithMedia).youtubeUrl) && (

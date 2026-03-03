@@ -11,7 +11,7 @@ const ROLE_LABEL: Record<string, string> = {
   WAITING: "대기심",
 }
 
-const roles = ["MAIN", "ASSISTANT", "VAR", "WAITING"] as const
+const roles = ["MAIN", "ASSISTANT", "WAITING", "VAR"] as const
 
 type TeamStat = {
   teamName: string
@@ -48,14 +48,11 @@ export function RefereeRatingSection({
       >
         <div className="flex items-center gap-4 md:gap-6">
           <div className="flex flex-col">
-            <div className="text-[8px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-              Global Rating
-            </div>
-            <div className="text-[7px] md:text-[9px] font-mono text-primary opacity-70">
-              TOTAL VOTES: {totalVotes > 0 ? totalVotes.toLocaleString() : "—"}
+            <div className="text-xs md:text-sm font-mono text-muted-foreground uppercase tracking-widest">
+              총 평점
             </div>
           </div>
-          <div className="flex items-end gap-1 md:gap-2">
+          <div className="flex items-baseline gap-1.5 md:gap-2">
             <span
               className={`text-3xl md:text-4xl font-black italic ${
                 isTop ? "text-primary" : isLow ? "text-destructive" : "text-foreground"
@@ -66,6 +63,11 @@ export function RefereeRatingSection({
             <span className="text-muted-foreground font-bold mb-0.5 md:mb-1 text-xs md:text-base">
               / 5.0
             </span>
+            {totalVotes > 0 && (
+              <span className="font-mono text-xs md:text-sm text-muted-foreground">
+                ({totalVotes.toLocaleString()})
+              </span>
+            )}
           </div>
         </div>
         <div
@@ -112,9 +114,9 @@ export function RefereeRatingSection({
               <div className="flex items-center gap-2 md:gap-3">
                 <EmblemImage src={t.emblemPath} width={24} height={24} className="w-5 h-5 md:w-6 md:h-6 object-contain shrink-0" />
                 <div className="flex flex-col">
-                  <span className="font-mono text-[10px] md:text-xs uppercase">{t.teamName}</span>
-                  <span className="font-mono text-[7px] md:text-[8px] text-muted-foreground">
-                    VOTES: {t.totalAssignments.toLocaleString()}
+                  <span className="font-mono text-xs md:text-sm uppercase">{t.teamName}</span>
+                  <span className="font-mono text-xs md:text-sm text-muted-foreground">
+                    평가: {t.totalAssignments.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -125,7 +127,7 @@ export function RefereeRatingSection({
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="font-mono text-[9px] md:text-[10px] font-bold min-w-[2rem] text-right">
+                <span className="font-mono text-xs md:text-sm font-bold min-w-[2rem] text-right">
                   {t.fanAverageRating.toFixed(1)}
                 </span>
               </div>

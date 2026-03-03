@@ -2,10 +2,15 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { createNoticeComment } from "@/lib/actions/notices"
+import {
+  createNoticeComment,
+  updateNoticeComment,
+  deleteNoticeComment,
+} from "@/lib/actions/notices"
 
 type CommentItem = {
   id: string
+  userId: string
   content: string
   userName: string | null
   createdAt: string
@@ -22,6 +27,9 @@ export function NoticeCommentSection({ noticeId, comments: initialComments, curr
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [optimisticComment, setOptimisticComment] = useState<CommentItem | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingContent, setEditingContent] = useState("")
+  const [actionPending, setActionPending] = useState(false)
   const prevCommentsLengthRef = useRef(initialComments.length)
   const router = useRouter()
 
@@ -44,6 +52,7 @@ export function NoticeCommentSection({ noticeId, comments: initialComments, curr
       setContent("")
       setOptimisticComment({
         id: `opt-${Date.now()}`,
+        userId: currentUserId ?? "",
         content: textToSend,
         userName: null,
         createdAt: new Date().toISOString(),
@@ -58,6 +67,48 @@ export function NoticeCommentSection({ noticeId, comments: initialComments, curr
     ? [...initialComments, optimisticComment]
     : initialComments
 
+  const handleStartEdit = (comment: CommentItem) => {
+    setEditingId(comment.id)
+    setEditingContent(comment.content)
+    setError(null)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setEditingContent("")
+  }
+
+  const handleSaveEdit = async (commentId: string) => {
+    if (!currentUserId) return
+    const text = editingContent.trim()
+    if (!text) return
+    setActionPending(true)
+    setError(null)
+    const result = await updateNoticeComment(commentId, text)
+    setActionPending(false)
+    if (result.ok) {
+      setEditingId(null)
+      setEditingContent("")
+      router.refresh()
+    } else {
+      setError(result.error)
+    }
+  }
+
+  const handleDelete = async (commentId: string) => {
+    if (!currentUserId) return
+    if (!confirm("이 댓글을 삭제할까요?")) return
+    setActionPending(true)
+    setError(null)
+    const result = await deleteNoticeComment(commentId)
+    setActionPending(false)
+    if (result.ok) {
+      router.refresh()
+    } else {
+      setError(result.error)
+    }
+  }
+
   return (
     <section className="ledger-surface p-4 md:p-8 border border-border">
       <h2 className="font-mono text-xs md:text-sm font-bold tracking-widest text-muted-foreground uppercase mb-4 md:mb-6">
@@ -66,10 +117,68 @@ export function NoticeCommentSection({ noticeId, comments: initialComments, curr
       <ul className="space-y-4 mb-6 md:mb-8">
         {displayComments.map((c) => (
           <li key={c.id} className="py-3 border-b border-border last:border-b-0">
-            <p className="text-sm text-foreground/90 whitespace-pre-wrap">{c.content}</p>
-            <p className="font-mono text-[10px] text-muted-foreground mt-2">
-              {c.userName ?? "익명"} · {new Date(c.createdAt).toLocaleString("ko-KR")}
-            </p>
+            {editingId === c.id ? (
+              <div className="space-y-2">
+                <textarea
+                  value={editingContent}
+                  onChange={(e) => setEditingContent(e.target.value.slice(0, 500))}
+                  rows={3}
+                  className="w-full bg-background border border-border p-3 font-mono text-sm focus:border-primary outline-none resize-none"
+                />
+                <div className="flex items-center justify-between mt-1">
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    {c.userName ?? "익명"} · {new Date(c.createdAt).toLocaleString("ko-KR")}
+                  </p>
+                  <div className="flex gap-2 text-[10px] font-mono">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveEdit(c.id)}
+                      disabled={actionPending || !editingContent.trim()}
+                      className="px-3 py-1 border border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                    >
+                      저장
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      disabled={actionPending}
+                      className="px-3 py-1 border border-border text-muted-foreground hover:bg-muted/40 disabled:opacity-50"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-foreground/90 whitespace-pre-wrap">{c.content}</p>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    {c.userName ?? "익명"} · {new Date(c.createdAt).toLocaleString("ko-KR")}
+                  </p>
+                  {currentUserId && c.userId === currentUserId && !c.id.startsWith("opt-") && (
+                    <div className="flex gap-2 text-[10px] font-mono text-muted-foreground">
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(c)}
+                        className="hover:text-foreground"
+                        disabled={actionPending}
+                      >
+                        수정
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(c.id)}
+                        className="hover:text-destructive"
+                        disabled={actionPending}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </li>
         ))}
       </ul>

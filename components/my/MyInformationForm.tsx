@@ -150,7 +150,7 @@ export function MyInformationForm({
         <div className="flex-1 w-full">
           <label
             htmlFor="nickname"
-            className="block text-[8px] md:text-[10px] font-mono text-muted-foreground mb-2 uppercase tracking-widest"
+            className="block text-xs md:text-sm font-mono text-muted-foreground mb-2 uppercase tracking-widest"
           >
             Nickname
           </label>
@@ -167,10 +167,10 @@ export function MyInformationForm({
 
       {/* Supporting Team */}
       <div>
-        <label className="block text-[10px] md:text-xs font-mono text-muted-foreground mb-1 uppercase tracking-widest">
-          Supporting Team
+        <label className="block text-xs md:text-sm font-mono text-muted-foreground mb-1 uppercase tracking-widest">
+          응원팀
         </label>
-        <p className="text-[9px] md:text-[10px] font-mono text-muted-foreground mb-3">
+        <p className="text-xs md:text-sm font-mono text-muted-foreground mb-3">
           응원팀은 변경 후 <span className="font-bold text-foreground">6개월(약 180일)</span>이 지나야 다시 변경할 수 있습니다.
         </p>
         <div className="grid grid-cols-3 md:grid-cols-4 gap-3 max-h-[320px] overflow-y-auto pr-2 scrollbar-team">
@@ -189,12 +189,12 @@ export function MyInformationForm({
                 <img
                   src={team.emblemPath}
                   alt=""
-                  className="w-9 h-9 md:w-11 md:h-11 object-contain"
+                  className="w-10 h-10 md:w-12 md:h-12 object-contain"
                 />
               ) : (
-                <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-muted shrink-0" />
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted shrink-0" />
               )}
-              <span className="font-mono text-[10px] md:text-xs font-black leading-tight">
+              <span className="font-mono text-xs md:text-sm font-black leading-tight text-center">
                 {team.name}
               </span>
             </button>
@@ -215,19 +215,12 @@ export function MyInformationForm({
       {/* Actions */}
       <div className="pt-6 md:pt-8 flex flex-col md:flex-row justify-end gap-3 md:gap-4">
         <button
-          type="button"
-          onClick={() => router.back()}
-          className="w-full md:w-auto px-8 py-3 text-[10px] md:text-xs font-black italic font-mono text-muted-foreground hover:text-foreground transition-colors"
-        >
-          CANCEL
-        </button>
-        <button
           type="submit"
           disabled={pending}
-          className="w-full md:w-auto border border-border bg-primary text-primary-foreground px-8 md:px-12 py-3 text-[10px] md:text-xs font-black italic tracking-tighter uppercase hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50 inline-flex items-center justify-center gap-2"
+          className="w-full md:w-auto border border-border bg-primary text-primary-foreground px-8 md:px-12 py-3 text-xs md:text-sm font-black italic tracking-tighter uppercase hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50 inline-flex items-center justify-center gap-2"
         >
           {pending && <Loader2 className="size-4 shrink-0 animate-spin" />}
-          {pending ? "저장 중…" : "SAVE CHANGES"}
+          {pending ? "저장 중…" : "응원팀 변경"}
         </button>
       </div>
     </form>

@@ -9,7 +9,7 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <main className="max-w-4xl mx-auto py-8 md:py-12">
-      <header className="mb-12 md:mb-16">
+      <header className="mb-12 md:mb-16 text-center md:text-left">
         <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase mb-4 md:mb-6 gradient-text">
           OUR MISSION
         </h1>
@@ -43,7 +43,7 @@ export default function AboutPage() {
         </div>
 
         <div className="py-8 md:py-12 text-center">
-          <h2 className="text-2xl md:text-4xl font-black italic tracking-tighter text-foreground/80">
+          <h2 className="text-xl md:text-3xl font-black italic tracking-tighter text-foreground/80">
             &ldquo;그래서 See VAR가 탄생했습니다.&rdquo;
           </h2>
         </div>
@@ -78,8 +78,8 @@ export default function AboutPage() {
         </div>
 
         <div className="pt-8 md:pt-12 border-t border-border space-y-8 md:space-y-12">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-6 md:gap-8">
-            <div className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6 md:gap-8 text-center md:text-left">
+            <div className="space-y-4 w-full md:w-auto">
               <h4 className="font-mono text-[10px] md:text-xs font-black text-primary uppercase tracking-widest">
                 Contact Us
               </h4>
@@ -91,7 +91,7 @@ export default function AboutPage() {
                   takeknowledge@naver.com
                 </a>
               </p>
-              <div className="flex flex-wrap items-center gap-4 md:gap-6 pt-2">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 pt-2">
                 <a
                   href="https://www.youtube.com/@seevar.online"
                   target="_blank"

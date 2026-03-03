@@ -165,8 +165,8 @@ export function UserDrawerContent({ user, onClose }: UserDrawerContentProps) {
             href="/my"
             className="flex items-center gap-4 p-4 hover:bg-primary hover:text-primary-foreground transition-all rounded-md"
           >
-            <span className="font-mono text-[10px] font-black tracking-widest uppercase">
-              My Information
+            <span className="font-mono text-xs md:text-sm font-black tracking-widest uppercase">
+              내 정보
             </span>
           </Link>
         </SheetClose>
@@ -175,8 +175,8 @@ export function UserDrawerContent({ user, onClose }: UserDrawerContentProps) {
             href="/my/var-moments"
             className="flex items-center gap-4 p-4 hover:bg-primary hover:text-primary-foreground transition-all rounded-md"
           >
-            <span className="font-mono text-[10px] font-black tracking-widest uppercase">
-              My VAR Moments
+            <span className="font-mono text-xs md:text-sm font-black tracking-widest uppercase">
+              내 참여
             </span>
           </Link>
         </SheetClose>
@@ -190,7 +190,7 @@ export function UserDrawerContent({ user, onClose }: UserDrawerContentProps) {
               "text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
             )}
           >
-            <span className="font-mono text-[10px] font-black tracking-widest uppercase">
+            <span className="font-mono text-xs md:text-sm font-black tracking-widest uppercase">
               Logout
             </span>
           </button>

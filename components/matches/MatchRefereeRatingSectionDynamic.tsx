@@ -11,7 +11,7 @@ const MatchRefereeRatingSection = dynamic(
     ssr: false,
     loading: () => (
       <div className="mb-8 border border-border bg-card/50 p-8 font-mono text-xs text-muted-foreground text-center">
-        REFEREE RATING 로딩 중...
+        심판 평가 로딩 중...
       </div>
     ),
   }

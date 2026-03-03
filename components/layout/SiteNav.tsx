@@ -31,11 +31,11 @@ type SiteNavProps = { user: NavUser | null; unreadNotificationCount?: number };
 
 export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
   const navLinks = [
-    { href: "/about", label: "ABOUT" },
-    { href: "/notice", label: "NOTICE" },
-    { href: "/matches", label: "ARCHIVE" },
-    { href: "/referees", label: "REFEREES" },
-    { href: "/teams", label: "TEAMS" },
+    { href: "/about", label: "서비스 소개" },
+    { href: "/notice", label: "공지사항" },
+    { href: "/matches", label: "경기 기록" },
+    { href: "/referees", label: "심판 정보" },
+    { href: "/teams", label: "팀 정보" },
   ];
 
   return (
@@ -59,7 +59,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
                 SEE <span className="text-primary">VAR</span>
               </Link>
             </div>
-            <nav className="flex flex-col p-4 gap-1 font-mono text-sm font-bold tracking-widest">
+            <nav className="flex flex-col p-4 gap-1 font-mono text-base font-bold tracking-widest">
               {navLinks.map(({ href, label }) => (
                 <SheetClose asChild key={href}>
                   <Link
@@ -144,7 +144,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
       </div>
 
       {/* 데스크톱: 메뉴 링크 — 중앙 균형 배치 / 모바일: 햄버거 메뉴로 대체 */}
-      <div className="hidden md:flex flex-1 items-center justify-center gap-8 md:gap-12 lg:gap-14 text-xs md:text-sm font-bold tracking-widest font-mono min-w-0">
+      <div className="hidden md:flex flex-1 items-center justify-center gap-8 md:gap-12 lg:gap-14 text-sm md:text-base font-bold tracking-widest font-mono min-w-0">
         {navLinks.map(({ href, label }) => (
           <Link
             key={href}

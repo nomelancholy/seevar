@@ -9,6 +9,8 @@ export type CreateNoticeResult = { ok: true; number: number } | { ok: false; err
 export type UpdateNoticeResult = { ok: true } | { ok: false; error: string }
 export type DeleteNoticeResult = { ok: true } | { ok: false; error: string }
 export type CreateNoticeCommentResult = { ok: true; id: string } | { ok: false; error: string }
+export type UpdateNoticeCommentResult = { ok: true } | { ok: false; error: string }
+export type DeleteNoticeCommentResult = { ok: true } | { ok: false; error: string }
 
 export async function createNotice(
   input: { title: string; content: string; allowComments: boolean; isPinned: boolean }
@@ -39,6 +41,74 @@ export async function createNotice(
   } catch (e) {
     console.error("createNotice:", e)
     return { ok: false, error: "공지 등록에 실패했습니다." }
+  }
+}
+
+async function revalidateNoticeById(noticeId: string) {
+  const notice = await prisma.notice.findUnique({
+    where: { id: noticeId },
+    select: { number: true },
+  })
+  if (notice) {
+    revalidatePath(`/notice/${notice.number}`, "page")
+    revalidatePath("/notice", "layout")
+  }
+}
+
+export async function updateNoticeComment(
+  commentId: string,
+  content: string,
+): Promise<UpdateNoticeCommentResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+
+  const trimmed = content?.trim() ?? ""
+  if (!trimmed) return { ok: false, error: "내용을 입력해 주세요." }
+
+  const comment = await prisma.noticeComment.findUnique({
+    where: { id: commentId },
+    select: { id: true, userId: true, noticeId: true },
+  })
+  if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
+  if (comment.userId !== user.id) {
+    return { ok: false, error: "본인이 작성한 댓글만 수정할 수 있습니다." }
+  }
+
+  try {
+    await prisma.noticeComment.update({
+      where: { id: commentId },
+      data: { content: trimmed },
+    })
+    await revalidateNoticeById(comment.noticeId)
+    return { ok: true }
+  } catch (e) {
+    console.error("updateNoticeComment:", e)
+    return { ok: false, error: "댓글 수정에 실패했습니다." }
+  }
+}
+
+export async function deleteNoticeComment(
+  commentId: string,
+): Promise<DeleteNoticeCommentResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+
+  const comment = await prisma.noticeComment.findUnique({
+    where: { id: commentId },
+    select: { id: true, userId: true, noticeId: true },
+  })
+  if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
+  if (comment.userId !== user.id) {
+    return { ok: false, error: "본인이 작성한 댓글만 삭제할 수 있습니다." }
+  }
+
+  try {
+    await prisma.noticeComment.delete({ where: { id: commentId } })
+    await revalidateNoticeById(comment.noticeId)
+    return { ok: true }
+  } catch (e) {
+    console.error("deleteNoticeComment:", e)
+    return { ok: false, error: "댓글 삭제에 실패했습니다." }
   }
 }
 

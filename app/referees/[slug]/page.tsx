@@ -97,7 +97,7 @@ export async function generateMetadata({ params }: Props) {
   const { slug: param } = await params
   const resolved = await resolveReferee(param)
   if (!resolved) return { title: "심판 없음 | See VAR" }
-  return { title: `${resolved.referee.name} | REFEREE | See VAR` }
+  return { title: `${resolved.referee.name} | 심판 | See VAR` }
 }
 
 function sanitizeBackUrl(back: string | undefined): string | null {
@@ -295,7 +295,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
-          BACK
+          뒤로 가기
         </Link>
       </div>
 
@@ -313,9 +313,9 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
                   href={referee.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="border border-border bg-card px-3 md:px-4 py-1.5 md:py-2 text-[8px] md:text-[10px] font-bold font-mono flex items-center gap-2 hover:border-primary transition-colors"
+                  className="border border-border bg-card px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-bold font-mono flex items-center gap-2 hover:border-primary transition-colors"
                 >
-                  NAMU WIKI
+                  나무위키
                   <ExternalLink className="size-3 md:size-4" />
                 </a>
               )}
@@ -333,7 +333,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
 
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
         <RefereeSectionWithTeamExpand
-          title="Assignment Statistics"
+          title="배정 통계"
           availableYears={availableYears}
           currentYear={statsYear}
           paramKey="stats"
@@ -343,45 +343,45 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <div className="bg-card/30 p-4 border border-border/50 text-center">
-              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
-                Referee
+              <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-2">
+                주심
               </p>
               <p className="text-3xl md:text-4xl font-black italic font-mono">
                 {formatCount(countByRole.MAIN ?? 0)}
               </p>
-              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+              <p className="font-mono text-xs md:text-sm text-muted-foreground mt-1">경기</p>
             </div>
             <div className="bg-card/30 p-4 border border-border/50 text-center">
-              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
-                Assistance
+              <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-2">
+                부심
               </p>
               <p className="text-3xl md:text-4xl font-black italic font-mono">
                 {formatCount(countByRole.ASSISTANT ?? 0)}
               </p>
-              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+              <p className="font-mono text-xs md:text-sm text-muted-foreground mt-1">경기</p>
             </div>
             <div className="bg-card/30 p-4 border border-border/50 text-center">
-              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
-                Waiting
+              <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-2">
+                대기심
               </p>
               <p className="text-3xl md:text-4xl font-black italic font-mono">
                 {formatCount(countByRole.WAITING ?? 0)}
               </p>
-              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+              <p className="font-mono text-xs md:text-sm text-muted-foreground mt-1">경기</p>
             </div>
             <div className="bg-card/30 p-4 border border-border/50 text-center">
-              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
+              <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-2">
                 VAR
               </p>
               <p className="text-3xl md:text-4xl font-black italic font-mono">
                 {formatCount(countByRole.VAR ?? 0)}
               </p>
-              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-1">MATCHES</p>
+              <p className="font-mono text-xs md:text-sm text-muted-foreground mt-1">경기</p>
             </div>
           </div>
           <div className="mt-4 pt-4 border-t border-border text-center">
-            <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-1">
-              Total Assignments
+            <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-1">
+              총 배정
             </p>
             <p className="text-3xl md:text-4xl font-black italic font-mono">{totalAssignments}</p>
           </div>
@@ -390,7 +390,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
 
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
         <RefereeSectionWithTeamExpand
-          title="Card Statistics"
+          title="카드 통계"
           availableYears={availableYears}
           currentYear={statsYear}
           paramKey="stats"
@@ -400,16 +400,16 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
         >
           <div className="grid grid-cols-2 gap-3 md:gap-4">
             <div className="bg-card/30 p-4 border border-border/50 text-center">
-              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
-                Total Yellow Card
+              <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-2">
+                총 부여 경고
               </p>
               <p className="text-2xl md:text-3xl font-black italic font-mono text-yellow-600 dark:text-yellow-500">
                 {formatCount(totalYellowCards)}
               </p>
             </div>
             <div className="bg-card/30 p-4 border border-border/50 text-center">
-              <p className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase mb-2">
-                Total Red Card
+              <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-2">
+                총 부여 퇴장
               </p>
               <p className="text-2xl md:text-3xl font-black italic font-mono text-red-600 dark:text-red-500">
                 {formatCount(totalRedCards)}
@@ -421,7 +421,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
 
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
         <RefereeSectionWithTeamExpand
-          title="Match Assignments"
+          title="경기 배정"
           availableYears={availableYears}
           currentYear={assignmentYear}
           paramKey="year"

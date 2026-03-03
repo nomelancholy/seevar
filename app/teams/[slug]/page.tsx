@@ -33,9 +33,9 @@ async function findTeamForSlug(slug: string) {
 export async function generateMetadata({ params }: { params: Params }) {
   const { slug } = await params
   const team = await findTeamForSlug(slug).then((t) => (t ? { name: t.name } : null))
-  if (!team) return { title: "TEAM ANALYSIS | See VAR" }
+  if (!team) return { title: "팀 정보 | See VAR" }
   return {
-    title: `${team.name} | TEAM ANALYSIS | See VAR`,
+    title: `${team.name} | 팀 정보 | See VAR`,
     description: `${team.name} 팀 경기 데이터와 심판 상성`,
   }
 }
@@ -291,12 +291,12 @@ export default async function TeamDetailPage({
           className="inline-flex items-center gap-1 font-mono text-[10px] md:text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="size-4" />
-          BACK
+          뒤로 가기
         </Link>
       </div>
       <header className="mb-8 md:mb-12">
         <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-muted-foreground uppercase mb-4 md:mb-6">
-          TEAM ANALYSIS
+          팀 정보
         </p>
         <div className="flex items-center gap-4 md:gap-6">
           <div className="w-16 h-16 md:w-24 md:h-24 bg-card border border-border flex items-center justify-center overflow-hidden rounded-lg shrink-0">

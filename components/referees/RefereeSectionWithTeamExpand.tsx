@@ -5,12 +5,12 @@ import { ChevronDown } from "lucide-react"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { RefereeAssignmentYearFilter } from "./RefereeAssignmentYearFilter"
 
-const ROLES = ["MAIN", "ASSISTANT", "VAR", "WAITING"] as const
+const ROLES = ["MAIN", "ASSISTANT", "WAITING", "VAR"] as const
 const ROLE_HEADER: Record<string, string> = {
-  MAIN: "MAIN",
-  ASSISTANT: "ASST",
+  MAIN: "주심",
+  ASSISTANT: "부심",
   VAR: "VAR",
-  WAITING: "WAITING",
+  WAITING: "대기심",
 }
 
 export type TeamStatForExpand = {
@@ -90,27 +90,30 @@ export function RefereeSectionWithTeamExpand({
             open ? "max-h-[1200px] opacity-100 mt-6 pt-6 border-t border-border" : "max-h-0 opacity-0 mt-0 pt-0"
           }`}
         >
-          <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-3">
-            By team
+          <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase tracking-widest mb-3">
+            팀별
           </p>
           {(variant === "assignment" || variant === "match") && (
             <>
-              <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
-                Total Assignments
+              <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase tracking-widest mb-2">
+                총 배정 경기
               </p>
               <div className="border border-border overflow-x-auto">
-                <table className="w-full font-mono text-[10px] md:text-xs">
+                <table className="w-full font-mono text-xs md:text-sm">
                   <thead>
                     <tr className="border-b border-border bg-card/50 text-muted-foreground uppercase tracking-widest">
-                      <th className="text-left p-2 font-bold">Team</th>
+                      <th className="text-left p-2 md:p-3 font-bold">팀</th>
                       {ROLES.map((r) => (
-                        <th key={r} className="text-center p-2 font-bold w-12 md:w-14">
+                        <th
+                          key={r}
+                          className={`text-center p-2 md:p-3 font-bold ${r === "WAITING" ? "w-16 md:w-20 min-w-[4rem] md:min-w-[5rem]" : "w-12 md:w-14"}`}
+                        >
                           {ROLE_HEADER[r]}
                         </th>
                       ))}
-                      <th className="text-center p-2 font-bold w-12 md:w-14">Total</th>
+                      <th className="text-center p-2 md:p-3 font-bold w-12 md:w-14">총합</th>
                       {(variant === "match") && (
-                        <th className="text-center p-2 font-bold">Cards</th>
+                        <th className="text-center p-2 md:p-3 font-bold">카드</th>
                       )}
                     </tr>
                   </thead>
@@ -123,24 +126,24 @@ export function RefereeSectionWithTeamExpand({
                       const total = ts.totalAssignments
                       return (
                         <tr key={ts.teamName} className="bg-card/30">
-                          <td className="p-2 flex items-center gap-2">
+                          <td className="p-2 md:p-3 flex items-center gap-2">
                             <EmblemImage
                               src={ts.emblemPath}
                               width={20}
                               height={20}
                               className="w-5 h-5 shrink-0 object-contain"
                             />
-                            <span className="font-bold uppercase truncate max-w-[120px] md:max-w-none">
+                            <span className="font-bold uppercase truncate max-w-[120px] md:max-w-none text-xs md:text-sm">
                               {ts.teamName}
                             </span>
                           </td>
-                          <td className="text-center p-2">{main}</td>
-                          <td className="text-center p-2">{asst}</td>
-                          <td className="text-center p-2">{var_}</td>
-                          <td className="text-center p-2">{wait}</td>
-                          <td className="text-center p-2 font-bold">{total}</td>
+                          <td className="text-center p-2 md:p-3">{main}</td>
+                          <td className="text-center p-2 md:p-3">{asst}</td>
+                          <td className="text-center p-2 md:p-3">{wait}</td>
+                          <td className="text-center p-2 md:p-3">{var_}</td>
+                          <td className="text-center p-2 md:p-3 font-bold">{total}</td>
                           {variant === "match" && (
-                            <td className="text-center p-2 text-muted-foreground">
+                            <td className="text-center p-2 md:p-3 text-muted-foreground text-xs md:text-sm">
                               🟨 {ts.totalYellowCards} 🟥 {ts.totalRedCards}
                             </td>
                           )}
@@ -168,11 +171,11 @@ export function RefereeSectionWithTeamExpand({
                         height={24}
                         className="w-5 h-5 md:w-6 md:h-6 object-contain shrink-0"
                       />
-                      <span className="font-mono text-[10px] md:text-xs font-bold uppercase">
+                      <span className="font-mono text-xs md:text-sm font-bold uppercase">
                         {ts.teamName}
                       </span>
                     </div>
-                    <span className="font-mono text-[10px] md:text-xs text-muted-foreground">
+                    <span className="font-mono text-xs md:text-sm text-muted-foreground">
                       🟨 {ts.totalYellowCards} 🟥 {ts.totalRedCards}
                     </span>
                   </div>

@@ -219,7 +219,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-black italic tracking-tighter uppercase">
-            CREATE VAR MOMENT
+            순간 생성
           </h2>
           <button
             type="button"
@@ -235,7 +235,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] font-mono text-muted-foreground mb-1 uppercase">
-                Start Time (Min)
+                상황 발생 시각 (분)
               </label>
               <input
                 type="text"
@@ -256,7 +256,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
             </div>
             <div>
               <label className="block text-[10px] font-mono text-muted-foreground mb-1 uppercase">
-                End Time (Min)
+                상황 종료 시각 (분)
               </label>
               <input
                 type="text"
@@ -281,11 +281,8 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
 
           <div>
             <label className="block text-[10px] font-mono text-muted-foreground mb-1 uppercase">
-              Description
+              설명
             </label>
-            <p className="text-[9px] font-mono text-muted-foreground mb-1">
-              사진·영상 최대 {MAX_FILE_SIZE_MB}MB (이미지: jpeg/png/webp/gif, 영상: mp4/webm)
-            </p>
             <div
               className={`relative border-2 border-dashed transition-colors ${isDragging ? "border-primary bg-primary/5" : "border-border"}`}
               onDragOver={handleDragOver}
@@ -294,7 +291,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
             >
               <textarea
                 rows={4}
-                placeholder="Describe why VAR is needed... (사진·영상은 여기로 드래그 앤 드롭 가능)"
+                placeholder="이 순간을 남겨야 하는 이유를 설명해주세요 (사진·영상은 여기로 드래그 앤 드롭 가능)"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full bg-[#1c1f24] border-0 text-foreground px-3 py-2.5 pr-12 font-mono text-sm focus:outline-none focus:ring-0 resize-none"
@@ -380,6 +377,9 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
                 {fileSizeError}
               </p>
             )}
+            <p className="text-[9px] font-mono text-muted-foreground mt-2">
+              사진·영상 최대 {MAX_FILE_SIZE_MB}MB (이미지: jpeg/png/webp/gif, 영상: mp4/webm)
+            </p>
           </div>
 
           {submitError && (

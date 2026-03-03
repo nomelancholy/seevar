@@ -7,10 +7,10 @@ import { EmblemImage } from "@/components/ui/EmblemImage"
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 
 const ROLE_LABEL: Record<string, string> = {
-  MAIN: "Main Referee",
-  ASSISTANT: "Assistance",
-  VAR: "VAR Official",
-  WAITING: "WAITING",
+  MAIN: "주심",
+  ASSISTANT: "부심",
+  VAR: "VAR",
+  WAITING: "대기심",
 }
 
 type ReviewItem = {
@@ -117,13 +117,13 @@ export function RefereeMatchRow({
         <div className="border-t border-border bg-muted/20">
           <div className="flex justify-between items-center px-4 md:px-6 py-2.5 md:py-3 border-b border-border/50">
             <span className="font-mono text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest">
-              Community Feedbacks
+              팬 반응
             </span>
             <Link
               href={matchPath}
               className="border border-border bg-card px-2.5 md:px-3 py-1.5 md:py-2 text-[9px] md:text-[10px] font-black italic font-mono text-primary hover:bg-primary hover:text-primary-foreground transition-colors flex items-center gap-1.5"
             >
-              INSIDE GAME
+              경기 상세
               <ChevronRight className="size-3" />
             </Link>
           </div>

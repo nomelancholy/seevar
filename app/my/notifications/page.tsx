@@ -40,7 +40,7 @@ export default async function MyNotificationsPage() {
           className="inline-flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="size-4" />
-          BACK
+          뒤로 가기
         </Link>
       </div>
 
