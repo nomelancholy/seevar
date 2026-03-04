@@ -37,6 +37,7 @@ type Props = {
     reactions?: { userId: string }[]
     replies?: {
       id: string
+      userId: string
       content: string
       createdAt: Date | string
       user: {
