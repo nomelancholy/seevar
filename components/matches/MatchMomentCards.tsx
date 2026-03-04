@@ -3,12 +3,17 @@
 import { useState, useEffect, useRef } from "react"
 import { MessageCircle } from "lucide-react"
 import { MomentCommentModal } from "@/components/home/MomentCommentModal"
+import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
 
 export type MomentForCard = {
   id: string
   title: string | null
   description?: string | null
   startMinute: number | null
+  /** 구간(전반/후반/연장). 후반 47분 vs 연장 전반 2분 구분용 */
+  startPeriod?: string | null
+  /** 구간 내 분. startPeriod와 함께 표기 시 사용 */
+  startMinuteInPeriod?: number | null
   endMinute: number | null
   seeVarCount: number
   commentCount: number
@@ -38,15 +43,20 @@ type HotMomentItem = {
 /** useRef 제네릭의 >> 가 JSX로 파싱되지 않도록 별칭 사용 */
 type CardRefsMap = Record<string, HTMLButtonElement | null>
 
+/** 상황 발생 시각 표기. startPeriod+startMinuteInPeriod 있으면 우선 사용(90+2→후반 47분 vs 연장 전반 2분 구분) */
+function getMomentTimeLabel(mom: MomentForCard): string {
+  if (mom.startPeriod != null && mom.startPeriod !== "" && mom.startMinuteInPeriod != null)
+    return formatMomentTimeFromPeriod(mom.startPeriod, mom.startMinuteInPeriod)
+  if (mom.startMinute != null) return formatMatchMinuteForDisplay(mom.startMinute)
+  return mom.title ?? "—"
+}
+
 function toHotMomentItem(
   mom: MomentForCard,
   matchId: string,
   match: MatchInfoForCards
 ): HotMomentItem {
-  const time =
-    mom.startMinute != null && mom.endMinute != null
-      ? `${mom.startMinute}' ~ ${mom.endMinute}'`
-      : mom.title ?? ""
+  const time = getMomentTimeLabel(mom)
   return {
     momentId: mom.id,
     matchId,
@@ -132,7 +142,7 @@ export function MatchMomentCards({
               {variant === "list" && (
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-mono text-primary font-bold">
-                    {mom.title ?? `${mom.startMinute ?? 0}' ~ ${mom.endMinute ?? 0}'`}
+                    {getMomentTimeLabel(mom)}
                   </span>
                   {i < 3 && (
                     <span className="bg-primary text-primary-foreground text-[9px] font-black px-1.5 py-0.5">
@@ -145,9 +155,7 @@ export function MatchMomentCards({
                 <>
                   <div className="rank-badge">{i + 1}</div>
                   <div className="text-primary font-bold font-mono text-[10px] md:text-xs mb-2 md:mb-3">
-                    {mom.startMinute != null && mom.endMinute != null
-                      ? `${mom.startMinute}' ~ ${mom.endMinute}'`
-                      : mom.title ?? "—"}
+                    {getMomentTimeLabel(mom)}
                   </div>
                   {mom.firstCommentPreview && (
                     <p className="text-xs md:text-sm text-white line-clamp-2 mb-2 italic">

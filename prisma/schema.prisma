@@ -342,6 +342,10 @@ model Moment {
   title         String?
   description   String?        @db.Text
   startMinute   Int?
+  /** 구간(전반/후반/연장 전반/연장 후반). 후반 47분 vs 연장 전반 2분 구분용 */
+  startPeriod       String?    // "first" | "second" | "et_first" | "et_second"
+  /** 구간 내 분(1~50 전반·후반, 1~60 연장). startPeriod와 함께 표기 시 사용 */
+  startMinuteInPeriod Int?
   endMinute     Int?
   /** 구간 길이(분). 정렬·검증용. endMinute - startMinute, 최대 15 */
   duration      Int            @default(0)

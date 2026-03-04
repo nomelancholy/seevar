@@ -59,7 +59,7 @@ function LeagueBlock({
         </div>
       </button>
       <div className={`league-content ${open ? "open" : ""}`}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
           {matches.length === 0 ? (
             <p className="col-span-full text-muted-foreground font-mono text-xs py-6 px-4">
               등록된 경기가 없습니다.
@@ -75,16 +75,16 @@ function LeagueBlock({
               <div className="text-chart-2 font-bold font-mono text-xs md:text-sm">
                 {m.date}
               </div>
-              <div className="flex items-center gap-3 md:gap-4 w-full justify-between">
-                <EmblemImage src={m.homeEmblem} width={40} height={40} className="w-8 h-8 md:w-10 md:h-10 shrink-0" />
+              <div className="flex items-center gap-1.5 sm:gap-3 md:gap-4 w-full justify-between min-w-0 flex-nowrap">
+                <EmblemImage src={m.homeEmblem} width={40} height={40} className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 shrink-0" />
                 {m.scoreHome != null && m.scoreAway != null ? (
-                  <span className="text-sm md:text-base font-black tabular-nums">
+                  <span className="text-sm md:text-base font-black tabular-nums whitespace-nowrap shrink-0 min-w-[3rem] text-center">
                     {m.scoreHome} : {m.scoreAway}
                   </span>
                 ) : (
-                  <span className="text-muted-foreground text-xs">vs</span>
+                  <span className="text-muted-foreground text-xs shrink-0">vs</span>
                 )}
-                <EmblemImage src={m.awayEmblem} width={40} height={40} className="w-8 h-8 md:w-10 md:h-10 shrink-0" />
+                <EmblemImage src={m.awayEmblem} width={40} height={40} className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 shrink-0" />
               </div>
               <div className="text-xs md:text-sm font-mono text-center font-medium">
                 {m.homeName} vs {m.awayName}

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, X, ImageIcon, Video } from "lucide-react"
+import { Loader2, X, ImageIcon, Video, ChevronDown } from "lucide-react"
 import { createMoment } from "@/lib/actions/moments"
 import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/constants/upload"
@@ -13,20 +13,73 @@ type Props = {
   matchId: string
 }
 
-/** "47" → 47, "45+2" → 47(전반 추가 2분), "90+1" → 91 */
-function parseMinuteValue(s: string): number | null {
-  const t = s.trim()
-  if (!t) return null
-  const plusMatch = t.match(/^(\d+)\s*\+\s*(\d+)$/)
-  if (plusMatch) return parseInt(plusMatch[1], 10) + parseInt(plusMatch[2], 10)
-  if (/^\d+$/.test(t)) return parseInt(t, 10)
+type Period = "first" | "second" | "et_first" | "et_second"
+
+/** 추가시간까지 넉넉히 (전반/후반 최대 90분, 연장 전·후반 최대 60분) */
+const MAX_FIRST_SECOND = 90   // 45 정규 + 최대 45 추가
+const MAX_ET_HALF = 60       // 15 정규 + 최대 45 추가
+
+/** 구간 + 입력 분 → 경기 진행 분(숫자, 서버 저장용) */
+function toMatchMinute(period: Period, minute: number): number | null {
+  if (period === "first") return minute >= 1 && minute <= MAX_FIRST_SECOND ? minute : null
+  if (period === "second") {
+    if (minute >= 1 && minute <= 45) return 45 + minute
+    if (minute >= 46 && minute <= MAX_FIRST_SECOND) return 90 + (minute - 45)
+    return null
+  }
+  if (period === "et_first") {
+    if (minute >= 1 && minute <= 15) return 90 + minute
+    if (minute >= 16 && minute <= MAX_ET_HALF) return 105 + (minute - 15)
+    return null
+  }
+  if (period === "et_second") {
+    if (minute >= 1 && minute <= 15) return 105 + minute
+    if (minute >= 16 && minute <= MAX_ET_HALF) return 120 + (minute - 15)
+    return null
+  }
   return null
 }
 
+function getMaxMinuteForPeriod(period: Period): number {
+  if (period === "first") return MAX_FIRST_SECOND
+  if (period === "second") return MAX_FIRST_SECOND
+  if (period === "et_first") return MAX_ET_HALF
+  if (period === "et_second") return MAX_ET_HALF
+  return 15
+}
+
+/** 구간 + 입력 분 → 화면 표기 (전반 46→45+1, 후반 5→49분, 연장 전반 15→105분 등) */
+function formatPeriodMinute(period: Period, minute: number): string {
+  if (period === "first") {
+    if (minute >= 1 && minute <= 45) return `${minute}분`
+    if (minute >= 46) return `45+${minute - 45}`
+  }
+  if (period === "second") {
+    if (minute >= 1 && minute <= 45) return `${45 + minute}분`
+    if (minute >= 46) return `90+${minute - 45}`
+  }
+  if (period === "et_first") {
+    if (minute >= 1 && minute <= 15) return `${90 + minute}분`
+    if (minute >= 16) return `105+${minute - 15}`
+  }
+  if (period === "et_second") {
+    if (minute >= 1 && minute <= 15) return `${105 + minute}분`
+    if (minute >= 16) return `120+${minute - 15}`
+  }
+  return `${minute}분`
+}
+
+const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: "first", label: "전반" },
+  { value: "second", label: "후반" },
+  { value: "et_first", label: "연장 전반" },
+  { value: "et_second", label: "연장 후반" },
+]
+
 export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
   const router = useRouter()
-  const [startTime, setStartTime] = useState("")
-  const [endTime, setEndTime] = useState("")
+  const [startPeriod, setStartPeriod] = useState<Period>("first")
+  const [startMinute, setStartMinute] = useState<string>("")
   const [description, setDescription] = useState("")
   const [attachedFile, setAttachedFile] = useState<File | null>(null)
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
@@ -35,8 +88,20 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
   const [fileSizeError, setFileSizeError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
+  const periodDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!periodDropdownOpen) return
+    const close = (e: MouseEvent) => {
+      if (periodDropdownRef.current?.contains(e.target as Node)) return
+      setPeriodDropdownOpen(false)
+    }
+    document.addEventListener("click", close)
+    return () => document.removeEventListener("click", close)
+  }, [periodDropdownOpen])
 
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden"
@@ -108,49 +173,29 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
     }
   }
 
-  const MAX_DURATION = 15
-  const startValue = parseMinuteValue(startTime)
-  const endValue = parseMinuteValue(endTime)
-  const endBeforeStart =
-    startValue != null && endValue != null && endValue <= startValue
-  const overDuration =
-    startValue != null &&
-    endValue != null &&
-    endValue > startValue &&
-    endValue - startValue > MAX_DURATION
+  const startMinuteNum = startMinute === "" ? null : parseInt(startMinute, 10)
+  const startValue =
+    startMinuteNum != null && !Number.isNaN(startMinuteNum)
+      ? toMatchMinute(startPeriod, startMinuteNum)
+      : null
 
-  const validateTime = () => {
-    if (startValue == null && endValue == null) {
-      setTimeError(null)
-      return
-    }
-    if (startValue != null && endValue != null && endValue <= startValue) {
-      setTimeError("종료 시간은 시작 시간보다 늦어야 합니다")
-      return
-    }
-    if (overDuration) {
-      setTimeError(`모멘트 구간은 최대 ${MAX_DURATION}분까지 가능합니다`)
-      return
-    }
-    setTimeError(null)
-  }
+  const validateTime = () => setTimeError(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (startTime.trim() && startValue == null) {
-      setTimeError("시작 시간 형식이 올바르지 않습니다 (예: 47 또는 45+2)")
+    const maxStart = getMaxMinuteForPeriod(startPeriod)
+    if (
+      startMinute === "" ||
+      startMinuteNum == null ||
+      Number.isNaN(startMinuteNum) ||
+      startMinuteNum < 1 ||
+      startMinuteNum > maxStart
+    ) {
+      setTimeError(`구간에 맞는 분을 입력해주세요. (전반/후반 1~90, 연장 전·후반 1~60)`)
       return
     }
-    if (endTime.trim() && endValue == null) {
-      setTimeError("종료 시간 형식이 올바르지 않습니다 (예: 54 또는 45+4)")
-      return
-    }
-    if (endBeforeStart) {
-      setTimeError("종료 시간은 시작 시간보다 늦어야 합니다")
-      return
-    }
-    if (overDuration) {
-      setTimeError(`모멘트 구간은 최대 ${MAX_DURATION}분까지 가능합니다`)
+    if (startValue == null) {
+      setTimeError("발생 시각을 확인해주세요.")
       return
     }
     if (attachedFile && attachedFile.size > MAX_FILE_SIZE_BYTES) {
@@ -176,12 +221,14 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
       const result = await createMoment(matchId, {
         description: description.trim() || null,
         startMinute: startValue ?? null,
-        endMinute: endValue ?? null,
+        startPeriod,
+        startMinuteInPeriod: startMinuteNum ?? null,
+        endMinute: null,
         mediaUrl,
       })
       if (result.ok) {
-        setStartTime("")
-        setEndTime("")
+        setStartMinute("")
+        setStartPeriod("first")
         setDescription("")
         clearAttachment()
         setTimeError(null)
@@ -219,7 +266,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-black italic tracking-tighter uppercase">
-            순간 생성
+            판정 이의 제기
           </h2>
           <button
             type="button"
@@ -232,51 +279,71 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
         </div>
 
         <form id="var-creation-form" onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-mono text-muted-foreground mb-1 uppercase">
-                상황 발생 시각 (분)
-              </label>
+          <div>
+            <label className="block text-[10px] font-mono text-muted-foreground mb-1 uppercase">
+              상황 발생 시각
+            </label>
+            <div className="flex flex-nowrap gap-2 items-center min-w-0">
+              <div className="relative shrink-0" ref={periodDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setPeriodDropdownOpen((o) => !o)}
+                  className="flex items-center justify-between gap-1.5 w-[100px] md:w-[110px] bg-[#1c1f24] border border-border text-foreground px-3 py-2.5 font-mono text-sm focus:outline-none focus:border-primary hover:border-muted-foreground/50 transition-colors"
+                >
+                  <span>{PERIOD_OPTIONS.find((o) => o.value === startPeriod)?.label ?? startPeriod}</span>
+                  <ChevronDown className={`size-4 text-muted-foreground shrink-0 transition-transform ${periodDropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+                {periodDropdownOpen && (
+                  <div className="absolute top-full left-0 z-10 mt-1 w-[100px] md:w-[110px] rounded-md border border-border bg-card shadow-lg py-1">
+                    {PERIOD_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setStartPeriod(opt.value)
+                          const max = getMaxMinuteForPeriod(opt.value)
+                          if (startMinute !== "" && (startMinuteNum == null || startMinuteNum > max)) setStartMinute("")
+                          setTimeError(null)
+                          setPeriodDropdownOpen(false)
+                        }}
+                        className={`w-full text-left px-3 py-2 font-mono text-sm transition-colors ${
+                          opt.value === startPeriod
+                            ? "bg-primary/20 text-primary"
+                            : "text-foreground hover:bg-white/10"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <input
-                type="text"
-                inputMode="numeric"
-                placeholder="e.g. 47 or 45+2"
-                value={startTime}
+                type="number"
+                min={1}
+                max={getMaxMinuteForPeriod(startPeriod)}
+                placeholder="1~"
+                value={startMinute}
                 onChange={(e) => {
-                  setStartTime(e.target.value)
+                  setStartMinute(e.target.value.replace(/\D/g, ""))
                   setTimeError(null)
                 }}
                 onBlur={validateTime}
-                className="w-full bg-[#1c1f24] border border-border text-foreground px-3 py-2.5 font-mono text-sm focus:outline-none focus:border-primary"
+                className="shrink-0 w-16 md:w-20 bg-[#1c1f24] border border-border text-foreground px-2.5 py-2.5 font-mono text-sm focus:outline-none focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 required
               />
-              <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
-                전반 추가 45+2, 후반 47분 등
-              </p>
-            </div>
-            <div>
-              <label className="block text-[10px] font-mono text-muted-foreground mb-1 uppercase">
-                상황 종료 시각 (분)
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="e.g. 54 or 45+4"
-                value={endTime}
-                onChange={(e) => {
-                  setEndTime(e.target.value)
-                  setTimeError(null)
-                }}
-                onBlur={validateTime}
-                className={`w-full bg-[#1c1f24] border text-foreground px-3 py-2.5 font-mono text-sm focus:outline-none focus:border-primary ${endBeforeStart || overDuration ? "border-destructive" : "border-border"}`}
-                required
-              />
-              {timeError && (
-                <p className="text-[9px] font-mono text-destructive mt-0.5">
-                  {timeError}
-                </p>
+              <span className="shrink-0 font-mono text-sm text-muted-foreground">분</span>
+              {startValue != null && startMinuteNum != null && !Number.isNaN(startMinuteNum) && (
+                <span className="shrink-0 font-mono text-sm text-primary">
+                  {formatPeriodMinute(startPeriod, startMinuteNum)}
+                </span>
               )}
             </div>
+            {timeError && (
+              <p className="text-[9px] font-mono text-destructive mt-0.5">
+                {timeError}
+              </p>
+            )}
           </div>
 
           <div>
@@ -291,7 +358,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
             >
               <textarea
                 rows={4}
-                placeholder="이 순간을 남겨야 하는 이유를 설명해주세요 (사진·영상은 여기로 드래그 앤 드롭 가능)"
+                placeholder="판정에 이의를 제기하는 이유를 상세히 설명해주세요. (사진·영상은 여기로 드래그 앤 드롭 가능)"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full bg-[#1c1f24] border-0 text-foreground px-3 py-2.5 pr-12 font-mono text-sm focus:outline-none focus:ring-0 resize-none"
@@ -377,8 +444,8 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
                 {fileSizeError}
               </p>
             )}
-            <p className="text-[9px] font-mono text-muted-foreground mt-2">
-              사진·영상 최대 {MAX_FILE_SIZE_MB}MB (이미지: jpeg/png/webp/gif, 영상: mp4/webm)
+            <p className="text-sm font-mono text-muted-foreground mt-2">
+              사진·영상은 최대 {MAX_FILE_SIZE_MB}MB 첨부 가능 (이미지: jpeg/png/webp/gif, 영상: mp4/webm)
             </p>
           </div>
 
@@ -395,7 +462,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
               className="w-full border border-border bg-primary text-primary-foreground font-black py-3 text-sm tracking-tighter italic hover:scale-[1.02] transition-transform disabled:opacity-70 inline-flex items-center justify-center gap-2"
             >
               {pending && <Loader2 className="size-4 shrink-0 animate-spin" />}
-              {pending ? "등록 중…" : "SEE VAR"}
+              {pending ? "등록 중…" : "판정 이의 제기"}
             </button>
           </div>
         </form>

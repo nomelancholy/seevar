@@ -9,6 +9,7 @@ import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { ArchiveFilters } from "@/components/matches/ArchiveFilters"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
+import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
 
 export const metadata = {
   title: "경기 기록 | See VAR",
@@ -402,7 +403,11 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     awayName: shortNameFromSlug(awayTeam.slug),
     homeEmblem: homeTeam.emblemPath ?? "",
     awayEmblem: awayTeam.emblemPath ?? "",
-    time: mom.title ?? `${mom.startMinute ?? 0}' ~ ${mom.endMinute ?? 0}'`,
+    time: mom.startPeriod != null && mom.startMinuteInPeriod != null
+      ? formatMomentTimeFromPeriod(mom.startPeriod, mom.startMinuteInPeriod)
+      : mom.startMinute != null
+        ? formatMatchMinuteForDisplay(mom.startMinute)
+        : (mom.title ?? "—"),
     varCount: mom.seeVarCount,
     commentCount: mom.commentCount,
     firstCommentPreview,
@@ -493,11 +498,11 @@ export default async function MatchesArchivePage({ params }: { params: Params })
 
       {/* ROUND BEST / WORST REFEREE */}
       {bestReferee && worstReferee && (
-        <section className="mb-8 md:mb-12 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <section className="mb-8 md:mb-12 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
           {/* BEST */}
-          <div className="ledger-surface p-4 md:p-6 border-l-4 border-[#00ff41]">
+          <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
             <div className="flex justify-between items-start mb-6">
-              <div>
+              <div className="min-w-0">
                 <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1">
                   라운드 베스트 심판
                 </p>
@@ -513,11 +518,11 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                   </span>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right shrink-0">
                 <span className="bg-[#00ff41] text-black px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
                   최고점
                 </span>
-                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1">
+                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap">
                   AVG: {bestReferee.avg.toFixed(1)} / 5.0 ({bestReferee.voteCount}명)
                 </p>
               </div>
@@ -573,9 +578,9 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           </div>
 
           {/* WORST */}
-          <div className="ledger-surface p-4 md:p-6 border-l-4 border-red-600">
+          <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
             <div className="flex justify-between items-start mb-6">
-              <div>
+              <div className="min-w-0">
                 <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1">
                   라운드 워스트 심판
                 </p>
@@ -591,11 +596,11 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                   </span>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right shrink-0">
                 <span className="bg-red-600 text-white px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
                   최저점
                 </span>
-                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1">
+                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap">
                   AVG: {worstReferee.avg.toFixed(1)} / 5.0 ({worstReferee.voteCount}명)
                 </p>
               </div>
@@ -656,17 +661,21 @@ export default async function MatchesArchivePage({ params }: { params: Params })
       {hotList.length === 0 ? (
         <section className="mb-8 md:mb-12">
           <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
-            라운드 화제의 순간
+            라운드 쟁점 순간
           </h2>
           <p className="text-sm text-muted-foreground font-mono">
             등록된 모멘트가 없습니다.
           </p>
         </section>
       ) : (
-        <HotMomentsSection hotMoments={hotList} title="라운드 화제의 순간" />
+        <HotMomentsSection hotMoments={hotList} title="라운드 쟁점 순간" />
       )}
 
-      <div className="ledger-surface overflow-hidden">
+      <section className="mb-8 md:mb-12">
+        <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
+          라운드 경기 일정
+        </h2>
+        <div className="ledger-surface overflow-hidden">
         <div className="hidden md:grid grid-cols-12 bg-card/50 p-4 border-b border-border font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
           <div className="col-span-2">Date / Time</div>
           <div className="col-span-1 text-center">League</div>
@@ -732,14 +741,14 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                         const status = deriveMatchStatus(m.playedAt, { storedStatus: m.status })
                         return status === "LIVE" && m.scoreHome != null && m.scoreAway != null ? (
                           <>
-                            <span className="text-lg font-black italic tracking-tighter">
+                            <span className="text-lg font-black italic tracking-tighter whitespace-nowrap">
                               {m.scoreHome} : {m.scoreAway}
                             </span>
                             <span className="font-mono text-[9px] text-primary font-bold">LIVE</span>
                           </>
                         ) : status === "FINISHED" && m.scoreHome != null && m.scoreAway != null ? (
                           <>
-                            <span className="text-lg font-black italic tracking-tighter">
+                            <span className="text-lg font-black italic tracking-tighter whitespace-nowrap">
                               {m.scoreHome} : {m.scoreAway}
                             </span>
                             <span className="font-mono text-[9px] text-muted-foreground font-bold uppercase">
@@ -853,14 +862,14 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                           const status = deriveMatchStatus(m.playedAt, { storedStatus: m.status })
                           return status === "LIVE" && m.scoreHome != null && m.scoreAway != null ? (
                             <>
-                              <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                              <span className="text-xl md:text-2xl font-black italic tracking-tighter whitespace-nowrap">
                                 {m.scoreHome} : {m.scoreAway}
                               </span>
                               <span className="font-mono text-[8px] text-primary font-bold">LIVE</span>
                             </>
                           ) : status === "FINISHED" && m.scoreHome != null && m.scoreAway != null ? (
                             <>
-                              <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+                              <span className="text-xl md:text-2xl font-black italic tracking-tighter whitespace-nowrap">
                                 {m.scoreHome} : {m.scoreAway}
                               </span>
                               <span className="font-mono text-[8px] text-muted-foreground font-bold uppercase">
@@ -923,6 +932,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           )}
         </div>
       </div>
+      </section>
 
       {/* 라운드 판정 리포트 - 페이지 가장 하단 */}
       {(youtubeEmbedUrl || instagramEmbedUrl) && (

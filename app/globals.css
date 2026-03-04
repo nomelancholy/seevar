@@ -101,8 +101,7 @@
     scrollbar-width: none;
   }
   .hot-moment-card {
-    @apply relative rounded-md border border-border bg-card p-4 transition-all cursor-pointer;
-    min-width: 160px;
+    @apply relative rounded-md border border-border bg-card p-4 transition-all cursor-pointer min-w-0;
   }
   .hot-moment-card:hover {
     @apply border-primary -translate-y-0.5;
@@ -112,7 +111,7 @@
     @apply absolute -top-2.5 -left-2.5 bg-primary text-primary-foreground font-black italic px-2 py-0.5 text-sm z-10;
   }
   .match-card-mini {
-    @apply min-w-[200px] rounded-md border border-border bg-card p-4 text-xs transition-colors cursor-pointer;
+    @apply min-w-0 rounded-md border border-border bg-card p-4 text-xs transition-colors cursor-pointer;
   }
   .match-card-mini:hover {
     @apply border-primary;

@@ -180,6 +180,56 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
   ) as Record<string, number>
   const totalAssignments = Object.values(countByRole).reduce((a, b) => a + b, 0)
 
+  // 팀별 배정: MatchReferee 기준으로 연도 필터 적용해 상단 카드·총 배정과 일치시킴
+  const allAssignmentRows = await prisma.matchReferee.findMany({
+    where: { refereeId: referee.id },
+    select: {
+      role: true,
+      match: {
+        select: {
+          homeTeamId: true,
+          awayTeamId: true,
+          homeTeam: { select: { id: true, name: true, emblemPath: true } },
+          awayTeam: { select: { id: true, name: true, emblemPath: true } },
+          round: { select: { league: { select: { season: { select: { year: true } } } } } },
+        },
+      },
+    },
+  })
+  function buildTeamStatsFromAssignments(year: number | null) {
+    const byTeam = new Map<
+      string,
+      { teamName: string; emblemPath: string | null; roleCounts: Record<string, number>; total: number }
+    >()
+    const roleKey = (r: string) => r
+    for (const mr of allAssignmentRows) {
+      const yearMatch = year == null || mr.match.round.league.season.year === year
+      if (!yearMatch) continue
+      for (const team of [mr.match.homeTeam, mr.match.awayTeam]) {
+        const cur = byTeam.get(team.id)
+        const roleCounts = cur ? { ...cur.roleCounts } : ({} as Record<string, number>)
+        roleCounts[roleKey(mr.role)] = (roleCounts[roleKey(mr.role)] ?? 0) + 1
+        const total = (cur?.total ?? 0) + 1
+        byTeam.set(team.id, {
+          teamName: team.name,
+          emblemPath: team.emblemPath,
+          roleCounts,
+          total,
+        })
+      }
+    }
+    return [...byTeam.values()].map((t) => ({
+      teamName: t.teamName,
+      emblemPath: t.emblemPath,
+      roleCounts: t.roleCounts,
+      totalYellowCards: 0,
+      totalRedCards: 0,
+      totalAssignments: t.total,
+    }))
+  }
+  const assignmentTeamStatsByStatsYear = buildTeamStatsFromAssignments(statsYear)
+  const assignmentTeamStatsByAssignmentYear = buildTeamStatsFromAssignments(assignmentYear)
+
   const cardAggregate = await prisma.matchReferee.aggregate({
     where: {
       refereeId: referee.id,
@@ -338,7 +388,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           currentYear={statsYear}
           paramKey="stats"
           showAllOption
-          teamStats={teamStatsForSections}
+          teamStats={assignmentTeamStatsByStatsYear}
           variant="assignment"
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -425,7 +475,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           availableYears={availableYears}
           currentYear={assignmentYear}
           paramKey="year"
-          teamStats={teamStatsForSections}
+          teamStats={assignmentTeamStatsByAssignmentYear}
           variant="match"
         >
           <div className="space-y-3 md:space-y-4">

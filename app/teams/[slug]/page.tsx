@@ -61,7 +61,7 @@ export default async function TeamDetailPage({
   if (!team) notFound()
 
   const teamId = team.id
-  const [teamStats, matchList, teamFanReviews] = await Promise.all([
+  const [teamStats, matchList, teamFanReviews, allMatchRefereesForTeam] = await Promise.all([
     prisma.refereeTeamStat.findMany({
       where: { teamId },
       include: { referee: true },
@@ -81,6 +81,10 @@ export default async function TeamDetailPage({
     prisma.refereeReview.findMany({
       where: { fanTeamId: teamId, status: "VISIBLE" },
       select: { refereeId: true, rating: true, referee: { select: { id: true, slug: true, name: true } } },
+    }),
+    prisma.matchReferee.findMany({
+      where: { match: { OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] } },
+      select: { role: true, refereeId: true, referee: { select: { id: true, slug: true, name: true } } },
     }),
   ])
 
@@ -110,23 +114,22 @@ export default async function TeamDetailPage({
     roleCounts: null as Record<string, number> | null,
   }))
 
-  // 배정 집계: 경기 목록(matchList)에서 심판별 배정 횟수·역할 집계 (RefereeTeamStat 미갱신 시에도 실제 경기 기준 표시)
+  // 배정 집계: 해당 팀 경기 전체의 MatchReferee 기준으로 심판별·역할별 집계 (역할별/총 배정 숫자 일치)
   const derivedByReferee = new Map<
     string,
     { referee: { id: string; slug: string; name: string }; totalAssignments: number; roleCounts: Record<string, number> }
   >()
-  for (const m of matchList) {
-    for (const mr of m.matchReferees) {
-      const r = mr.referee
-      const cur = derivedByReferee.get(r.id)
-      const roleCounts: Record<string, number> = cur?.roleCounts ? { ...cur.roleCounts } : {}
-      roleCounts[mr.role] = (roleCounts[mr.role] ?? 0) + 1
-      derivedByReferee.set(r.id, {
-        referee: r,
-        totalAssignments: (cur?.totalAssignments ?? 0) + 1,
-        roleCounts,
-      })
-    }
+  for (const mr of allMatchRefereesForTeam) {
+    const r = mr.referee
+    const cur = derivedByReferee.get(r.id)
+    const roleCounts: Record<string, number> = cur?.roleCounts ? { ...cur.roleCounts } : {}
+    const roleKey = String(mr.role)
+    roleCounts[roleKey] = (roleCounts[roleKey] ?? 0) + 1
+    derivedByReferee.set(r.id, {
+      referee: r,
+      totalAssignments: (cur?.totalAssignments ?? 0) + 1,
+      roleCounts,
+    })
   }
   const derivedAssignments = [...derivedByReferee.values()]
     .sort((a, b) => b.totalAssignments - a.totalAssignments)

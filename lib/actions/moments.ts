@@ -19,6 +19,10 @@ type MomentInput = {
   title?: string | null
   description?: string | null
   startMinute?: number | null
+  /** 구간(전반/후반/연장 전반/연장 후반). 90+2 vs 연장 전반 2분 구분용 */
+  startPeriod?: string | null
+  /** 구간 내 분. startPeriod와 함께 저장 시 사용 */
+  startMinuteInPeriod?: number | null
   endMinute?: number | null
   mediaUrl?: string | null
 }
@@ -63,6 +67,8 @@ export async function createMoment(
         title: input.title?.trim() || null,
         description: descriptionTrimmed,
         startMinute: start,
+        startPeriod: input.startPeriod?.trim() || null,
+        startMinuteInPeriod: input.startMinuteInPeriod ?? null,
         endMinute: end,
         mediaUrl: input.mediaUrl?.trim() || null,
         seeVarCount: 1, // 작성자는 SEE VAR를 한 번 누른 것과 동일

@@ -30,6 +30,8 @@ import {
   useSortable,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog"
+import { EmblemImage } from "@/components/ui/EmblemImage"
 
 type HotMomentItem = {
   momentId?: string
@@ -102,6 +104,8 @@ type MomentDetail = {
   currentUserId?: string | null
   author?: { id: string; name: string | null }
   hasSeeVarByMe?: boolean
+  /** 이의 제기한 사람을 팀별 인원 (홈/원정/기타) */
+  seeVarByTeam?: { home: number; away: number; other: number }
   match: {
     homeTeam: { name: string; emblemPath: string | null }
     awayTeam: { name: string; emblemPath: string | null }
@@ -206,6 +210,8 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
   const [reportDescription, setReportDescription] = useState("")
   const [reportPending, setReportPending] = useState(false)
   const [reportError, setReportError] = useState<string | null>(null)
+  const [loginRequiredOpen, setLoginRequiredOpen] = useState(false)
+  const [loginRequiredMessage, setLoginRequiredMessage] = useState("이 순간에 코멘트를 남기려면 먼저 로그인해주세요.")
   const submitLockRef = useRef(false)
   const replyLockRef = useRef(false)
   const replyPreviewUrlRef = useRef<string | null>(null)
@@ -298,6 +304,11 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
   }, [open, moment?.momentId, fetchDetail])
 
   const handleSubmitComment = useCallback(async () => {
+    if (!detail?.currentUserId) {
+      setLoginRequiredMessage("이 순간에 코멘트를 남기려면 먼저 로그인해주세요.")
+      setLoginRequiredOpen(true)
+      return
+    }
     if (!detail?.id || !commentText.trim()) return
     if (submitLockRef.current) return
     submitLockRef.current = true
@@ -317,7 +328,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
       setSubmitPending(false)
       submitLockRef.current = false
     }
-  }, [detail?.id, commentText])
+  }, [detail?.id, detail?.currentUserId, commentText])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -545,8 +556,8 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
       aria-modal="true"
       aria-label="모멘트 댓글"
     >
-      <div className="bg-card border border-border w-full max-w-[min(96vw,960px)] h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
-        <div className="p-4 md:p-6 pr-6 md:pr-10 border-b border-border shrink-0">
+      <div className="bg-card border border-border w-full max-w-[min(92vw,640px)] h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+        <div className="p-4 md:p-5 pr-4 md:pr-6 border-b border-border shrink-0">
           <div className="flex justify-between items-start gap-4">
             <div className="min-w-0 flex-1">
               <h4 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase">
@@ -560,25 +571,69 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-1.5 text-muted-foreground hover:text-foreground rounded"
+              className="p-1.5 text-muted-foreground hover:text-foreground rounded shrink-0"
               aria-label="닫기"
             >
               <X className="size-6" />
             </button>
           </div>
-          <div className="mt-4 flex flex-nowrap justify-between items-center gap-3 w-full">
-            <div className="flex items-baseline gap-1.5 min-w-0">
-              <span className="font-mono text-[10px] text-primary font-bold uppercase tracking-wider">
-                CURRENT SEE VAR
-              </span>
-              <span className="text-base sm:text-xl font-black italic font-mono text-primary tabular-nums">
-                {varCount.toLocaleString()}
-              </span>
+          <div className="mt-3 flex items-stretch justify-between gap-4">
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] text-primary font-bold uppercase tracking-wider">
+                  누적 이의 제기
+                </span>
+                <span className="text-base sm:text-xl font-black italic font-mono text-primary tabular-nums">
+                  {varCount.toLocaleString()}
+                </span>
+              </div>
+              {detail?.seeVarByTeam && (detail.seeVarByTeam.home > 0 || detail.seeVarByTeam.away > 0 || detail.seeVarByTeam.other > 0) && (
+                <div className="flex flex-wrap items-center gap-3" role="list" aria-label="팀별 이의 제기 인원">
+                  {detail.seeVarByTeam.home > 0 && (
+                    <span className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground" title={`${detail.match.homeTeam.name} ${detail.seeVarByTeam.home}명`}>
+                      <EmblemImage
+                        src={detail.match.homeTeam.emblemPath}
+                        alt={detail.match.homeTeam.name}
+                        width={20}
+                        height={20}
+                        className="w-5 h-5 shrink-0 rounded-sm object-contain"
+                      />
+                      <span className="tabular-nums font-medium text-foreground/90">{detail.seeVarByTeam.home}</span>
+                    </span>
+                  )}
+                  {detail.seeVarByTeam.away > 0 && (
+                    <span className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground" title={`${detail.match.awayTeam.name} ${detail.seeVarByTeam.away}명`}>
+                      <EmblemImage
+                        src={detail.match.awayTeam.emblemPath}
+                        alt={detail.match.awayTeam.name}
+                        width={20}
+                        height={20}
+                        className="w-5 h-5 shrink-0 rounded-sm object-contain"
+                      />
+                      <span className="tabular-nums font-medium text-foreground/90">{detail.seeVarByTeam.away}</span>
+                    </span>
+                  )}
+                  {detail.seeVarByTeam.other > 0 && (
+                    <span
+                      className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground"
+                      title={`기타 팀 응원 ${detail.seeVarByTeam.other}명`}
+                    >
+                      <span className="w-5 h-5 shrink-0 rounded-sm bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground">?</span>
+                      <span className="tabular-nums font-medium text-foreground/90">{detail.seeVarByTeam.other}</span>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             <button
               type="button"
               disabled={seeVarPending || !detail?.id}
               onClick={async () => {
+                if (!detail?.currentUserId) {
+                  setLoginRequiredMessage("판정 이의 제기를 하려면 먼저 로그인 해주세요.")
+                  setLoginRequiredOpen(true)
+                  return
+                }
                 if (!detail?.id || isSeeVarByMe || seeVarPending) return
                 setSeeVarPending(true)
                 setActionError(null)
@@ -588,6 +643,9 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                     setDetail((prev) =>
                       prev ? { ...prev, seeVarCount: result.seeVarCount, hasSeeVarByMe: true } : null
                     )
+                    fetch(`/api/moments/${detail.id}`)
+                      .then((res) => (res.ok ? res.json() : null))
+                      .then((data) => data && setDetail(data))
                   } else {
                     setActionError(result.error)
                   }
@@ -595,15 +653,15 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                   setSeeVarPending(false)
                 }
               }}
-              className={`font-black italic font-mono text-[10px] sm:text-xs px-3 py-1.5 sm:px-4 sm:py-2 rounded border transition-colors shrink-0 ml-auto ${
+              className={`h-full font-black italic font-mono text-[10px] sm:text-xs px-3 py-1.5 sm:px-4 sm:py-2 rounded border transition-colors shrink-0 min-h-[2.5rem] ${
                 isSeeVarByMe
                   ? "bg-primary text-primary-foreground border-primary shadow-inner cursor-default"
                   : "border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
               }`}
-              title={isSeeVarByMe ? "이 순간에 공감했습니다" : "이 순간에 공감·추천"}
+              title={isSeeVarByMe ? "이의 제기했습니다" : "이의 제기"}
             >
               {seeVarPending ? <Loader2 className="size-3.5 sm:size-4 animate-spin inline-block" /> : null}
-              SEE VAR
+              이의 제기
             </button>
           </div>
         </div>
@@ -1243,6 +1301,13 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={(e) => {
+                if (!detail?.currentUserId) {
+                  e.target.blur()
+                  setLoginRequiredMessage("이 순간에 코멘트를 남기려면 먼저 로그인해주세요.")
+                  setLoginRequiredOpen(true)
+                }
+              }}
               placeholder="QUICK COMMENT... (Enter 전송, Shift+Enter 줄바꿈)"
               rows={1}
               className="flex-1 min-w-0 h-10 min-h-10 py-2 bg-muted border border-border px-3 text-xs font-mono focus:border-primary outline-none rounded resize-none"
@@ -1321,6 +1386,11 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
           </div>
         </div>
       </div>
+      <LoginRequiredDialog
+        open={loginRequiredOpen}
+        onClose={() => setLoginRequiredOpen(false)}
+        message={loginRequiredMessage}
+      />
     </div>
   )
 }

@@ -251,7 +251,7 @@ export function TeamDetailSection({
             <h3 className="font-mono text-xs md:text-sm font-black tracking-widest text-primary uppercase italic">
               심판별 카드 수
             </h3>
-            {cardsByReferee.length > 5 && (
+            {cardsByReferee.length > 0 && (
               <button
                 type="button"
                 onClick={() => {
@@ -405,7 +405,7 @@ export function TeamDetailSection({
               <button
                 type="button"
                 onClick={() => setModalTab("ratings")}
-                className={`flex-1 py-3 text-xs md:text-sm font-mono tracking-widest uppercase ${
+                className={`flex-1 py-3 text-sm md:text-base font-mono tracking-widest uppercase ${
                   modalTab === "ratings"
                     ? "bg-card text-primary border-b-2 border-primary"
                     : "bg-muted/30 text-muted-foreground hover:text-foreground"
@@ -416,7 +416,7 @@ export function TeamDetailSection({
               <button
                 type="button"
                 onClick={() => setModalTab("assignments")}
-                className={`flex-1 py-3 text-xs md:text-sm font-mono tracking-widest uppercase ${
+                className={`flex-1 py-3 text-sm md:text-base font-mono tracking-widest uppercase ${
                   modalTab === "assignments"
                     ? "bg-card text-primary border-b-2 border-primary"
                     : "bg-muted/30 text-muted-foreground hover:text-foreground"
@@ -427,7 +427,7 @@ export function TeamDetailSection({
               <button
                 type="button"
                 onClick={() => setModalTab("cards")}
-                className={`flex-1 py-3 text-xs md:text-sm font-mono tracking-widest uppercase ${
+                className={`flex-1 py-3 text-sm md:text-base font-mono tracking-widest uppercase ${
                   modalTab === "cards"
                     ? "bg-card text-primary border-b-2 border-primary"
                     : "bg-muted/30 text-muted-foreground hover:text-foreground"
@@ -519,16 +519,15 @@ export function TeamDetailSection({
                   배정 데이터가 없습니다.
                 </p>
               ) : modalTab === "assignments" ? (
-                <div className="w-full border border-border bg-card/40">
-                  <div className="grid grid-cols-8 gap-2 px-4 py-3 md:px-6 md:py-3 border-b border-border text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+                <div className="w-full border border-border bg-card/40 overflow-x-auto">
+                  <div className="grid grid-cols-7 gap-2 min-w-[480px] px-4 py-3 md:px-6 md:py-3 border-b border-border text-xs md:text-sm font-mono text-muted-foreground uppercase tracking-widest font-bold">
                     <span className="text-right w-6">#</span>
-                    <span>Referee Name</span>
-                    <span className="text-center">Main</span>
-                    <span className="text-center">Asst</span>
-                    <span className="text-center">Var</span>
-                    <span className="text-center">Avar</span>
-                    <span className="text-center">WAITING</span>
-                    <span className="text-center">Total</span>
+                    <span>심판 이름</span>
+                    <span className="text-center">주심</span>
+                    <span className="text-center">부심</span>
+                    <span className="text-center">대기심</span>
+                    <span className="text-center">VAR</span>
+                    <span className="text-center">총 배정</span>
                   </div>
                   <div className="divide-y divide-border">
                     {assignments
@@ -537,7 +536,7 @@ export function TeamDetailSection({
                       .map((ref, idx) => (
                         <div
                           key={ref.id}
-                          className="grid grid-cols-8 gap-2 px-4 py-2.5 md:px-6 md:py-3 items-center text-[10px] md:text-xs font-mono"
+                          className="grid grid-cols-7 gap-2 min-w-[480px] px-4 py-2.5 md:px-6 md:py-3 items-center text-xs md:text-sm font-mono"
                         >
                           <span className="text-right text-muted-foreground w-6">
                             {idx + 1}.
@@ -549,22 +548,19 @@ export function TeamDetailSection({
                             {ref.name}
                             <span className="text-[8px]">→</span>
                           </Link>
-                          <span className="text-center">
+                          <span className="text-center tabular-nums">
                             {getRoleCount(ref.roleCounts, "MAIN")}
                           </span>
-                          <span className="text-center">
+                          <span className="text-center tabular-nums">
                             {getRoleCount(ref.roleCounts, "ASSISTANT")}
                           </span>
-                          <span className="text-center">
-                            {getRoleCount(ref.roleCounts, "VAR")}
-                          </span>
-                          <span className="text-center">
-                            0
-                          </span>
-                          <span className="text-center">
+                          <span className="text-center tabular-nums">
                             {getRoleCount(ref.roleCounts, "WAITING")}
                           </span>
-                          <span className="text-center font-bold text-primary">
+                          <span className="text-center tabular-nums">
+                            {getRoleCount(ref.roleCounts, "VAR")}
+                          </span>
+                          <span className="text-center font-bold text-primary tabular-nums">
                             {ref.totalAssignments}
                           </span>
                         </div>

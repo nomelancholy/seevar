@@ -26,7 +26,7 @@ type Props = {
   title?: string
 }
 
-export function HotMomentsSection({ hotMoments = [], title = "라운드 화제의 순간" }: Props) {
+export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 순간" }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedMoment, setSelectedMoment] = useState<HotMomentItem | null>(null)
 
@@ -46,13 +46,13 @@ export function HotMomentsSection({ hotMoments = [], title = "라운드 화제�
         <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
           {title}
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
           {list.map((m) => (
             <button
               type="button"
               key={m.rank}
               onClick={() => openModal(m)}
-              className="hot-moment-card block w-full text-left cursor-pointer"
+              className="hot-moment-card block w-full min-w-0 text-left cursor-pointer"
             >
               <div className="rank-badge">{m.rank}</div>
               <div className="text-[8px] md:text-[10px] text-muted-foreground font-mono mb-1 md:mb-2">

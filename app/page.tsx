@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { shortNameFromSlug } from "@/lib/team-short-names"
 import { getMatchDetailPathWithBack } from "@/lib/match-url"
+import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { LeagueMatchesSection } from "@/components/home/LeagueMatchesSection"
@@ -374,7 +375,11 @@ export default async function HomePage() {
           awayName: shortNameFromSlug(mom.match.awayTeam.slug),
           homeEmblem: mom.match.homeTeam.emblemPath ?? "",
           awayEmblem: mom.match.awayTeam.emblemPath ?? "",
-          time: mom.title ?? `${mom.startMinute ?? 0}' ~ ${mom.endMinute ?? 0}'`,
+          time: mom.startPeriod != null && mom.startMinuteInPeriod != null
+            ? formatMomentTimeFromPeriod(mom.startPeriod, mom.startMinuteInPeriod)
+            : mom.startMinute != null
+              ? formatMatchMinuteForDisplay(mom.startMinute)
+              : (mom.title ?? "—"),
           varCount: mom.seeVarCount,
           commentCount: mom.commentCount,
           firstCommentPreview: firstCommentPreview ?? undefined,
@@ -412,10 +417,10 @@ export default async function HomePage() {
                         </p>
 
                         {(h.bestReferee || h.worstReferee) && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-4 min-w-0">
                             {/* BEST */}
                             {h.bestReferee && (
-                            <div className="ledger-surface p-4 md:p-6 border-l-4 border-[#00ff41]">
+                            <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
                               <div className="flex justify-between items-start mb-6">
                                 <div>
                                   <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1">
@@ -433,11 +438,11 @@ export default async function HomePage() {
                                     </span>
                                   </div>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right shrink-0">
                                   <span className="bg-[#00ff41] text-black px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
                                     최고점
                                   </span>
-                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1">
+                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap">
                                     AVG: {h.bestReferee.avg.toFixed(1)} / 5.0 ({h.bestReferee.voteCount}명)
                                   </p>
                                 </div>
@@ -504,7 +509,7 @@ export default async function HomePage() {
 
                             {/* WORST */}
                             {h.worstReferee && (
-                            <div className="ledger-surface p-4 md:p-6 border-l-4 border-red-600">
+                            <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
                               <div className="flex justify-between items-start mb-6">
                                 <div>
                                   <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1">
@@ -522,11 +527,11 @@ export default async function HomePage() {
                                     </span>
                                   </div>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right shrink-0">
                                   <span className="bg-red-600 text-white px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
                                     최저점
                                   </span>
-                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1">
+                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap">
                                     AVG: {h.worstReferee.avg.toFixed(1)} / 5.0 ({h.worstReferee.voteCount}명)
                                   </p>
                                 </div>

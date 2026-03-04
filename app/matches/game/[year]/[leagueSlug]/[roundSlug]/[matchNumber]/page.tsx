@@ -232,6 +232,8 @@ export default async function MatchDetailBySlugPage({
       title: m.title,
       description: m.description ?? null,
       startMinute: m.startMinute,
+      startPeriod: m.startPeriod ?? null,
+      startMinuteInPeriod: m.startMinuteInPeriod ?? null,
       endMinute: m.endMinute,
       seeVarCount: m.seeVarCount,
       commentCount: m.commentCount,
@@ -462,7 +464,11 @@ export default async function MatchDetailBySlugPage({
 
             {isLive && (
               <div className="flex justify-center">
-                <SeeVarButtonWithModal matchId={match.id} variant="live" />
+                <SeeVarButtonWithModal
+                  matchId={match.id}
+                  variant="live"
+                  isLoggedIn={!!currentUser}
+                />
               </div>
             )}
             {isUpcoming && (
@@ -472,7 +478,11 @@ export default async function MatchDetailBySlugPage({
             )}
             {isFinished && (
               <div className="flex justify-center">
-                <SeeVarButtonWithModal matchId={match.id} variant="finished" />
+                <SeeVarButtonWithModal
+                  matchId={match.id}
+                  variant="finished"
+                  isLoggedIn={!!currentUser}
+                />
               </div>
             )}
           </div>
@@ -483,7 +493,7 @@ export default async function MatchDetailBySlugPage({
         <section className="mb-8 md:mb-12">
           <div className="flex justify-between items-end mb-6">
             <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase">
-              경기 화제의 순간
+              경기 쟁점 순간
             </h2>
           </div>
           <MatchMomentCards
