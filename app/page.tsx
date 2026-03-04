@@ -2,7 +2,7 @@ import Link from "next/link"
 import { unstable_cache } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { shortNameFromSlug } from "@/lib/team-short-names"
-import { getMatchDetailPathWithBack } from "@/lib/match-url"
+import { getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
 import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
@@ -52,6 +52,8 @@ type RoundHighlight = {
         avg: number
         voteCount: number
         feedbacks: RefFeedback[]
+        /** 해당 라운드에서 심판이 맡은 경기 (표시·링크용, 리뷰 기준 1경기) */
+        matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
       }
     | null
   worstReferee:
@@ -63,6 +65,7 @@ type RoundHighlight = {
         avg: number
         voteCount: number
         feedbacks: RefFeedback[]
+        matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
       }
     | null
   youtubeEmbedUrl: string | null
@@ -200,6 +203,7 @@ export default async function HomePage() {
           include: {
             homeTeam: true,
             awayTeam: true,
+            round: { include: { league: { include: { season: true } } } },
           },
         },
         fanTeam: {
@@ -228,6 +232,7 @@ export default async function HomePage() {
           sum: number
           count: number
           feedbacks: RefFeedback[]
+          matchForDisplay: { homeName: string; awayName: string; matchPath: string }
         }
       >()
 
@@ -253,6 +258,15 @@ export default async function HomePage() {
             }
           : null
 
+        const matchForDisplay = {
+          homeName: r.match.homeTeam.name,
+          awayName: r.match.awayTeam.name,
+          matchPath:
+            getMatchDetailPathWithBack(r.match as unknown as MatchForPath, "/") +
+            "&scroll=referee-rating&referee=" +
+            encodeURIComponent((r.referee as { slug: string }).slug),
+        }
+
         if (cur) {
           cur.sum += r.rating
           cur.count += 1
@@ -266,6 +280,7 @@ export default async function HomePage() {
             sum: r.rating,
             count: 1,
             feedbacks: baseFeedback ? [baseFeedback] : [],
+            matchForDisplay,
           })
         }
       }
@@ -278,6 +293,7 @@ export default async function HomePage() {
         avg: v.count > 0 ? v.sum / v.count : 0,
         voteCount: v.count,
         feedbacks: v.feedbacks.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
+        matchForDisplay: v.matchForDisplay,
       }))
 
       if (stats.length > 0) {
@@ -423,12 +439,12 @@ export default async function HomePage() {
                             <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
                               <div className="flex justify-between items-start mb-6">
                                 <div>
-                                  <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1">
+                                  <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1 not-italic">
                                     라운드 베스트 심판
                                   </p>
                                   <Link
                                     href={`/referees/${h.bestReferee.slug}`}
-                                    className="text-xl md:text-2xl font-black italic uppercase leading-none hover:text-[#00ff41] transition-colors"
+                                    className="text-xl md:text-2xl font-black uppercase leading-none hover:text-[#00ff41] transition-colors not-italic"
                                   >
                                     {h.bestReferee.name}
                                   </Link>
@@ -437,12 +453,20 @@ export default async function HomePage() {
                                       {REFEREE_ROLE_LABEL[h.bestReferee.role] ?? h.bestReferee.role}
                                     </span>
                                   </div>
+                                  {h.bestReferee.matchForDisplay && (
+                                    <Link
+                                      href={h.bestReferee.matchForDisplay.matchPath}
+                                      className="mt-2 font-mono text-[10px] md:text-xs text-muted-foreground hover:text-[#00ff41] transition-colors not-italic"
+                                    >
+                                      {h.bestReferee.matchForDisplay.homeName} vs {h.bestReferee.matchForDisplay.awayName} →
+                                    </Link>
+                                  )}
                                 </div>
                                 <div className="text-right shrink-0">
                                   <span className="bg-[#00ff41] text-black px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
                                     최고점
                                   </span>
-                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap">
+                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap not-italic">
                                     AVG: {h.bestReferee.avg.toFixed(1)} / 5.0 ({h.bestReferee.voteCount}명)
                                   </p>
                                 </div>
@@ -480,7 +504,7 @@ export default async function HomePage() {
                                             )}
                                           </div>
                                           <div className="flex flex-col">
-                                            <span className="text-xs md:text-sm font-black italic text-white">
+                                            <span className="text-xs md:text-sm font-black text-white not-italic">
                                               {fb.userName}
                                             </span>
                                             {fb.teamName && (
@@ -497,7 +521,7 @@ export default async function HomePage() {
                                           <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
                                         </div>
                                       </div>
-                                      <div className="text-sm md:text-base text-zinc-300 italic">
+                                      <div className="text-xs md:text-sm text-zinc-300 not-italic">
                                         <TextWithEmbedPreview text={fb.comment} />
                                       </div>
                                     </div>
@@ -512,12 +536,12 @@ export default async function HomePage() {
                             <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
                               <div className="flex justify-between items-start mb-6">
                                 <div>
-                                  <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1">
+                                  <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1 not-italic">
                                     라운드 워스트 심판
                                   </p>
                                   <Link
                                     href={`/referees/${h.worstReferee.slug}`}
-                                    className="text-xl md:text-2xl font-black italic uppercase leading-none hover:text-red-500 transition-colors"
+                                    className="text-xl md:text-2xl font-black uppercase leading-none hover:text-red-500 transition-colors not-italic"
                                   >
                                     {h.worstReferee.name}
                                   </Link>
@@ -526,12 +550,20 @@ export default async function HomePage() {
                                       {REFEREE_ROLE_LABEL[h.worstReferee.role] ?? h.worstReferee.role}
                                     </span>
                                   </div>
+                                  {h.worstReferee.matchForDisplay && (
+                                    <Link
+                                      href={h.worstReferee.matchForDisplay.matchPath}
+                                      className="mt-2 font-mono text-[10px] md:text-xs text-muted-foreground hover:text-red-500 transition-colors not-italic"
+                                    >
+                                      {h.worstReferee.matchForDisplay.homeName} vs {h.worstReferee.matchForDisplay.awayName} →
+                                    </Link>
+                                  )}
                                 </div>
                                 <div className="text-right shrink-0">
                                   <span className="bg-red-600 text-white px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
                                     최저점
                                   </span>
-                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap">
+                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap not-italic">
                                     AVG: {h.worstReferee.avg.toFixed(1)} / 5.0 ({h.worstReferee.voteCount}명)
                                   </p>
                                 </div>
@@ -569,7 +601,7 @@ export default async function HomePage() {
                                             )}
                                           </div>
                                           <div className="flex flex-col">
-                                            <span className="text-xs md:text-sm font-black italic text-white">
+                                            <span className="text-xs md:text-sm font-black text-white not-italic">
                                               {fb.userName}
                                             </span>
                                             {fb.teamName && (
@@ -586,7 +618,7 @@ export default async function HomePage() {
                                           <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
                                         </div>
                                       </div>
-                                      <div className="text-sm md:text-base text-zinc-300 italic">
+                                      <div className="text-xs md:text-sm text-zinc-300 not-italic">
                                         <TextWithEmbedPreview text={fb.comment} />
                                       </div>
                                     </div>

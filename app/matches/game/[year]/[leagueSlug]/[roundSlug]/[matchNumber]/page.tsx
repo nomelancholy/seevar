@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { unstable_cache } from "next/cache"
 import Link from "next/link"
+import { Suspense } from "react"
 import { ChevronRight } from "lucide-react"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -9,6 +10,7 @@ import { sortMomentsByStartThenDuration } from "@/lib/utils/sort-moments"
 import { MatchDetailBackLink } from "@/components/matches/MatchDetailBackLink"
 import { MatchMomentCards } from "@/components/matches/MatchMomentCards"
 import { MatchRefereeRatingSectionDynamic } from "@/components/matches/MatchRefereeRatingSectionDynamic"
+import { ScrollToRefereeSection } from "@/components/matches/ScrollToRefereeSection"
 import { SeeVarButtonWithModal } from "@/components/matches/SeeVarButtonWithModal"
 import { getMatchDetailPath } from "@/lib/match-url"
 import { getYouTubeEmbedUrl, getInstagramEmbedUrl } from "@/lib/embed-urls"
@@ -33,6 +35,7 @@ type MatchReviewWithRelations = {
   reactions: { userId: string }[]
   replies: Array<{
     id: string
+    userId: string
     content: string
     createdAt: Date
     user: {
@@ -133,7 +136,7 @@ function getCachedMatch(
   )()
 }
 
-type SearchParams = Promise<{ back?: string; openMoment?: string }>
+type SearchParams = Promise<{ back?: string; openMoment?: string; referee?: string }>
 
 function sanitizeBackUrl(back: string | undefined): string {
   if (!back || typeof back !== "string") return "/matches"
@@ -158,7 +161,7 @@ export default async function MatchDetailBySlugPage({
   searchParams: SearchParams
 }) {
   const { year, leagueSlug, roundSlug, matchNumber } = await params
-  const { back: backParam, openMoment: openMomentId } = await searchParams
+  const { back: backParam, openMoment: openMomentId, referee: refereeSlug } = await searchParams
   const [match, currentUser] = await Promise.all([
     getCachedMatch(year, leagueSlug, roundSlug, matchNumber),
     getCurrentUser(),
@@ -274,6 +277,9 @@ export default async function MatchDetailBySlugPage({
 
   return (
     <main className="py-8 md:py-12">
+      <Suspense fallback={null}>
+        <ScrollToRefereeSection />
+      </Suspense>
       <div className="mb-6">
         <MatchDetailBackLink backHref={String(backHref)} />
       </div>
@@ -510,11 +516,13 @@ export default async function MatchDetailBySlugPage({
         </section>
       )}
 
+      <section id="referee-rating" className="scroll-mt-6">
       {isFinished ? (
         <MatchRefereeRatingSectionDynamic
           matchId={match.id}
           homeTeamId={match.homeTeam.id}
           awayTeamId={match.awayTeam.id}
+          initialRefereeSlug={refereeSlug ?? null}
           matchReferees={match.matchReferees.map((mr) => ({
             id: mr.id,
             role: mr.role,
@@ -540,6 +548,7 @@ export default async function MatchDetailBySlugPage({
             replies:
               r.replies?.map((rp: MatchReviewWithRelations["replies"][number]) => ({
                 id: rp.id,
+                userId: rp.userId,
                 content: rp.content,
                 createdAt: rp.createdAt,
                 user: {
@@ -583,6 +592,7 @@ export default async function MatchDetailBySlugPage({
           </div>
         </div>
       )}
+      </section>
 
       {/* 경기 판정 리포트 - 경기별 유튜브·인스타 카드 (Round Media와 동일 패턴) */}
       {((match as MatchWithMedia).youtubeUrl || (match as MatchWithMedia).instagramUrl) && (

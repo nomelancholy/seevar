@@ -343,6 +343,68 @@ const reportReplySchema = z.object({
   description: z.string().max(500).optional().nullable(),
 })
 
+export type UpdateReviewReplyResult = { ok: true } | { ok: false; error: string }
+
+export async function updateRefereeReviewReply(
+  replyId: string,
+  content: string
+): Promise<UpdateReviewReplyResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+
+  const parsed = replyContentSchema.safeParse(content.trim())
+  if (!parsed.success) {
+    const msg = parsed.error.flatten().formErrors[0] ?? parsed.error.message
+    return { ok: false, error: msg }
+  }
+
+  const reply = await prisma.refereeReviewReply.findUnique({
+    where: { id: replyId },
+    select: { id: true, userId: true, review: { select: { matchId: true } } },
+  })
+  if (!reply) return { ok: false, error: "답글을 찾을 수 없습니다." }
+  if (reply.userId !== user.id) return { ok: false, error: "본인이 작성한 답글만 수정할 수 있습니다." }
+
+  try {
+    await prisma.refereeReviewReply.update({
+      where: { id: replyId },
+      data: { content: parsed.data },
+    })
+    revalidatePath("/matches")
+    revalidatePath("/referees")
+    if (reply.review?.matchId) revalidateTag(`match-reviews-${reply.review.matchId}`)
+    return { ok: true }
+  } catch (e) {
+    console.error("updateRefereeReviewReply:", e)
+    return { ok: false, error: "수정에 실패했습니다." }
+  }
+}
+
+export type DeleteReviewReplyResult = { ok: true } | { ok: false; error: string }
+
+export async function deleteRefereeReviewReply(replyId: string): Promise<DeleteReviewReplyResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+
+  const reply = await prisma.refereeReviewReply.findUnique({
+    where: { id: replyId },
+    select: { id: true, userId: true, review: { select: { matchId: true } } },
+  })
+  if (!reply) return { ok: false, error: "답글을 찾을 수 없습니다." }
+  if (reply.userId !== user.id) return { ok: false, error: "본인이 작성한 답글만 삭제할 수 있습니다." }
+
+  try {
+    await prisma.refereeReviewReply.delete({ where: { id: replyId } })
+    revalidatePath("/matches")
+    revalidatePath("/referees")
+    if (reply.review?.matchId) revalidateTag(`match-reviews-${reply.review.matchId}`)
+    return { ok: true }
+  } catch (e) {
+    console.error("deleteRefereeReviewReply:", e)
+    return { ok: false, error: "삭제에 실패했습니다." }
+  }
+}
+
 export async function reportRefereeReviewReply(
   replyId: string,
   reason: string,

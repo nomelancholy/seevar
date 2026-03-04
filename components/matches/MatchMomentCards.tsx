@@ -158,7 +158,7 @@ export function MatchMomentCards({
                     {getMomentTimeLabel(mom)}
                   </div>
                   {mom.firstCommentPreview && (
-                    <p className="text-xs md:text-sm text-white line-clamp-2 mb-2 italic">
+                    <p className="text-xs md:text-sm text-white line-clamp-2 mb-2 not-italic">
                       {mom.firstCommentPreview}
                     </p>
                   )}

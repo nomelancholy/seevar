@@ -2,8 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Heart, Flag, Loader2, Pencil, MessageCircle, User } from "lucide-react"
+import { Heart, Flag, Loader2, Pencil, MessageCircle, User, Trash2, AlertTriangle } from "lucide-react"
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import {
   createRefereeReview,
   toggleRefereeReviewLike,
@@ -11,6 +19,8 @@ import {
   createRefereeReviewReply,
   toggleRefereeReviewReplyLike,
   reportRefereeReviewReply,
+  updateRefereeReviewReply,
+  deleteRefereeReviewReply,
 } from "@/lib/actions/referee-reviews"
 
 const STAR_CLIP =
@@ -150,6 +160,7 @@ function hiddenReviewMessage(): string {
 
 type ReplyItem = {
   id: string
+  userId: string
   content: string
   createdAt: string | Date
   user: {
@@ -182,6 +193,8 @@ type Props = {
   matchReferees: RefereeItem[]
   reviews: ReviewItem[]
   currentUserId: string | null
+  /** URL에서 진입 시 열어둘 심판 슬롯 (referee slug) */
+  initialRefereeSlug?: string | null
   /** 답글 낙관적 업데이트 시 표시할 이름/이미지/팀 */
   currentUserName?: string | null
   currentUserImage?: string | null
@@ -195,6 +208,7 @@ export function MatchRefereeRatingSection({
   matchReferees,
   reviews: initialReviews,
   currentUserId,
+  initialRefereeSlug = null,
   currentUserName = null,
   currentUserImage = null,
   currentUserSupportingTeam = null,
@@ -222,6 +236,12 @@ export function MatchRefereeRatingSection({
   const [likePendingReplyId, setLikePendingReplyId] = useState<string | null>(null)
   const [reportReplyTargetId, setReportReplyTargetId] = useState<string | null>(null)
   const [reportReplyReason, setReportReplyReason] = useState("ABUSE")
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null)
+  const [editingReplyContent, setEditingReplyContent] = useState("")
+  const [replyEditError, setReplyEditError] = useState<string | null>(null)
+  const [replyUpdatePending, setReplyUpdatePending] = useState(false)
+  const [deletingReplyId, setDeletingReplyId] = useState<string | null>(null)
+  const [deleteReplyModalReplyId, setDeleteReplyModalReplyId] = useState<string | null>(null)
   const [reportReplyDescription, setReportReplyDescription] = useState("")
   const [reportReplyPending, setReportReplyPending] = useState(false)
   const [reportReplyError, setReportReplyError] = useState<string | null>(null)
@@ -229,6 +249,19 @@ export function MatchRefereeRatingSection({
   const reviews = initialReviews
 
   const ratingSlots = useMemo(() => buildRatingSlots(matchReferees), [matchReferees])
+
+  const didApplyInitialRef = useRef(false)
+  useEffect(() => {
+    if (didApplyInitialRef.current || !initialRefereeSlug || ratingSlots.length === 0) return
+    const refereeId = matchReferees.find((mr) => mr.referee.slug === initialRefereeSlug)?.referee.id
+    if (refereeId) {
+      const idx = ratingSlots.findIndex((slot) => slot.refereeIds.includes(refereeId))
+      if (idx >= 0) {
+        setSelectedIdx(idx)
+        didApplyInitialRef.current = true
+      }
+    }
+  }, [initialRefereeSlug, ratingSlots, matchReferees])
 
   useEffect(() => {
     const slot = ratingSlots[selectedIdx]
@@ -401,15 +434,16 @@ export function MatchRefereeRatingSection({
           ...(prev[reviewId] ?? []),
           {
             id: result.replyId,
+            userId: currentUserId,
             content: text,
             createdAt: new Date(),
-          user: {
-            name: currentUserName ?? "나",
-            image: currentUserImage ?? null,
-            supportingTeam: currentUserSupportingTeam ?? null,
+            user: {
+              name: currentUserName ?? "나",
+              image: currentUserImage ?? null,
+              supportingTeam: currentUserSupportingTeam ?? null,
+            },
+            reactions: [],
           },
-          reactions: [],
-        },
       ],
     }))
       closeReplyForm()
@@ -435,6 +469,49 @@ export function MatchRefereeRatingSection({
       router.refresh()
     } else {
       setReportError(result.error)
+    }
+  }
+
+  const handleStartEditReply = (rp: ReplyItem) => {
+    setEditingReplyId(rp.id)
+    setEditingReplyContent(rp.content)
+    setReplyEditError(null)
+  }
+  const handleCancelEditReply = () => {
+    setEditingReplyId(null)
+    setEditingReplyContent("")
+    setReplyEditError(null)
+  }
+  const handleSaveReplyEdit = async () => {
+    if (!editingReplyId || editingReplyContent.trim() === "") return
+    setReplyUpdatePending(true)
+    setReplyEditError(null)
+    const result = await updateRefereeReviewReply(editingReplyId, editingReplyContent.trim())
+    setReplyUpdatePending(false)
+    if (result.ok) {
+      handleCancelEditReply()
+      router.refresh()
+    } else {
+      setReplyEditError(result.error)
+    }
+  }
+  const openDeleteReplyModal = (replyId: string) => {
+    setDeleteReplyModalReplyId(replyId)
+  }
+  const closeDeleteReplyModal = () => {
+    if (!deletingReplyId) setDeleteReplyModalReplyId(null)
+  }
+  const confirmDeleteReply = async () => {
+    const replyId = deleteReplyModalReplyId
+    if (!replyId) return
+    setDeletingReplyId(replyId)
+    setDeleteReplyModalReplyId(null)
+    const result = await deleteRefereeReviewReply(replyId)
+    setDeletingReplyId(null)
+    if (result.ok) {
+      router.refresh()
+    } else {
+      setReplyEditError(result.error)
     }
   }
 
@@ -519,10 +596,10 @@ export function MatchRefereeRatingSection({
               {currentUserId && !myReview && (
                 <div className="bg-muted/30 border border-border p-4 md:p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-[9px] md:text-[10px] font-black font-mono text-primary uppercase">
+                    <span className="text-xs md:text-sm font-black font-mono text-primary uppercase">
                       이 심판 평가
                     </span>
-                    <span className="bg-muted text-primary px-2 py-0.5 text-[7px] md:text-[8px] font-mono">
+                    <span className="bg-muted text-primary px-2.5 py-1 text-[10px] md:text-xs font-mono font-bold">
                       미제출
                     </span>
                   </div>
@@ -552,7 +629,7 @@ export function MatchRefereeRatingSection({
                       type="button"
                       onClick={handleSubmit}
                       disabled={pending || rating < 1}
-                      className="w-full border border-primary bg-primary text-primary-foreground font-black py-3 text-[9px] md:text-[10px] tracking-tighter italic uppercase hover:opacity-90 disabled:opacity-50"
+                      className="w-full border border-primary bg-primary text-primary-foreground font-black py-3 text-xs md:text-sm tracking-tighter italic uppercase hover:opacity-90 disabled:opacity-50"
                     >
                       {pending ? "저장 중..." : "평가 제출"}
                     </button>
@@ -577,27 +654,27 @@ export function MatchRefereeRatingSection({
                             setComment(myReview.comment ?? "")
                             setIsEditing(true)
                           }}
-                          className="flex items-center gap-1.5 border border-border hover:border-primary bg-card px-2.5 py-1.5 text-xs md:text-sm font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                          className="flex items-center gap-1 border border-border hover:border-primary bg-card px-2 py-1 text-[10px] md:text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                         >
-                          <Pencil className="size-3" aria-hidden />
+                          <Pencil className="size-2.5" aria-hidden />
                           수정
                         </button>
                       )}
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-[10px] text-muted-foreground font-mono">
+                    <p className="text-sm md:text-base text-muted-foreground font-mono font-medium">
                       {selected.label}: {selected.names}
                     </p>
                     {myReview.status === "HIDDEN" ? (
-                      <p className="text-xs text-muted-foreground italic">
+                      <p className="text-xs text-muted-foreground not-italic">
                         {hiddenReviewMessage()}
                       </p>
                     ) : (
                       <>
                         <StarRatingDisplay rating={myReview.rating} />
                         {myReview.comment && (
-                          <div className="text-sm text-muted-foreground italic">
+                          <div className="text-sm text-muted-foreground not-italic">
                             <TextWithEmbedPreview text={myReview.comment} />
                           </div>
                         )}
@@ -804,7 +881,7 @@ export function MatchRefereeRatingSection({
                           )}
                         </div>
                         {rev.status === "HIDDEN" || rev.status === "PENDING_REAPPROVAL" ? (
-                          <p className="text-xs md:text-sm text-muted-foreground italic">
+                          <p className="text-xs md:text-sm text-muted-foreground not-italic">
                             {hiddenReviewMessage()}
                           </p>
                         ) : (
@@ -864,9 +941,11 @@ export function MatchRefereeRatingSection({
                             {mergedRepliesForRev.map((rp) => {
                               const replyLikeState = getReplyLikeState(rp)
                               const isReportReplyOpen = reportReplyTargetId === rp.id
+                              const isOwnReply = currentUserId && rp.userId === currentUserId
+                              const isEditingThis = editingReplyId === rp.id
                               return (
                                 <div key={rp.id} className="space-y-1">
-                                  <div className="flex items-start gap-2 text-[10px] md:text-xs text-muted-foreground">
+                                  <div className="flex items-start gap-2 text-xs md:text-sm text-muted-foreground">
                                     <div className="relative shrink-0 mt-0.5">
                                       <div className="w-6 h-6 rounded-full border border-border bg-card overflow-hidden flex items-center justify-center">
                                         {rp.user.image ? (
@@ -891,44 +970,111 @@ export function MatchRefereeRatingSection({
                                       )}
                                     </div>
                                     <div className="min-w-0 flex-1 flex items-start justify-between gap-2">
-                                      <div className="min-w-0">
-                                        <span className="font-bold text-foreground/90">
-                                          {rp.user.name ?? "Anonymous"}
-                                        </span>
-                                        <span className="mx-1.5">·</span>
-                                        <span>{rp.content}</span>
-                                      </div>
-                                      {currentUserId && (
-                                        <div className="shrink-0 flex items-center gap-1">
-                                          <button
-                                            type="button"
-                                            onClick={() => handleToggleReplyLike(rp.id)}
-                                            disabled={likePendingReplyId === rp.id}
-                                            className={`flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-mono ${
-                                              replyLikeState.likedByMe
-                                                ? "text-primary"
-                                                : "text-muted-foreground hover:text-foreground"
-                                            }`}
-                                            aria-label="좋아요"
-                                          >
-                                            <Heart
-                                              className={`size-3 ${
-                                                replyLikeState.likedByMe ? "fill-current" : ""
-                                              }`}
-                                            />
-                                            {replyLikeState.likeCount > 0 && (
-                                              <span>{replyLikeState.likeCount}</span>
-                                            )}
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => openReportReplyForm(rp.id)}
-                                            className="p-0.5 text-muted-foreground hover:text-foreground rounded"
-                                            aria-label="신고"
-                                          >
-                                            <Flag className="size-3" />
-                                          </button>
+                                      {isEditingThis ? (
+                                        <div className="min-w-0 flex-1 space-y-1">
+                                          <textarea
+                                            value={editingReplyContent}
+                                            onChange={(e) =>
+                                              setEditingReplyContent(e.target.value.slice(0, 500))
+                                            }
+                                            rows={2}
+                                            className="w-full bg-background border border-border px-2 py-1 text-xs md:text-sm font-mono rounded focus:border-primary outline-none resize-none"
+                                            placeholder="댓글 내용"
+                                          />
+                                          {replyEditError && (
+                                            <p className="text-destructive text-[9px] font-mono">
+                                              {replyEditError}
+                                            </p>
+                                          )}
+                                          <div className="flex items-center gap-2">
+                                            <button
+                                              type="button"
+                                              onClick={handleSaveReplyEdit}
+                                              disabled={replyUpdatePending}
+                                              className="px-2 py-1 bg-primary text-primary-foreground text-[9px] font-mono rounded hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1"
+                                            >
+                                              {replyUpdatePending && (
+                                                <Loader2 className="size-3 animate-spin" />
+                                              )}
+                                              저장
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={handleCancelEditReply}
+                                              disabled={replyUpdatePending}
+                                              className="px-2 py-1 border border-border text-[9px] font-mono rounded hover:bg-muted/50"
+                                            >
+                                              취소
+                                            </button>
+                                          </div>
                                         </div>
+                                      ) : (
+                                        <>
+                                          <div className="min-w-0">
+                                            <span className="font-bold text-foreground/90">
+                                              {rp.user.name ?? "Anonymous"}
+                                            </span>
+                                            <span className="mx-1.5">·</span>
+                                            <span>{rp.content}</span>
+                                          </div>
+                                          {currentUserId && (
+                                            <div className="shrink-0 flex items-center gap-1">
+                                              {isOwnReply && (
+                                                <>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => handleStartEditReply(rp)}
+                                                    className="p-0.5 text-muted-foreground hover:text-foreground rounded"
+                                                    aria-label="수정"
+                                                  >
+                                                    <Pencil className="size-3" />
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => openDeleteReplyModal(rp.id)}
+                                                    disabled={deletingReplyId === rp.id}
+                                                    className="p-0.5 text-muted-foreground hover:text-destructive rounded disabled:opacity-50"
+                                                    aria-label="삭제"
+                                                  >
+                                                    {deletingReplyId === rp.id ? (
+                                                      <Loader2 className="size-3 animate-spin" />
+                                                    ) : (
+                                                      <Trash2 className="size-3" />
+                                                    )}
+                                                  </button>
+                                                </>
+                                              )}
+                                              <button
+                                                type="button"
+                                                onClick={() => handleToggleReplyLike(rp.id)}
+                                                disabled={likePendingReplyId === rp.id}
+                                                className={`flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-mono ${
+                                                  replyLikeState.likedByMe
+                                                    ? "text-primary"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                                }`}
+                                                aria-label="좋아요"
+                                              >
+                                                <Heart
+                                                  className={`size-3 ${
+                                                    replyLikeState.likedByMe ? "fill-current" : ""
+                                                  }`}
+                                                />
+                                                {replyLikeState.likeCount > 0 && (
+                                                  <span>{replyLikeState.likeCount}</span>
+                                                )}
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() => openReportReplyForm(rp.id)}
+                                                className="p-0.5 text-muted-foreground hover:text-foreground rounded"
+                                                aria-label="신고"
+                                              >
+                                                <Flag className="size-3" />
+                                              </button>
+                                            </div>
+                                          )}
+                                        </>
                                       )}
                                     </div>
                                   </div>
@@ -1138,6 +1284,53 @@ export function MatchRefereeRatingSection({
           </div>
         )}
       </div>
+
+      {/* 댓글 삭제 확인 모달 */}
+      <Dialog open={deleteReplyModalReplyId !== null} onOpenChange={(open) => !open && closeDeleteReplyModal()}>
+        <DialogContent className="max-w-[320px] rounded-lg border-primary/50 bg-card shadow-[0_0_0_1px_hsl(var(--primary)/0.2),4px_4px_0_hsl(var(--primary)/0.15)]">
+          <DialogHeader className="flex flex-col items-center text-center sm:text-center">
+            <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+              <AlertTriangle className="size-6" aria-hidden />
+            </div>
+            <DialogTitle className="text-base font-black font-mono uppercase tracking-wider not-italic text-foreground">
+              댓글 삭제
+            </DialogTitle>
+            <DialogDescription className="mt-1.5 text-xs font-mono text-muted-foreground">
+              이 댓글을 삭제할까요?
+              <br />
+              <span className="text-destructive/90">삭제된 댓글은 복구할 수 없습니다.</span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex flex-row justify-center gap-2 sm:justify-center">
+            <button
+              type="button"
+              onClick={closeDeleteReplyModal}
+              disabled={!!deletingReplyId}
+              className="rounded-md border border-border bg-muted/50 px-4 py-2 text-xs font-mono uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={confirmDeleteReply}
+              disabled={!!deletingReplyId}
+              className="inline-flex items-center gap-1.5 rounded-md border border-destructive bg-destructive px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider text-destructive-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              {deletingReplyId ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                  삭제 중...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="size-3.5" aria-hidden />
+                  삭제
+                </>
+              )}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

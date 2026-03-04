@@ -21,6 +21,7 @@ type Props = {
   matchId: string
   homeTeamId: string
   awayTeamId: string
+  initialRefereeSlug?: string | null
   matchReferees: { id: string; role: string; referee: { id: string; name: string; slug: string } }[]
   reviews: {
     id: string
@@ -52,6 +53,9 @@ type Props = {
   currentUserSupportingTeam?: { name: string; emblemPath: string | null } | null
 }
 
-export function MatchRefereeRatingSectionDynamic(props: Props) {
-  return <MatchRefereeRatingSection {...props} />
+export function MatchRefereeRatingSectionDynamic({
+  initialRefereeSlug,
+  ...props
+}: Props) {
+  return <MatchRefereeRatingSection initialRefereeSlug={initialRefereeSlug} {...props} />
 }

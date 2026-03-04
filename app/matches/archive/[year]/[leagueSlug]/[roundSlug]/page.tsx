@@ -123,8 +123,22 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   let roundsForFilter: { slug: string; number: number }[] = []
   let matches: MatchWithRound[] = []
   let rawHotMoments: MomentWithMatch[] = []
-  let bestReferee: { refereeId: string; name: string; role: string; avg: number; voteCount: number } | null = null
-  let worstReferee: { refereeId: string; name: string; role: string; avg: number; voteCount: number } | null = null
+  let bestReferee: {
+    refereeId: string
+    name: string
+    role: string
+    avg: number
+    voteCount: number
+    matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
+  } | null = null
+  let worstReferee: {
+    refereeId: string
+    name: string
+    role: string
+    avg: number
+    voteCount: number
+    matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
+  } | null = null
   let bestRefFeedbacks: {
     id: string
     userName: string
@@ -205,6 +219,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                 include: {
                   homeTeam: true,
                   awayTeam: true,
+                  round: { include: { league: { include: { season: true } } } },
                 },
               },
               fanTeam: {
@@ -286,6 +301,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
 
     // ROUND BEST / WORST REFEREE (평균 평점 기준) + TOP FAN FEEDBACKS
     if (reviewsRes.length > 0) {
+      const archiveBackPath = `/matches/archive/${yearStr}/${leagueSlug}/${roundSlug}`
       const byRef = new Map<
         string,
         {
@@ -294,6 +310,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           role: string
           sum: number
           count: number
+          matchForDisplay: { homeName: string; awayName: string; matchPath: string }
           reviews: {
             id: string
             userName: string
@@ -313,6 +330,14 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         const homeName = r.match.homeTeam.name
         const awayName = r.match.awayTeam.name
         const matchLabel = `${homeName} vs ${awayName}`
+        const matchForDisplay = {
+          homeName,
+          awayName,
+          matchPath:
+            getMatchDetailPathWithBack(r.match as unknown as MatchForPath, archiveBackPath) +
+            "&scroll=referee-rating&referee=" +
+            encodeURIComponent((r.referee as { slug: string }).slug),
+        }
         if (r.comment) {
           const summary = {
             id: r.id,
@@ -333,6 +358,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               role: r.role,
               sum: r.rating,
               count: 1,
+              matchForDisplay,
               reviews: [summary],
             })
             continue
@@ -348,6 +374,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
             role: r.role,
             sum: r.rating,
             count: 1,
+            matchForDisplay,
             reviews: [],
           })
         }
@@ -358,6 +385,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         role: v.role,
         avg: v.count > 0 ? v.sum / v.count : 0,
         voteCount: v.count,
+        matchForDisplay: v.matchForDisplay,
         reviews: v.reviews.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
       }))
 
@@ -372,6 +400,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           role: best.role,
           avg: best.avg,
           voteCount: best.voteCount,
+          matchForDisplay: best.matchForDisplay,
         }
         worstReferee = {
           refereeId: worst.refereeId,
@@ -379,6 +408,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           role: worst.role,
           avg: worst.avg,
           voteCount: worst.voteCount,
+          matchForDisplay: worst.matchForDisplay,
         }
         bestRefFeedbacks = best.reviews
         worstRefFeedbacks = worst.reviews
@@ -503,12 +533,12 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
             <div className="flex justify-between items-start mb-6">
               <div className="min-w-0">
-                <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1">
+                <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1 not-italic">
                   라운드 베스트 심판
                 </p>
                 <Link
                   href={`/referees/${bestReferee.refereeId}`}
-                  className="text-xl md:text-2xl font-black italic uppercase leading-none hover:text-[#00ff41] transition-colors"
+                  className="text-xl md:text-2xl font-black uppercase leading-none hover:text-[#00ff41] transition-colors not-italic"
                 >
                   {bestReferee.name}
                 </Link>
@@ -517,12 +547,20 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                     {ROLE_LABEL[bestReferee.role] ?? bestReferee.role}
                   </span>
                 </div>
+                {bestReferee.matchForDisplay && (
+                  <Link
+                    href={bestReferee.matchForDisplay.matchPath}
+                    className="mt-2 font-mono text-[10px] md:text-xs text-muted-foreground hover:text-[#00ff41] transition-colors not-italic"
+                  >
+                    {bestReferee.matchForDisplay.homeName} vs {bestReferee.matchForDisplay.awayName} →
+                  </Link>
+                )}
               </div>
               <div className="text-right shrink-0">
                 <span className="bg-[#00ff41] text-black px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
                   최고점
                 </span>
-                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap">
+                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap not-italic">
                   AVG: {bestReferee.avg.toFixed(1)} / 5.0 ({bestReferee.voteCount}명)
                 </p>
               </div>
@@ -551,7 +589,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                           )}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs md:text-sm font-black italic text-white">
+                          <span className="text-xs md:text-sm font-black text-white not-italic">
                             {fb.userName}
                           </span>
                           {fb.teamName && (
@@ -568,7 +606,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                         <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
                       </div>
                     </div>
-                    <div className="text-sm md:text-base text-zinc-300 italic">
+                    <div className="text-xs md:text-sm text-zinc-300 not-italic">
                       <TextWithEmbedPreview text={fb.comment} />
                     </div>
                   </div>
@@ -581,12 +619,12 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
             <div className="flex justify-between items-start mb-6">
               <div className="min-w-0">
-                <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1">
+                <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1 not-italic">
                   라운드 워스트 심판
                 </p>
                 <Link
                   href={`/referees/${worstReferee.refereeId}`}
-                  className="text-xl md:text-2xl font-black italic uppercase leading-none hover:text-red-500 transition-colors"
+                  className="text-xl md:text-2xl font-black uppercase leading-none hover:text-red-500 transition-colors not-italic"
                 >
                   {worstReferee.name}
                 </Link>
@@ -595,12 +633,20 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                     {ROLE_LABEL[worstReferee.role] ?? worstReferee.role}
                   </span>
                 </div>
+                {worstReferee.matchForDisplay && (
+                  <Link
+                    href={worstReferee.matchForDisplay.matchPath}
+                    className="mt-2 font-mono text-[10px] md:text-xs text-muted-foreground hover:text-red-500 transition-colors not-italic"
+                  >
+                    {worstReferee.matchForDisplay.homeName} vs {worstReferee.matchForDisplay.awayName} →
+                  </Link>
+                )}
               </div>
               <div className="text-right shrink-0">
                 <span className="bg-red-600 text-white px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
                   최저점
                 </span>
-                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap">
+                <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap not-italic">
                   AVG: {worstReferee.avg.toFixed(1)} / 5.0 ({worstReferee.voteCount}명)
                 </p>
               </div>
@@ -629,7 +675,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                           )}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs md:text-sm font-black italic text-white">
+                          <span className="text-xs md:text-sm font-black text-white not-italic">
                             {fb.userName}
                           </span>
                           {fb.teamName && (
@@ -646,7 +692,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
                         <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
                       </div>
                     </div>
-                    <div className="text-sm md:text-base text-zinc-300 italic">
+                    <div className="text-xs md:text-sm text-zinc-300 not-italic">
                       <TextWithEmbedPreview text={fb.comment} />
                     </div>
                   </div>
