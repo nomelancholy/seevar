@@ -142,7 +142,7 @@ export function TeamDetailSection({
           <div className="space-y-6 md:space-y-8">
             <div>
               <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-3 md:mb-4">
-                최고의 인연
+                최고의 심판
               </p>
               {compatibility.high ? (
                 <div className="bg-card/50 border border-border p-3 md:p-4">
@@ -171,7 +171,7 @@ export function TeamDetailSection({
             </div>
             <div>
               <p className="font-mono text-xs md:text-sm text-muted-foreground uppercase mb-3 md:mb-4">
-                최악의 악연
+                최악의 심판
               </p>
               {compatibility.low ? (
                 <div className="bg-card/50 border border-border p-3 md:p-4">
@@ -268,7 +268,7 @@ export function TeamDetailSection({
             이 팀 경기에서 해당 심판이 부여한 경고 퇴장 수
           </p>
           {cardsByReferee.length === 0 ? (
-            <p className="font-mono text-[10px] text-muted-foreground py-2">카드 부여 기록이 없습니다.</p>
+            <p className="font-mono text-xs md:text-sm text-muted-foreground py-2">카드 부여 기록이 없습니다.</p>
           ) : (
             <div className="space-y-2">
               {cardsByReferee.slice(0, 5).map((ref) => (
@@ -439,7 +439,7 @@ export function TeamDetailSection({
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3">
               {modalTab === "cards" ? (
                 cardsByReferee.length === 0 ? (
-                  <p className="font-mono text-[10px] text-muted-foreground">
+                  <p className="font-mono text-xs md:text-sm text-muted-foreground">
                     카드 부여 기록이 없습니다.
                   </p>
                 ) : (
