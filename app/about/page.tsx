@@ -36,9 +36,11 @@ export default function AboutPage() {
 
         <div className="quote-accent p-6 md:p-8 bg-muted/50 rounded-r">
           <p className="text-lg md:text-xl text-foreground font-medium leading-relaxed">
-            현장의 축구인들은 징계와 벌금이라는 벽 앞에 서 있습니다. 자정
-            작용조차 기대하기 힘든 현실 속에서, 어떤 오심은 정심으로 둔갑하고
-            징계를 받았던 심판이 금세 다시 경기장에 나타나기도 합니다.
+            현장의 축구인들은 징계와 벌금이라는 높은 벽 앞에 정당한 항의조차
+            삼켜야만 합니다. 매년 되풀이되는 심판진의 자정 선언은 실천 없는
+            구호에 그치며 그 신뢰를 잃었습니다. 그사이 오심은 정심으로 둔갑하고,
+            자숙 없는 심판의 복귀는 경기장의 선수와 팬들에게 다시 한번 깊은
+            상처를 남기고 있습니다.
           </p>
         </div>
 
