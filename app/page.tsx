@@ -437,8 +437,8 @@ export default async function HomePage() {
                             {/* BEST */}
                             {h.bestReferee && (
                             <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
-                              <div className="flex justify-between items-start mb-6">
-                                <div>
+                              <div className="flex justify-between items-start mb-6 gap-2">
+                                <div className="min-w-0 flex-1">
                                   <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1 not-italic">
                                     라운드 베스트 심판
                                   </p>
@@ -456,7 +456,7 @@ export default async function HomePage() {
                                   {h.bestReferee.matchForDisplay && (
                                     <Link
                                       href={h.bestReferee.matchForDisplay.matchPath}
-                                      className="mt-2 font-mono text-[10px] md:text-xs text-muted-foreground hover:text-[#00ff41] transition-colors not-italic"
+                                      className="mt-2 block font-mono text-[10px] md:text-xs text-muted-foreground hover:text-[#00ff41] transition-colors not-italic whitespace-nowrap"
                                     >
                                       {h.bestReferee.matchForDisplay.homeName} vs {h.bestReferee.matchForDisplay.awayName} →
                                     </Link>
@@ -488,7 +488,8 @@ export default async function HomePage() {
                                                 <img
                                                   src={fb.userImage}
                                                   alt={fb.userName}
-                                                  className="w-full h-full object-cover"
+                                                  className="relative z-10 w-full h-full object-cover"
+                                                  referrerPolicy="no-referrer"
                                                 />
                                               ) : (
                                                 <span className="text-xs text-zinc-400 font-mono">
@@ -499,7 +500,7 @@ export default async function HomePage() {
                                             {fb.teamEmblem && (
                                               <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={fb.teamEmblem} alt={fb.teamName ?? ""} className="w-full h-full" />
+                                                <img src={fb.teamEmblem} alt={fb.teamName ?? ""} className="relative z-10 w-full h-full" referrerPolicy="no-referrer" />
                                               </div>
                                             )}
                                           </div>
@@ -534,8 +535,8 @@ export default async function HomePage() {
                             {/* WORST */}
                             {h.worstReferee && (
                             <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
-                              <div className="flex justify-between items-start mb-6">
-                                <div>
+                              <div className="flex justify-between items-start mb-6 gap-2">
+                                <div className="min-w-0 flex-1">
                                   <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1 not-italic">
                                     라운드 워스트 심판
                                   </p>
@@ -553,7 +554,7 @@ export default async function HomePage() {
                                   {h.worstReferee.matchForDisplay && (
                                     <Link
                                       href={h.worstReferee.matchForDisplay.matchPath}
-                                      className="mt-2 font-mono text-[10px] md:text-xs text-muted-foreground hover:text-red-500 transition-colors not-italic"
+                                      className="mt-2 block font-mono text-[10px] md:text-xs text-muted-foreground hover:text-red-500 transition-colors not-italic whitespace-nowrap"
                                     >
                                       {h.worstReferee.matchForDisplay.homeName} vs {h.worstReferee.matchForDisplay.awayName} →
                                     </Link>
@@ -585,7 +586,8 @@ export default async function HomePage() {
                                                 <img
                                                   src={fb.userImage}
                                                   alt={fb.userName}
-                                                  className="w-full h-full object-cover"
+                                                  className="relative z-10 w-full h-full object-cover"
+                                                  referrerPolicy="no-referrer"
                                                 />
                                               ) : (
                                                 <span className="text-xs text-zinc-400 font-mono">
@@ -596,7 +598,7 @@ export default async function HomePage() {
                                             {fb.teamEmblem && (
                                               <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={fb.teamEmblem} alt={fb.teamName ?? ""} className="w-full h-full" />
+                                                <img src={fb.teamEmblem} alt={fb.teamName ?? ""} className="relative z-10 w-full h-full" referrerPolicy="no-referrer" />
                                               </div>
                                             )}
                                           </div>
