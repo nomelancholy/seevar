@@ -8,7 +8,7 @@ const NAV_ITEMS = [
     href: "/about",
     label: "서비스 소개",
     Icon: Heart,
-    description: "See VAR가 무엇인지, 어떤 가치로 운영되는지 소개합니다.",
+    description: "SEE VAR가 무엇인지, 어떤 가치로 운영되는지 소개합니다.",
   },
   {
     href: "/notice",

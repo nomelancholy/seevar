@@ -5,7 +5,7 @@ import { getNotifications } from "@/lib/notifications"
 import { NotificationList } from "@/components/my/NotificationList"
 
 export const metadata = {
-  title: "알림 | See VAR",
+  title: "알림 | SEE VAR",
   description: "알림 목록",
 }
 

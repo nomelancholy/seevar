@@ -5,7 +5,7 @@ import { AdminMatchScheduleEditForm } from "./AdminMatchScheduleEditForm"
 import { AdminMatchRefereesSection } from "./AdminMatchRefereesSection"
 
 export const metadata = {
-  title: "경기 수정 | 관리자 | See VAR",
+  title: "경기 수정 | 관리자 | SEE VAR",
 }
 
 type Params = Promise<{ matchId: string }>

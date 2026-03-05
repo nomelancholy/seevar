@@ -10,22 +10,22 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://seevar.online";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "See VAR",
+  title: "SEE VAR",
   description:
     "축구 판정 아카이브와 팬 커뮤니티. K리그·해외 리그의 논란 순간을 SEE VAR로 추천하고, IFAB 규정에 따른 판정 토론을 나눕니다.",
   openGraph: {
     type: "website",
     locale: "ko_KR",
     url: siteUrl,
-    siteName: "See VAR",
-    title: "See VAR",
+    siteName: "SEE VAR",
+    title: "SEE VAR",
     description:
       "축구 판정 아카이브와 팬 커뮤니티. K리그·해외 리그의 논란 순간을 SEE VAR로 추천하고, IFAB 규정에 따른 판정 토론을 나눕니다.",
-    images: [{ url: "/assets/preview_image.png", width: 1200, height: 630, alt: "See VAR" }],
+    images: [{ url: "/assets/preview_image.png", width: 1200, height: 630, alt: "SEE VAR" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "See VAR",
+    title: "SEE VAR",
     description:
       "축구 판정 아카이브와 팬 커뮤니티. K리그·해외 리그의 논란 순간을 SEE VAR로 추천하고, IFAB 규정에 따른 판정 토론을 나눕니다.",
     images: ["/assets/preview_image.png"],

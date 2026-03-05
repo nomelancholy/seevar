@@ -6,7 +6,7 @@ import { ChevronLeft } from "lucide-react"
 import { NoticeForm } from "../NoticeForm"
 
 export const metadata = {
-  title: "공지 작성 | See VAR",
+  title: "공지 작성 | SEE VAR",
   description: "공지 작성",
 }
 

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { AdminRefereeEditForm } from "./AdminRefereeEditForm"
 
 export const metadata = {
-  title: "심판 수정 | 관리자 | See VAR",
+  title: "심판 수정 | 관리자 | SEE VAR",
 }
 
 type Params = Promise<{ id: string }>

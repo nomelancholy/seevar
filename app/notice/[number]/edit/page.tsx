@@ -12,13 +12,13 @@ export async function generateMetadata({
   params: Promise<{ number: string }>
 }) {
   const num = parseInt((await params).number, 10)
-  if (Number.isNaN(num)) return { title: "공지 수정 | See VAR" }
+  if (Number.isNaN(num)) return { title: "공지 수정 | SEE VAR" }
   const notice = await prisma.notice.findUnique({
     where: { number: num },
     select: { title: true },
   })
-  if (!notice) return { title: "공지 수정 | See VAR" }
-  return { title: `${notice.title} 수정 | See VAR` }
+  if (!notice) return { title: "공지 수정 | SEE VAR" }
+  return { title: `${notice.title} 수정 | SEE VAR` }
 }
 
 export default async function NoticeEditPage({

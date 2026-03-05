@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 
 export const metadata = {
-  title: "MATCH CENTER | See VAR",
+  title: "MATCH CENTER | SEE VAR",
   description: "시즌별, 라운드별 경기 일정 및 VAR 판정 데이터",
 }
 

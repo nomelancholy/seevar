@@ -6,7 +6,7 @@ import { AdminResultsMatchList } from "./AdminResultsMatchList"
 import { AdminBulkResultUpload } from "./AdminBulkResultUpload"
 
 export const metadata = {
-  title: "경기 결과 | 관리자 | See VAR",
+  title: "경기 결과 | 관리자 | SEE VAR",
   description: "경기 결과·상태 수동 반영",
 }
 

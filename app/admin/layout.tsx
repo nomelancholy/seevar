@@ -5,7 +5,7 @@ import { getIsAdmin } from "@/lib/auth"
 import { ChevronLeft } from "lucide-react"
 
 export const metadata = {
-  title: "관리자 | See VAR",
+  title: "관리자 | SEE VAR",
   description: "관리자 페이지",
 }
 

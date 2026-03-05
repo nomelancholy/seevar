@@ -5,7 +5,7 @@ import { AdminBulkTeamUpload } from "../structure/AdminBulkTeamUpload"
 import { AdminTeamRow } from "./AdminTeamRow"
 
 export const metadata = {
-  title: "팀 정보 | 관리자 | See VAR",
+  title: "팀 정보 | 관리자 | SEE VAR",
   description: "팀 등록·수정·삭제, JSON 일괄 등록",
 }
 

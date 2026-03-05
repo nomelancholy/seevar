@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 export const metadata = {
-  title: "Whistle Recharge | See VAR",
+  title: "Whistle Recharge | SEE VAR",
   description: "호각 충전",
 }
 

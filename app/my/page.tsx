@@ -5,7 +5,7 @@ import { MyInformationForm } from "@/components/my/MyInformationForm"
 import { MyInformationDangerZone } from "@/components/my/MyInformationDangerZone"
 
 export const metadata = {
-  title: "내 정보 | See VAR",
+  title: "내 정보 | SEE VAR",
   description: "내 프로필 정보를 관리하세요.",
 }
 

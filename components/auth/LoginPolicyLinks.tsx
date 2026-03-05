@@ -44,7 +44,7 @@ export function LoginPolicyLinks() {
           </DialogHeader>
           <div className="text-xs font-mono text-muted-foreground space-y-4 leading-relaxed">
             <p>
-              See VAR(이하 “서비스”) 이용약관에 동의합니다. 서비스를 이용함에 있어 회원은 본 약관 및
+              SEE VAR(이하 “서비스”) 이용약관에 동의합니다. 서비스를 이용함에 있어 회원은 본 약관 및
               개인정보처리방침을 준수해야 합니다.
             </p>
             <p>
@@ -68,7 +68,7 @@ export function LoginPolicyLinks() {
           </DialogHeader>
           <div className="text-xs font-mono text-muted-foreground space-y-4 leading-relaxed">
             <p>
-              See VAR는 개인정보보호법 등 관련 법령에 따라 최소한의 개인정보만 수집·이용합니다.
+              SEE VAR는 개인정보보호법 등 관련 법령에 따라 최소한의 개인정보만 수집·이용합니다.
             </p>
             <h4 className="text-foreground font-bold mt-4">1. 네이버 로그인 시 수집·이용 항목</h4>
             <p>

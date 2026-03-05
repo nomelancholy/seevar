@@ -12,7 +12,7 @@ import { getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
 import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
 
 export const metadata = {
-  title: "경기 기록 | See VAR",
+  title: "경기 기록 | SEE VAR",
   description: "시즌별, 라운드별 경기 일정 및 VAR 판정 데이터",
 }
 

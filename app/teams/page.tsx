@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 
 export const metadata = {
-  title: "팀 정보 | See VAR",
+  title: "팀 정보 | SEE VAR",
   description: "팀별 경기 데이터와 심판 상성 데이터",
 }
 

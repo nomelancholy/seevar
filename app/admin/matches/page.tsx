@@ -14,7 +14,7 @@ const AdminBulkMatchUploadMulti = dynamic(
 )
 
 export const metadata = {
-  title: "경기 일정 | 관리자 | See VAR",
+  title: "경기 일정 | 관리자 | SEE VAR",
   description: "경기 일정 수정, 수동 추가·삭제",
 }
 

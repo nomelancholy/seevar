@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { AdminResultEditForm } from "./AdminResultEditForm"
 
 export const metadata = {
-  title: "경기 결과 수정 | 관리자 | See VAR",
+  title: "경기 결과 수정 | 관리자 | SEE VAR",
 }
 
 type Params = Promise<{ matchId: string }>

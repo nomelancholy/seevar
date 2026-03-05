@@ -3,8 +3,8 @@ import { LoginNaverButton } from "@/components/auth/LoginNaverButton"
 import { LoginPolicyLinks } from "@/components/auth/LoginPolicyLinks"
 
 export const metadata = {
-  title: "Login | See VAR",
-  description: "Log in or sign up with Naver to use See VAR",
+  title: "Login | SEE VAR",
+  description: "Log in or sign up with Naver to use SEE VAR",
 }
 
 export default function LoginPage() {

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { OnboardingForm } from "./OnboardingForm"
 
 export const metadata = {
-  title: "Onboarding | See VAR",
+  title: "Onboarding | SEE VAR",
   description: "프로필 정보를 완성하고 시작하세요.",
 }
 

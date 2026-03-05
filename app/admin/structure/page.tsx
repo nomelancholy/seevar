@@ -4,7 +4,7 @@ import { AdminStructureForms } from "../matches/AdminStructureForms"
 import { AdminStructureList } from "./AdminStructureList"
 
 export const metadata = {
-  title: "시즌·리그·라운드 관리 | 관리자 | See VAR",
+  title: "시즌·리그·라운드 관리 | 관리자 | SEE VAR",
   description: "시즌, 리그, 라운드 추가 및 구조 관리",
 }
 

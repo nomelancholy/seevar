@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { ChevronLeft, Plus, Settings } from "lucide-react"
 
 export const metadata = {
-  title: "공지 | See VAR",
+  title: "공지 | SEE VAR",
   description: "사이트 운영 공지",
 }
 

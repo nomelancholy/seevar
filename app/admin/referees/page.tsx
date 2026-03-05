@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { AdminRefereeList } from "./AdminRefereeList"
 
 export const metadata = {
-  title: "심판 정보 | 관리자 | See VAR",
+  title: "심판 정보 | 관리자 | SEE VAR",
   description: "심판 정보 등록·수정·삭제",
 }
 

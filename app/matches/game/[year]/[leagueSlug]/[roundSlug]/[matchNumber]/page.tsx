@@ -60,9 +60,9 @@ const ROLE_DISPLAY_ORDER: (keyof typeof ROLE_LABEL)[] = ["MAIN", "ASSISTANT", "W
 export async function generateMetadata({ params }: { params: Params }) {
   const { year, leagueSlug, roundSlug, matchNumber } = await params
   const match = await resolveMatchBySlug(year, leagueSlug, roundSlug, matchNumber)
-  if (!match) return { title: "경기 없음 | See VAR" }
+  if (!match) return { title: "경기 없음 | SEE VAR" }
   return {
-    title: `${match.homeTeam.name} vs ${match.awayTeam.name} | See VAR`,
+    title: `${match.homeTeam.name} vs ${match.awayTeam.name} | SEE VAR`,
   }
 }
 

@@ -24,7 +24,7 @@ type MomentWithMatch = {
 }
 
 export const metadata = {
-  title: "내 참여 | See VAR",
+  title: "내 참여 | SEE VAR",
   description: "내가 생성하거나 참여한 논란의 순간들을 확인하세요.",
 }
 

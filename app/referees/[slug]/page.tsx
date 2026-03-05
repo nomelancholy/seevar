@@ -96,8 +96,8 @@ async function resolveReferee(param: string) {
 export async function generateMetadata({ params }: Props) {
   const { slug: param } = await params
   const resolved = await resolveReferee(param)
-  if (!resolved) return { title: "심판 없음 | See VAR" }
-  return { title: `${resolved.referee.name} | 심판 | See VAR` }
+  if (!resolved) return { title: "심판 없음 | SEE VAR" }
+  return { title: `${resolved.referee.name} | 심판 | SEE VAR` }
 }
 
 function sanitizeBackUrl(back: string | undefined): string | null {

@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { RefereeListWithSearch } from "@/components/referees/RefereeListWithSearch"
 
 export const metadata = {
-  title: "심판 정보 | See VAR",
+  title: "심판 정보 | SEE VAR",
   description: "K LEAGUE 심판진의 활동 데이터 및 팬 평점을 확인할 수 있습니다.",
 }
 

@@ -33,9 +33,9 @@ async function findTeamForSlug(slug: string) {
 export async function generateMetadata({ params }: { params: Params }) {
   const { slug } = await params
   const team = await findTeamForSlug(slug).then((t) => (t ? { name: t.name } : null))
-  if (!team) return { title: "팀 정보 | See VAR" }
+  if (!team) return { title: "팀 정보 | SEE VAR" }
   return {
-    title: `${team.name} | 팀 정보 | See VAR`,
+    title: `${team.name} | 팀 정보 | SEE VAR`,
     description: `${team.name} 팀 경기 데이터와 심판 상성`,
   }
 }

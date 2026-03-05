@@ -6,7 +6,7 @@ import { AdminRefereeAssignmentList } from "./AdminRefereeAssignmentList"
 import { AdminBulkRefereeAssignmentUpload } from "./AdminBulkRefereeAssignmentUpload"
 
 export const metadata = {
-  title: "심판 배정 정보 | 관리자 | See VAR",
+  title: "심판 배정 정보 | 관리자 | SEE VAR",
   description: "경기별 심판 배정 추가·수정·삭제, JSON 일괄 업로드",
 }
 

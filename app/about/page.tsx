@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Youtube, Instagram, Github } from "lucide-react";
 
 export const metadata = {
-  title: "About | See VAR",
+  title: "About | SEE VAR",
   description: "BETTER JUDGEMENT, BETTER LEAGUE.",
 };
 
@@ -46,7 +46,7 @@ export default function AboutPage() {
 
         <div className="py-8 md:py-12 text-center">
           <h2 className="text-xl md:text-3xl font-black italic tracking-tighter text-foreground/80">
-            &ldquo;그래서 See VAR가 탄생했습니다.&rdquo;
+            &ldquo;그래서 SEE VAR가 탄생했습니다.&rdquo;
           </h2>
         </div>
 
