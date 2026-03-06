@@ -3,6 +3,11 @@ export const BAD_WORDS_DATA = {
   koreanDirect: [
     "개새",
     "씨발",
+    "씨댕",
+    "시댕",
+    "시벌",
+    "씨벌",
+    "씨뻘",
     "시발",
     "병신",
     "ㅂㅅ",
@@ -217,7 +222,7 @@ export const CUTE_WORDS = [
 ];
 
 const MODIFICATION_NOTICE =
-  "\n\n(혐오 혹은 비난 표현으로 일부 수정된 글입니다)";
+  "\n\n(커뮤니티 가이드 위반으로 일부 혹은 전체 수정된 글입니다)";
 
 /** OpenAI Moderation category_scores 기준. 이 값 이상이면 위반으로 간주하고 CUTE_WORDS로 교체 (0~1, 기본 0.5) */
 export const TOXICITY_THRESHOLD = 0.5;

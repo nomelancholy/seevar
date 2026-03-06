@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
 import { XP_MOMENT_CREATE, XP_BEST_MOMENT } from "@/lib/utils/xp"
+import { cleanText } from "@/lib/filters/profanity"
 
 export type CreateMomentResult = { ok: true; momentId: string } | { ok: false; error: string }
 export type UpdateMomentResult = { ok: true } | { ok: false; error: string }
@@ -60,13 +61,18 @@ export async function createMoment(
     start != null && end != null && end >= start ? end - start : 0
 
   try {
-    const descriptionTrimmed = input.description?.trim() || null
+    const titleRaw = input.title?.trim() || null
+    const descriptionRaw = input.description?.trim() || null
+    const [titleCleaned, descriptionCleaned] = await Promise.all([
+      titleRaw ? cleanText(titleRaw).then((r) => r.cleanedText) : Promise.resolve(null),
+      descriptionRaw ? cleanText(descriptionRaw).then((r) => r.cleanedText) : Promise.resolve(null),
+    ])
     const moment = await prisma.moment.create({
       data: {
         matchId,
         userId: user.id,
-        title: input.title?.trim() || null,
-        description: descriptionTrimmed,
+        title: titleCleaned ?? null,
+        description: descriptionCleaned ?? null,
         startMinute: start,
         startPeriod: input.startPeriod?.trim() || null,
         startMinuteInPeriod: input.startMinuteInPeriod ?? null,
@@ -75,15 +81,15 @@ export async function createMoment(
         seeVarCount: 1, // 작성자는 SEE VAR를 한 번 누른 것과 동일
       },
     })
-    // 생성 시 작성한 내용·첨부 미디어를 첫 댓글로 등록
+    // 생성 시 작성한 내용·첨부 미디어를 첫 댓글로 등록 (필터 적용된 설명 사용)
     const mediaUrlTrimmed = input.mediaUrl?.trim() || null
-    const hasFirstComment = descriptionTrimmed || mediaUrlTrimmed
+    const hasFirstComment = (descriptionCleaned ?? "") !== "" || mediaUrlTrimmed
     if (hasFirstComment) {
       await prisma.comment.create({
         data: {
           momentId: moment.id,
           userId: user.id,
-          content: descriptionTrimmed ?? "",
+          content: descriptionCleaned ?? "",
           // Comment.mediaUrl 추가 후 prisma generate 하면 타입에 반영됨
           mediaUrl: mediaUrlTrimmed,
           parentId: null,
