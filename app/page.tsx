@@ -643,6 +643,8 @@ export default async function HomePage() {
           <LeagueMatchesSection
             k1Matches={k1Matches}
             k2Matches={k2Matches}
+            k1RoundNumber={k1Round1?.number ?? 1}
+            k2RoundNumber={k2Round1?.number ?? 1}
             hasK1Focus={k1Round1 !== null}
             hasK2Focus={k2Round1 !== null}
           />

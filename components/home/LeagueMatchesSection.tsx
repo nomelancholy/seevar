@@ -105,6 +105,8 @@ function LeagueBlock({
 type Props = {
   k1Matches?: FocusMatchItem[]
   k2Matches?: FocusMatchItem[]
+  k1RoundNumber?: number
+  k2RoundNumber?: number
   hasK1Focus?: boolean
   hasK2Focus?: boolean
 }
@@ -112,6 +114,8 @@ type Props = {
 export function LeagueMatchesSection({
   k1Matches = [],
   k2Matches = [],
+  k1RoundNumber = 1,
+  k2RoundNumber = 1,
   hasK1Focus = false,
   hasK2Focus = false,
 }: Props) {
@@ -127,7 +131,7 @@ export function LeagueMatchesSection({
       {hasK1Focus && (
         <LeagueBlock
           leagueName="K League 1"
-          roundNumber={1}
+          roundNumber={k1RoundNumber}
           matches={k1Matches}
           open={k1Open}
           onToggle={() => setK1Open((o) => !o)}
@@ -136,7 +140,7 @@ export function LeagueMatchesSection({
       {hasK2Focus && (
         <LeagueBlock
           leagueName="K League 2"
-          roundNumber={1}
+          roundNumber={k2RoundNumber}
           matches={k2Matches}
           open={k2Open}
           onToggle={() => setK2Open((o) => !o)}

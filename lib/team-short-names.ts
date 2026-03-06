@@ -24,18 +24,19 @@ export const EMBLEM_TO_SHORT: Record<string, string> = {
   cheonan_city_fc: "천안",
   cheongju_fc: "충북청주",
   suwon_fc: "수원FC",
+  gimpo_fc: "김포FC",
   gyeongnam_fc: "경남",
   jeonnam_dragons: "전남",
   chungnam_asan_fc: "충남아산",
   paju_frontier_fc: "파주",
   busan_ipark: "부산",
   seongname_fc: "성남",
-}
+};
 
 /** 팀 약칭 → emblem 키 (JSON 일괄 업로드 등에서 사용) */
 export const SHORT_TO_EMBLEM: Record<string, string> = Object.fromEntries(
-  Object.entries(EMBLEM_TO_SHORT).map(([emblem, short]) => [short, emblem])
-)
+  Object.entries(EMBLEM_TO_SHORT).map(([emblem, short]) => [short, emblem]),
+);
 
 /** TEAM_LIST.md 표기 이름 → emblem 키 (JSON home/away에 이 이름 사용 가능) */
 export const DISPLAY_NAME_TO_EMBLEM: Record<string, string> = {
@@ -68,10 +69,10 @@ export const DISPLAY_NAME_TO_EMBLEM: Record<string, string> = {
   "김해 FC 2008": "gimhae_fc_2008",
   "파주 프런티어 FC": "paju_frontier_fc",
   "용인 FC": "yongin_fc",
-}
+};
 
 export function shortNameFromSlug(slug: string | null): string {
-  if (!slug) return ""
-  const key = slug.replace(/^kleague\d+-/, "")
-  return EMBLEM_TO_SHORT[key] ?? slug
+  if (!slug) return "";
+  const key = slug.replace(/^kleague\d+-/, "");
+  return EMBLEM_TO_SHORT[key] ?? slug;
 }
