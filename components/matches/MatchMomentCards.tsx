@@ -164,7 +164,7 @@ export function MatchMomentCards({
                   )}
                   <div className="flex justify-between items-center">
                     <span className="text-[8px] md:text-[10px] font-mono text-muted-foreground">
-                      VAR {mom.seeVarCount.toLocaleString()}
+                      이의 제기 {mom.seeVarCount.toLocaleString()}
                     </span>
                     <div className="flex items-center gap-1 text-[8px] md:text-[10px] font-mono text-muted-foreground">
                       <MessageCircle className="size-3 md:size-[10px]" />
@@ -180,7 +180,7 @@ export function MatchMomentCards({
               )}
               {variant === "list" && (
                 <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground">
-                  <span>SEE VAR {mom.seeVarCount.toLocaleString()}</span>
+                  <span>이의 제기 {mom.seeVarCount.toLocaleString()}</span>
                   <span className="flex items-center gap-1">
                     <MessageCircle className="size-3" />
                     {mom.commentCount}

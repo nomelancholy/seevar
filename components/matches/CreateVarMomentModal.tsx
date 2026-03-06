@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, X, ImageIcon, Video, ChevronDown } from "lucide-react"
 import { createMoment } from "@/lib/actions/moments"
@@ -233,7 +233,10 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
         clearAttachment()
         setTimeError(null)
         onClose()
-        router.refresh()
+        // 서버 revalidate 반영 후 경기 기록 페이지 RSC 갱신
+        startTransition(() => {
+          router.refresh()
+        })
       } else {
         setSubmitError(result.error)
       }

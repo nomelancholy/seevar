@@ -75,7 +75,7 @@ export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 �
               )}
               <div className="flex justify-between items-center">
                 <span className="text-[8px] md:text-[10px] font-mono text-muted-foreground">
-                  VAR {m.varCount.toLocaleString()}
+                  이의 제기 {m.varCount.toLocaleString()}
                 </span>
                 <div className="flex items-center gap-1 text-[8px] md:text-[10px] font-mono text-muted-foreground">
                   <MessageCircle className="size-3 md:size-[10px]" />

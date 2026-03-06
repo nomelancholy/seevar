@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import type { ReactionType } from "@prisma/client"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getMatchDetailPath } from "@/lib/match-url"
 import { XP_MOMENT_CREATE, XP_BEST_MOMENT } from "@/lib/utils/xp"
 
 export type CreateMomentResult = { ok: true; momentId: string } | { ok: false; error: string }
@@ -104,9 +105,40 @@ export async function createMoment(
       where: { id: user.id },
       data: { xp: { increment: XP_MOMENT_CREATE } },
     })
+    revalidateTag("match-details")
     revalidatePath("/matches")
     revalidatePath("/")
-    revalidateTag("match-details")
+    // 경기 기록 페이지에서 쟁점 카드가 바로 보이도록 해당 경기 상세 경로 명시적 무효화
+    const matchForPath = await prisma.match.findUnique({
+      where: { id: matchId },
+      select: {
+        roundOrder: true,
+        round: {
+          select: {
+            slug: true,
+            league: {
+              select: {
+                slug: true,
+                season: { select: { year: true } },
+              },
+            },
+          },
+        },
+      },
+    })
+    if (matchForPath?.round) {
+      const matchPath = getMatchDetailPath({
+        roundOrder: matchForPath.roundOrder,
+        round: {
+          slug: matchForPath.round.slug,
+          league: {
+            slug: matchForPath.round.league.slug,
+            season: { year: matchForPath.round.league.season.year },
+          },
+        },
+      })
+      revalidatePath(matchPath)
+    }
     return { ok: true, momentId: moment.id }
   } catch (e) {
     console.error("createMoment:", e)
