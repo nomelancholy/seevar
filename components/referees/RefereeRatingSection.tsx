@@ -33,7 +33,7 @@ export function RefereeRatingSection({
   ratingByRole,
   teamStats,
 }: Props) {
-  const [teamRatingsOpen, setTeamRatingsOpen] = useState(false)
+  const [teamRatingsOpen, setTeamRatingsOpen] = useState(true)
   const rating = averageRating ?? 0
   const isTop = rating >= 3.5
   const isLow = rating > 0 && rating < 2.5

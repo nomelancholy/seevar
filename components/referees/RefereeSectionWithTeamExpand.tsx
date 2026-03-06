@@ -49,7 +49,7 @@ export function RefereeSectionWithTeamExpand({
   variant,
   children,
 }: Props) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const hasTeamStats = teamStats.length > 0
 
   return (

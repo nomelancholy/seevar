@@ -14,7 +14,7 @@ type TeamStat = {
 type Props = { teamStats: TeamStat[] }
 
 export function RefereeTeamRatingsExpand({ teamStats }: Props) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   if (teamStats.length === 0) return null
   return (
     <div className="mt-4 md:mt-6">

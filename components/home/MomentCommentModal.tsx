@@ -693,10 +693,10 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                   ? "bg-primary text-primary-foreground border-primary shadow-inner cursor-default"
                   : "border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
               }`}
-              title={isSeeVarByMe ? "이의 제기했습니다" : "이의 제기"}
+              title={isSeeVarByMe ? "함께 이의 제기했습니다" : "함께 이의 제기"}
             >
               {seeVarPending ? <Loader2 className="size-3.5 sm:size-4 animate-spin inline-block" /> : null}
-              이의 제기
+              함께 이의 제기
             </button>
           </div>
         </div>

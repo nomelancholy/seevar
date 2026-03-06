@@ -60,7 +60,7 @@ export function RefereeMatchRow({
   matchPath,
   reviews,
 }: Props) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const stars = matchRating != null ? Math.round(matchRating) : 0
   return (
     <div className="border border-border hover:border-muted-foreground/50 transition-colors overflow-hidden">
