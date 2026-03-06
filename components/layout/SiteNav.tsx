@@ -65,7 +65,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
                 SEE <span className="text-primary">VAR</span>
               </Link>
             </div>
-            <nav className="flex flex-col p-4 gap-1 font-mono text-base font-bold tracking-widest">
+            <nav className="flex flex-col p-4 gap-1 font-mono text-base font-bold tracking-widest flex-1">
               {navLinks.map(({ href, label }) => (
                 <SheetClose asChild key={href}>
                   <Link
@@ -77,6 +77,26 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
                 </SheetClose>
               ))}
             </nav>
+            <div className="p-4 border-t border-border flex items-center gap-2 shrink-0">
+              <a
+                href={SEEVAR_YOUTUBE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full text-muted-foreground hover:text-[#FF0000] hover:bg-muted/50 transition-colors"
+                aria-label="SEE VAR YouTube"
+              >
+                <Youtube className="size-5" />
+              </a>
+              <a
+                href={SEEVAR_INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full text-muted-foreground hover:text-[#E4405F] hover:bg-muted/50 transition-colors"
+                aria-label="SEE VAR Instagram"
+              >
+                <Instagram className="size-5" />
+              </a>
+            </div>
           </SheetContent>
         </Sheet>
         <Link
@@ -89,24 +109,6 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
           className="h-8 w-px bg-border hidden md:block shrink-0 md:ml-6 lg:ml-8"
           aria-hidden
         />
-        <a
-          href={SEEVAR_YOUTUBE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${socialIconClass} md:hidden`}
-          aria-label="SEE VAR YouTube"
-        >
-          <Youtube className="size-5" />
-        </a>
-        <a
-          href={SEEVAR_INSTAGRAM_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${socialIconClass} md:hidden`}
-          aria-label="SEE VAR Instagram"
-        >
-          <Instagram className="size-5" />
-        </a>
         {user ? (
           <NotificationModal
             unreadCount={unreadNotificationCount}
