@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { AdminReportList } from "./AdminReportList"
 
 export const metadata = {
-  title: "신고·유저 | 관리자 | SEE VAR",
-  description: "신고 접수 유저 조치 및 관리",
+  title: "신고 관리 | 관리자 | SEE VAR",
+  description: "신고된 댓글·심판 평가 검토 및 숨김 처리",
 }
 
 export default async function AdminReportsPage() {
@@ -44,7 +44,7 @@ export default async function AdminReportsPage() {
         </Link>
       </div>
       <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter mb-2">
-        신고·유저
+        신고 관리
       </h2>
       <p className="font-mono text-xs text-muted-foreground mb-6">
         신고된 댓글·심판 평가를 검토하고 숨김 처리할 수 있습니다.

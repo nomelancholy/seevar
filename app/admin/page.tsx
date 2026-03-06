@@ -8,6 +8,7 @@ import {
   Trophy,
   Flag,
   FileText,
+  UserCircle,
 } from "lucide-react"
 
 const sections = [
@@ -54,10 +55,17 @@ const sections = [
     comingSoon: false,
   },
   {
-    title: "신고·유저",
-    description: "신고 접수 유저 조치 및 관리",
+    title: "신고 관리",
+    description: "신고된 댓글·심판 평가 검토 및 숨김 처리",
     href: "/admin/reports",
     icon: Flag,
+    comingSoon: false,
+  },
+  {
+    title: "유저 관리",
+    description: "가입 유저 목록, 닉네임·응원팀 조회 및 닉네임 수정",
+    href: "/admin/users",
+    icon: UserCircle,
     comingSoon: false,
   },
   {
