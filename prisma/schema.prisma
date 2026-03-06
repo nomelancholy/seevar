@@ -68,6 +68,9 @@ model User {
   /** 경험치. 모멘트·평가 참여 시 증가, 신고 승인(숨김) 시 감소, 재심 통과 시 복구 */
   xp                Int       @default(0)
 
+  /** 접속 시 수집한 IP (관리자 유저 관리에서 확인) */
+  lastSeenIp        String?
+
   // 응원 팀 및 변경 제한 (30일 로직용)
   supportingTeamId  String?
   supportingTeam    Team?     @relation(fields: [supportingTeamId], references: [id], onDelete: SetNull)
@@ -313,6 +316,10 @@ model RefereeReview {
   xpDeductedOnHide  Int?
   reactions         Reaction[]
   replies           RefereeReviewReply[]
+  /** OpenAI Moderation API: 위반 여부 (작성 시 기록, 관리자 페이지 노출) */
+  moderationFlagged Boolean?
+  /** OpenAI Moderation API: category_scores JSON (작성 시 기록) */
+  moderationScores  Json?
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -383,6 +390,8 @@ model Comment {
   /** 신고 승인(숨김) 시 유저에게 차감한 XP. 재노출 시 이만큼 복구 */
   xpDeductedOnHide  Int?
   reactions         Reaction[]
+  moderationFlagged Boolean?
+  moderationScores  Json?
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

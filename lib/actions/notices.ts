@@ -16,12 +16,24 @@ export type DeleteNoticeCommentResult = { ok: true } | { ok: false; error: strin
 
 export type NoticeAttachment = { name: string; url: string }
 
+const NOTIFICATION_BATCH_SIZE = 500
+
+async function createNoticeNotificationsInBatches(
+  data: Array<{ userId: string; type: "SYSTEM"; content: string; link: string }>,
+) {
+  for (let i = 0; i < data.length; i += NOTIFICATION_BATCH_SIZE) {
+    const batch = data.slice(i, i + NOTIFICATION_BATCH_SIZE)
+    await prisma.notification.createMany({ data: batch })
+  }
+}
+
 export async function createNotice(
   input: {
     title: string
     content: string
     allowComments: boolean
     isPinned: boolean
+    sendNotification?: boolean
     attachments?: NoticeAttachment[]
     youtubeUrls?: string[]
   }
@@ -58,6 +70,16 @@ export async function createNotice(
         isPinned: !!input.isPinned,
       } as unknown as Prisma.NoticeCreateInput,
     })
+    if (input.sendNotification) {
+      const userIds = await prisma.user.findMany({
+        where: { id: { not: user.id } },
+        select: { id: true },
+      })
+      const link = `/notice/${notice.number}`
+      await createNoticeNotificationsInBatches(
+        userIds.map((u) => ({ userId: u.id, type: "SYSTEM" as const, content: `새로운 공지가 등록되었습니다 : ${title}`, link })),
+      )
+    }
     revalidatePath("/notice")
     return { ok: true, number: notice.number }
   } catch (e) {
@@ -143,6 +165,7 @@ export async function updateNotice(
     content: string
     allowComments: boolean
     isPinned: boolean
+    sendNotification?: boolean
     attachments?: NoticeAttachment[]
     youtubeUrls?: string[]
   }
@@ -151,7 +174,7 @@ export async function updateNotice(
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
   if (!getIsAdmin(user)) return { ok: false, error: "운영자만 수정할 수 있습니다." }
 
-  const notice = await prisma.notice.findUnique({ where: { id }, select: { id: true } })
+  const notice = await prisma.notice.findUnique({ where: { id }, select: { id: true, number: true } })
   if (!notice) return { ok: false, error: "공지를 찾을 수 없습니다." }
 
   const title = input.title?.trim() ?? ""
@@ -174,9 +197,18 @@ export async function updateNotice(
         isPinned: !!input.isPinned,
       },
     })
-    const updated = await prisma.notice.findUnique({ where: { id }, select: { number: true } })
+    if (input.sendNotification) {
+      const userIds = await prisma.user.findMany({
+        where: { id: { not: user.id } },
+        select: { id: true },
+      })
+      const link = `/notice/${notice.number}`
+      await createNoticeNotificationsInBatches(
+        userIds.map((u) => ({ userId: u.id, type: "SYSTEM" as const, content: `기존 공지가 수정되었습니다 : ${title}`, link })),
+      )
+    }
     revalidatePath("/notice")
-    if (updated) revalidatePath(`/notice/${updated.number}`)
+    revalidatePath(`/notice/${notice.number}`)
     return { ok: true }
   } catch (e) {
     console.error("updateNotice:", e)

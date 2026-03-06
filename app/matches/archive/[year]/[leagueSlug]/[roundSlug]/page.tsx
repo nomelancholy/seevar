@@ -441,6 +441,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     varCount: mom.seeVarCount,
     commentCount: mom.commentCount,
     firstCommentPreview,
+    matchDetailPath: `/matches/game/${yearStr}/${leagueSlug}/${roundSlug}/${(mom.match as { roundOrder: number }).roundOrder}`,
   }
   })
 

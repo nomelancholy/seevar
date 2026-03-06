@@ -9,6 +9,8 @@ import {
   Flag,
   FileText,
   UserCircle,
+  MessageSquare,
+  Star,
 } from "lucide-react"
 
 const sections = [
@@ -59,6 +61,20 @@ const sections = [
     description: "신고된 댓글·심판 평가 검토 및 숨김 처리",
     href: "/admin/reports",
     icon: Flag,
+    comingSoon: false,
+  },
+  {
+    title: "댓글 관리",
+    description: "등록된 댓글 목록, Moderation 점수, 숨김·귀여운 글로 바꾸기",
+    href: "/admin/comments",
+    icon: MessageSquare,
+    comingSoon: false,
+  },
+  {
+    title: "한줄평 관리",
+    description: "등록된 심판 한줄평 목록, Moderation 점수, 숨김·귀여운 글로 바꾸기",
+    href: "/admin/reviews",
+    icon: Star,
     comingSoon: false,
   },
   {

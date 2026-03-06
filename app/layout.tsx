@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { getCurrentUser, getIsAdmin } from "@/lib/auth";
 import { getUnreadNotificationCount } from "@/lib/notifications";
+import { recordUserIpIfNeeded } from "@/lib/record-user-ip";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 
@@ -58,6 +59,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getCurrentUser();
+  if (user?.id) {
+    await recordUserIpIfNeeded(user.id).catch(() => {});
+  }
   const isAdmin = user ? getIsAdmin(user) : false;
   const unreadNotificationCount = user
     ? await getUnreadNotificationCount(user.id)

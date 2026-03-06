@@ -4,7 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
-import type { ContentStatus } from "@prisma/client"
+import { type ContentStatus, Prisma } from "@prisma/client"
 import { checkProfanity, cleanText } from "@/lib/filters/profanity"
 import {
   XP_REVIEW_CREATE,
@@ -48,9 +48,9 @@ export async function createRefereeReview(
   }
 
   const commentRaw = comment?.trim().slice(0, 100) ?? null
-  const commentTrimmed = commentRaw
-    ? (await cleanText(commentRaw)).cleanedText.slice(0, 100)
-    : null
+  const cleanResult = commentRaw ? await cleanText(commentRaw) : null
+  const commentTrimmed = cleanResult ? cleanResult.cleanedText.slice(0, 100) : null
+  const moderation = cleanResult?.moderation
 
   const existingReview = await prisma.refereeReview.findUnique({
     where: {
@@ -59,27 +59,32 @@ export async function createRefereeReview(
     select: { id: true },
   })
 
+  const reviewData = {
+    rating: r,
+    comment: commentTrimmed,
+    role,
+    ...(user.supportingTeamId != null && { fanTeamId: user.supportingTeamId }),
+    ...(moderation && {
+      moderationFlagged: moderation.flagged,
+      moderationScores:
+        moderation.category_scores != null
+          ? (moderation.category_scores as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
+    }),
+  }
   try {
     const review = existingReview
       ? await prisma.refereeReview.update({
           where: { id: existingReview.id },
-          data: {
-            rating: r,
-            comment: commentTrimmed,
-            role,
-            fanTeamId: user.supportingTeamId ?? undefined,
-          },
+          data: reviewData as Prisma.RefereeReviewUncheckedUpdateInput,
         })
       : await prisma.refereeReview.create({
           data: {
             matchId,
             refereeId,
             userId: user.id,
-            fanTeamId: user.supportingTeamId ?? undefined,
-            rating: r,
-            comment: commentTrimmed,
-            role,
-          },
+            ...reviewData,
+          } as Prisma.RefereeReviewUncheckedCreateInput,
         })
 
     const fanTeamId = review.fanTeamId ?? user.supportingTeamId ?? null

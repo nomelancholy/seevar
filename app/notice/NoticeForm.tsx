@@ -34,6 +34,7 @@ export function NoticeForm({
   const [content, setContent] = useState(initialContent)
   const [allowComments, setAllowComments] = useState(initialAllowComments)
   const [isPinned, setIsPinned] = useState(initialIsPinned)
+  const [sendNotification, setSendNotification] = useState(false)
   const [attachments, setAttachments] = useState<NoticeAttachment[]>(initialAttachments)
   const [youtubeUrls, setYoutubeUrls] = useState<string[]>(initialYoutubeUrls)
   const [youtubeInput, setYoutubeInput] = useState("")
@@ -88,10 +89,10 @@ export function NoticeForm({
     setError(null)
     const result =
       mode === "create"
-        ? await createNotice({ title, content, allowComments, isPinned, attachments, youtubeUrls })
+        ? await createNotice({ title, content, allowComments, isPinned, sendNotification, attachments, youtubeUrls })
         : await (async () => {
             const { updateNotice } = await import("@/lib/actions/notices")
-            return updateNotice(noticeId!, { title, content, allowComments, isPinned, attachments, youtubeUrls })
+            return updateNotice(noticeId!, { title, content, allowComments, isPinned, sendNotification, attachments, youtubeUrls })
           })()
     setPending(false)
     if (result.ok) {
@@ -245,6 +246,16 @@ export function NoticeForm({
               className="rounded border-border"
             />
             <span>댓글 허용</span>
+          </label>
+          <label className="inline-flex items-center gap-2 font-mono text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              id="sendNotification"
+              checked={sendNotification}
+              onChange={(e) => setSendNotification(e.target.checked)}
+              className="rounded border-border"
+            />
+            <span>알림 보내기</span>
           </label>
         </div>
       </div>

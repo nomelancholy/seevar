@@ -118,7 +118,25 @@ export const BAD_WORDS_DATA = {
     "짭수",
   ],
 
-  // 4. 심판 타겟 비하 및 음모론 (Referee Specific)
+  // 4. 위협·공격 표현 (Threats / Aggression) — API가 한글에서 낮게 나올 수 있어 1단계에서 차단
+  threatsAggression: [
+    "나가 뒤져라",
+    "나가뒤져라",
+    "뒤져라",
+    "뒤져",
+    "뒤진다",
+    "나가뒤져",
+    "나가 뒤져",
+    "죽어라",
+    "죽어",
+    "죽여",
+    "뒤질",
+    "뒤지게",
+    "꺼지라",
+    "닥치라",
+  ],
+
+  // 5. 심판 타겟 비하 및 음모론 (Referee Specific)
   refereeSpecific: [
     "눈깔",
     "장님",
@@ -130,7 +148,7 @@ export const BAD_WORDS_DATA = {
     "심판놈",
   ],
 
-  // 5. 숫자를 섞거나 특수문자를 이용한 변형 (Variations)
+  // 6. 숫자를 섞거나 특수문자를 이용한 변형 (Variations)
   variations: [
     "18놈",
     "18년",
@@ -257,7 +275,10 @@ async function callOpenAIModeration(
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ input: text }),
+      body: JSON.stringify({
+        input: text,
+        model: "omni-moderation-latest",
+      }),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as {
@@ -325,13 +346,20 @@ export async function validateDisplayName(
   return { allowed: true };
 }
 
+/** 관리자 페이지 등에서 저장용으로 사용하는 모더레이션 결과 타입 */
+export type ModerationForStorage = {
+  flagged: boolean
+  category_scores: Record<string, number> | null
+}
+
 /**
  * 2단계 필터: 1) 자체 금칙어 → DOG_SOUNDS 치환, 2) OpenAI Moderation → 위반 시 CUTE_WORDS로 전체 교체.
  * isModified 시 문구 하단에 안내 메시지를 붙여 반환.
+ * moderation: API 호출 시 저장용 결과(관리자 페이지 노출).
  */
 export async function cleanText(
   content: string,
-): Promise<{ cleanedText: string; isModified: boolean }> {
+): Promise<{ cleanedText: string; isModified: boolean; moderation?: ModerationForStorage }> {
   const trimmed = content?.trim() ?? "";
   if (!trimmed) return { cleanedText: trimmed, isModified: false };
 
@@ -351,6 +379,9 @@ export async function cleanText(
 
   // 2단계: OpenAI Moderation (flagged 또는 category_scores가 TOXICITY_THRESHOLD 이상이면 위반)
   const mod = await callOpenAIModeration(text);
+  const moderation: ModerationForStorage | undefined = mod
+    ? { flagged: mod.flagged, category_scores: mod.category_scores ?? null }
+    : undefined
   const overThreshold =
     mod?.category_scores &&
     Object.values(mod.category_scores).some(
@@ -365,7 +396,7 @@ export async function cleanText(
     text = text + MODIFICATION_NOTICE;
   }
 
-  return { cleanedText: text, isModified };
+  return { cleanedText: text, isModified, moderation };
 }
 
 /**

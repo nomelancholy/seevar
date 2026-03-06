@@ -122,6 +122,7 @@ export async function setCommentStatus(
 
     revalidatePath("/admin")
     revalidatePath("/admin/reports")
+    revalidatePath("/admin/comments")
     revalidatePath("/")
     revalidatePath("/my")
     return { ok: true }
@@ -142,7 +143,28 @@ export async function setReviewStatus(
 
   const review = await prisma.refereeReview.findUnique({
     where: { id: reviewId },
-    select: { id: true, userId: true, xpDeductedOnHide: true, matchId: true },
+    select: {
+      id: true,
+      userId: true,
+      xpDeductedOnHide: true,
+      matchId: true,
+      match: {
+        select: {
+          roundOrder: true,
+          round: {
+            select: {
+              slug: true,
+              league: {
+                select: {
+                  slug: true,
+                  season: { select: { year: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   if (!review) return { ok: false, error: "평가를 찾을 수 없습니다." }
 
@@ -181,8 +203,31 @@ export async function setReviewStatus(
       where: { id: reviewId },
       data,
     })
+
+    if (status === "HIDDEN" && review.userId) {
+      const reasonLabel = (filterReason ?? "").trim() || "커뮤니티 가이드라인 위반"
+      const link = review.match
+        ? getMatchDetailPath({
+            roundOrder: review.match.roundOrder,
+            round: review.match.round as {
+              slug: string
+              league: { slug: string; season: { year: number } }
+            },
+          })
+        : undefined
+      await prisma.notification.create({
+        data: {
+          userId: review.userId,
+          type: "SYSTEM",
+          content: `회원님의 심판 한줄평이 '${reasonLabel}' 사유로 숨김 처리되었습니다.`,
+          link,
+        },
+      })
+    }
+
     revalidatePath("/admin")
     revalidatePath("/admin/reports")
+    revalidatePath("/admin/reviews")
     revalidatePath("/referees")
     revalidatePath("/matches")
     revalidatePath("/my")
@@ -192,4 +237,156 @@ export async function setReviewStatus(
     console.error("setReviewStatus:", e)
     return { ok: false, error: "처리에 실패했습니다." }
   }
+}
+
+export async function replaceCommentWithCute(commentId: string): Promise<SetContentStatusResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: {
+      id: true,
+      userId: true,
+      content: true,
+      momentId: true,
+      moment: {
+        select: {
+          id: true,
+          match: {
+            select: {
+              roundOrder: true,
+              round: {
+                select: {
+                  slug: true,
+                  league: {
+                    select: {
+                      slug: true,
+                      season: { select: { year: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
+
+  const { CUTE_WORDS } = await import("@/lib/filters/profanity")
+  const cuteContent = CUTE_WORDS[Math.floor(Math.random() * CUTE_WORDS.length)]!
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: { content: cuteContent },
+  })
+
+  let link: string | undefined
+  if (comment.moment?.match) {
+    const basePath = getMatchDetailPath({
+      roundOrder: comment.moment.match.roundOrder,
+      round: comment.moment.match.round as {
+        slug: string
+        league: { slug: string; season: { year: number } }
+      },
+    })
+    link = `${basePath}${basePath.includes("?") ? "&" : "?"}openMoment=${encodeURIComponent(comment.moment.id)}`
+  }
+  if (comment.userId) {
+    await prisma.notification.create({
+      data: {
+        userId: comment.userId,
+        type: "SYSTEM",
+        content: "작성하신 댓글이 커뮤니티 가이드에 따라 수정되었습니다.",
+        link,
+        momentId: comment.momentId,
+      },
+    })
+  }
+  revalidatePath("/admin")
+  revalidatePath("/admin/comments")
+  revalidatePath("/")
+  revalidatePath("/matches")
+  return { ok: true }
+}
+
+export async function replaceReviewWithCute(reviewId: string): Promise<SetContentStatusResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
+  if (!getIsAdmin(user)) return { ok: false, error: "권한이 없습니다." }
+
+  const review = await prisma.refereeReview.findUnique({
+    where: { id: reviewId },
+    select: {
+      id: true,
+      userId: true,
+      refereeId: true,
+      comment: true,
+      matchId: true,
+      referee: { select: { slug: true } },
+      match: {
+        select: {
+          roundOrder: true,
+          round: {
+            select: {
+              slug: true,
+              league: {
+                select: {
+                  slug: true,
+                  season: { select: { year: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!review) return { ok: false, error: "한줄평을 찾을 수 없습니다." }
+  const raw = (review.comment ?? "").trim()
+  if (!raw) return { ok: false, error: "수정할 한줄평 내용이 없습니다." }
+
+  const { CUTE_WORDS } = await import("@/lib/filters/profanity")
+  const cuteContent = CUTE_WORDS[Math.floor(Math.random() * CUTE_WORDS.length)]!
+  const newComment = cuteContent.slice(0, 100)
+
+  await prisma.refereeReview.update({
+    where: { id: reviewId },
+    data: { comment: newComment },
+  })
+
+  let link: string | undefined
+  if (review.match) {
+    const basePath = getMatchDetailPath({
+      roundOrder: review.match.roundOrder,
+      round: review.match.round as {
+        slug: string
+        league: { slug: string; season: { year: number } }
+      },
+    })
+    const params = new URLSearchParams()
+    params.set("scroll", "referee-rating")
+    if (review.referee?.slug) params.set("referee", review.referee.slug)
+    params.set("reviewId", review.id)
+    link = `${basePath}?${params.toString()}`
+  }
+  if (review.userId) {
+    await prisma.notification.create({
+      data: {
+        userId: review.userId,
+        type: "SYSTEM",
+        content: "작성하신 심판 한줄평이 커뮤니티 가이드에 따라 수정되었습니다.",
+        link,
+      },
+    })
+  }
+  revalidatePath("/admin")
+  revalidatePath("/admin/reviews")
+  revalidatePath("/matches")
+  revalidatePath("/referees")
+  revalidateTag(`match-reviews-${review.matchId}`)
+  return { ok: true }
 }

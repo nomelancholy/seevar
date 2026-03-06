@@ -37,7 +37,7 @@ export async function createComment(
   if (!moment) return { ok: false, error: "모멘트를 찾을 수 없습니다." }
 
   const rawContent = parsed.data.content || " "
-  const { cleanedText: content } = await cleanText(rawContent)
+  const { cleanedText: content, moderation } = await cleanText(rawContent)
 
   try {
     const comment = await prisma.comment.create({
@@ -48,6 +48,10 @@ export async function createComment(
         mediaUrl: parsed.data.mediaUrl ?? null,
         parentId: parsed.data.parentId ?? null,
         status: "VISIBLE",
+        ...(moderation && {
+          moderationFlagged: moderation.flagged,
+          moderationScores: moderation.category_scores as object | null,
+        }),
       } as Parameters<typeof prisma.comment.create>[0]["data"],
     })
     await prisma.moment.update({

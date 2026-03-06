@@ -841,8 +841,9 @@ export function MatchRefereeRatingSection({
                     const mergedRepliesForRev = [...(rev.replies ?? []), ...addedRepliesOnly]
                     return (
                       <div
+                        id={`review-${rev.id}`}
                         key={rev.id}
-                        className="p-4 md:p-6 border-b border-border last:border-b-0"
+                        className="p-4 md:p-6 border-b border-border last:border-b-0 scroll-mt-4"
                       >
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex items-center gap-3 min-w-0">

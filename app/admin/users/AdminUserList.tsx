@@ -9,6 +9,7 @@ type User = {
   id: string
   email: string | null
   name: string | null
+  lastSeenIp: string | null
   createdAt: Date
   supportingTeam: { id: string; name: string } | null
 }
@@ -55,9 +56,10 @@ export function AdminUserList({ users }: Props) {
   return (
     <div className="ledger-surface border border-border overflow-hidden">
       <div className="grid grid-cols-12 gap-2 p-3 border-b border-border font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-card/50">
-        <div className="col-span-4">이메일</div>
-        <div className="col-span-3">닉네임</div>
-        <div className="col-span-3">응원팀</div>
+        <div className="col-span-3">이메일</div>
+        <div className="col-span-2">닉네임</div>
+        <div className="col-span-2">응원팀</div>
+        <div className="col-span-2">접속 IP</div>
         <div className="col-span-1">가입일</div>
         <div className="col-span-1 text-right">작업</div>
       </div>
@@ -72,10 +74,10 @@ export function AdminUserList({ users }: Props) {
               key={u.id}
               className="grid grid-cols-12 gap-2 p-3 md:p-4 items-center font-mono text-xs"
             >
-              <div className="col-span-4 truncate text-muted-foreground" title={u.email ?? undefined}>
+              <div className="col-span-3 truncate text-muted-foreground" title={u.email ?? undefined}>
                 {u.email ?? "—"}
               </div>
-              <div className="col-span-3">
+              <div className="col-span-2">
                 {editingId === u.id ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <input
@@ -107,8 +109,11 @@ export function AdminUserList({ users }: Props) {
                   <span className="font-bold">{u.name ?? "—"}</span>
                 )}
               </div>
-              <div className="col-span-3 truncate text-muted-foreground">
+              <div className="col-span-2 truncate text-muted-foreground">
                 {u.supportingTeam?.name ?? "—"}
+              </div>
+              <div className="col-span-2 truncate text-muted-foreground text-[10px]" title={u.lastSeenIp ?? undefined}>
+                {u.lastSeenIp ?? "—"}
               </div>
               <div className="col-span-1 text-muted-foreground text-[10px]">
                 {formatDate(u.createdAt)}

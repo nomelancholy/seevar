@@ -512,6 +512,7 @@ export default async function MatchDetailBySlugPage({
             matchId={match.id}
             variant="hot"
             initialOpenMomentId={openMomentId ?? undefined}
+            matchDetailPath={matchPath}
           />
         </section>
       )}

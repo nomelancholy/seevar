@@ -79,6 +79,8 @@ type Props = {
   variant?: "hot" | "list"
   /** 알림 등에서 진입 시 이 모멘트 카드 열기 + 스크롤 */
   initialOpenMomentId?: string
+  /** 경기 상세 경로. 있으면 모달에서 공유하기(쟁점 순간 링크 복사) 노출 */
+  matchDetailPath?: string
 }
 
 export function MatchMomentCards({
@@ -87,6 +89,7 @@ export function MatchMomentCards({
   matchId,
   variant = "hot",
   initialOpenMomentId,
+  matchDetailPath,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [selected, setSelected] = useState<HotMomentItem | null>(null)
@@ -196,6 +199,7 @@ export function MatchMomentCards({
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         moment={selected}
+        matchDetailPath={matchDetailPath}
       />
     </>
   )

@@ -2,7 +2,7 @@ import Link from "next/link"
 import { unstable_cache } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { shortNameFromSlug } from "@/lib/team-short-names"
-import { getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
+import { getMatchDetailPath, getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
 import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
@@ -354,6 +354,7 @@ export default async function HomePage() {
     varCount: number
     commentCount: number
     firstCommentPreview?: string
+    matchDetailPath?: string
   }> = []
   if (focusMatchIds.length > 0) {
     try {
@@ -366,7 +367,7 @@ export default async function HomePage() {
             include: {
               homeTeam: true,
               awayTeam: true,
-              round: { include: { league: true } },
+              round: { include: { league: { include: { season: true } } } },
             },
           },
           comments: {
@@ -382,6 +383,10 @@ export default async function HomePage() {
         const firstCommentPreview = firstContent
           ? firstContent.replace(/\s+/g, " ").trim().slice(0, 40) + (firstContent.length > 40 ? "…" : "")
           : null
+        const matchForPath = {
+          roundOrder: mom.match.roundOrder,
+          round: mom.match.round as { slug: string; league: { slug: string; season: { year: number } } },
+        }
         return {
           rank: i + 1,
           momentId: mom.id,
@@ -399,6 +404,7 @@ export default async function HomePage() {
           varCount: mom.seeVarCount,
           commentCount: mom.commentCount,
           firstCommentPreview: firstCommentPreview ?? undefined,
+          matchDetailPath: getMatchDetailPath(matchForPath),
         }
       })
     } catch (e: unknown) {

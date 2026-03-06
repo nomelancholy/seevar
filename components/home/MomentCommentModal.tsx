@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import Image from "next/image"
-import { ImagePlus, Heart, Loader2, MessageCircle, Pencil, Flag, Trash2, X } from "lucide-react"
+import { ImagePlus, Heart, Loader2, MessageCircle, Pencil, Flag, Trash2, X, Share2 } from "lucide-react"
 import {
   createComment,
   updateComment,
@@ -120,6 +120,8 @@ type Props = {
   open: boolean
   onClose: () => void
   moment: HotMomentItem | null
+  /** 경기 상세 경로. 있으면 공유하기 버튼 노출, 링크는 이 경로 + ?openMoment= 모멘트로 진입 */
+  matchDetailPath?: string
 }
 
 type AttachedItem = { id: string; file: File }
@@ -191,7 +193,7 @@ const refetchDetail = (momentId: string, setDetail: (d: MomentDetail | null) => 
     .then((data) => setDetail(data))
 }
 
-export function MomentCommentModal({ open, onClose, moment }: Props) {
+export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: Props) {
   const [detail, setDetail] = useState<MomentDetail | null>(null)
   const [loading, setLoading] = useState(false)
   const [commentText, setCommentText] = useState("")
@@ -214,6 +216,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
   const [reportError, setReportError] = useState<string | null>(null)
   const [loginRequiredOpen, setLoginRequiredOpen] = useState(false)
   const [loginRequiredMessage, setLoginRequiredMessage] = useState("이 순간에 코멘트를 남기려면 먼저 로그인해주세요.")
+  const [shareCopied, setShareCopied] = useState(false)
   const submitLockRef = useRef(false)
   const replyLockRef = useRef(false)
   const replyPreviewUrlRef = useRef<string | null>(null)
@@ -570,14 +573,39 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                 <span className="bg-muted px-2 py-0.5 rounded">{time}</span>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 text-muted-foreground hover:text-foreground rounded shrink-0"
-              aria-label="닫기"
-            >
-              <X className="size-6" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              {matchDetailPath && (moment?.momentId ?? detail?.id) && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const momentId = moment?.momentId ?? detail?.id
+                    if (!momentId) return
+                    const path = `${matchDetailPath}${matchDetailPath.includes("?") ? "&" : "?"}openMoment=${encodeURIComponent(momentId)}`
+                    const url = typeof window !== "undefined" ? `${window.location.origin}${path}` : path
+                    try {
+                      await navigator.clipboard.writeText(url)
+                      setShareCopied(true)
+                      setTimeout(() => setShareCopied(false), 2000)
+                    } catch {
+                      setShareCopied(false)
+                    }
+                  }}
+                  className="p-1.5 text-muted-foreground hover:text-foreground rounded font-mono text-[10px] flex items-center gap-1"
+                  title="이 쟁점 순간 링크 복사"
+                >
+                  <Share2 className="size-5" />
+                  {shareCopied ? "복사됨" : "공유하기"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded shrink-0"
+                aria-label="닫기"
+              >
+                <X className="size-6" />
+              </button>
+            </div>
           </div>
           <div className="mt-3 flex items-stretch justify-between gap-4">
             <div className="flex flex-col gap-1.5 min-w-0">

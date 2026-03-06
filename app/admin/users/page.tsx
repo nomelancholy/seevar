@@ -14,6 +14,7 @@ export default async function AdminUsersPage() {
       id: true,
       email: true,
       name: true,
+      lastSeenIp: true,
       createdAt: true,
       supportingTeam: { select: { id: true, name: true } },
     },
@@ -33,7 +34,7 @@ export default async function AdminUsersPage() {
         유저 관리
       </h2>
       <p className="font-mono text-xs text-muted-foreground mb-6">
-        가입한 유저 목록입니다. 닉네임·응원팀을 확인하고, 닉네임 수정 버튼으로 닉네임을 변경할 수 있습니다. (변경 시 커뮤니티 가이드 검사 적용)
+        가입한 유저 목록입니다. 닉네임·응원팀·접속 IP를 확인하고, 닉네임 수정 버튼으로 닉네임을 변경할 수 있습니다. (접속 시 IP가 기록됩니다)
       </p>
       <AdminUserList users={users} />
     </main>
