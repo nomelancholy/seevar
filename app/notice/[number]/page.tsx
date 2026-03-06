@@ -78,7 +78,9 @@ export default async function NoticeDetailPage({
           </h1>
           <p className="font-mono text-[10px] md:text-xs text-muted-foreground">
             {notice.author?.name ?? "운영자"} ·{" "}
-            {new Date(notice.createdAt).toLocaleString("ko-KR")}
+            {new Date(notice.createdAt).toLocaleString("ko-KR", {
+              timeZone: "Asia/Seoul",
+            })}
             {!notice.allowComments && " · 댓글 비허용"}
           </p>
         </header>

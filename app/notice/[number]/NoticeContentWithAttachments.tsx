@@ -162,7 +162,6 @@ function AttachmentBlock({ attachment }: { attachment: Attachment }) {
             className="w-full h-auto object-contain"
           />
         </a>
-        <span className="text-xs text-muted-foreground mt-1 block">{attachment.name}</span>
       </span>
     )
   }
