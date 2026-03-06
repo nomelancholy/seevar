@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { User, Menu } from "lucide-react";
+import { User, Menu, Youtube, Instagram } from "lucide-react";
 import { getLevelFromXp, getXpProgressPercent } from "@/lib/utils/xp";
 import {
   Sheet,
@@ -27,7 +27,13 @@ export type NavUser = {
   } | null;
 };
 
+const SEEVAR_YOUTUBE_URL = "https://www.youtube.com/@seevar.online"
+const SEEVAR_INSTAGRAM_URL = "https://www.instagram.com/seevar.online"
+
 type SiteNavProps = { user: NavUser | null; unreadNotificationCount?: number };
+
+const socialIconClass =
+  "p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors shrink-0"
 
 export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
   const navLinks = [
@@ -83,6 +89,24 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
           className="h-8 w-px bg-border hidden md:block shrink-0 md:ml-6 lg:ml-8"
           aria-hidden
         />
+        <a
+          href={SEEVAR_YOUTUBE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${socialIconClass} md:hidden`}
+          aria-label="SEE VAR YouTube"
+        >
+          <Youtube className="size-5" />
+        </a>
+        <a
+          href={SEEVAR_INSTAGRAM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${socialIconClass} md:hidden`}
+          aria-label="SEE VAR Instagram"
+        >
+          <Instagram className="size-5" />
+        </a>
         {user ? (
           <NotificationModal
             unreadCount={unreadNotificationCount}
@@ -156,8 +180,26 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
         ))}
       </div>
 
-      {/* 데스크톱: 알림 + 로그인 시 Supporting / 비로그인 시 LOG IN */}
-      <div className="hidden md:flex items-center shrink-0 md:ml-6 lg:ml-8 gap-4">
+      {/* 데스크톱: 유튜브·인스타 아이콘 + 알림 + 로그인 시 Supporting / 비로그인 시 LOG IN */}
+      <div className="hidden md:flex items-center shrink-0 md:ml-6 lg:ml-8 gap-1">
+        <a
+          href={SEEVAR_YOUTUBE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={socialIconClass}
+          aria-label="SEE VAR YouTube"
+        >
+          <Youtube className="size-5" />
+        </a>
+        <a
+          href={SEEVAR_INSTAGRAM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={socialIconClass}
+          aria-label="SEE VAR Instagram"
+        >
+          <Instagram className="size-5" />
+        </a>
         {user ? (
           <>
             <NotificationModal
@@ -225,23 +267,25 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
             </Sheet>
           </>
         ) : (
-          <Link
-            href="/login"
-            className="hidden md:flex items-center gap-3 pl-6 lg:pl-8 border-l border-border group text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="로그인 또는 회원가입"
-          >
-            <div className="flex flex-col items-end">
-              <span className="text-[9px] leading-none mb-0.5 uppercase text-muted-foreground">
-                LOG IN ·
-              </span>
-              <span className="text-[9px] leading-none uppercase text-muted-foreground">
-                SIGN UP
-              </span>
-            </div>
-            <div className="w-11 h-11 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center group-hover:border-foreground transition-colors shrink-0">
-              <User className="size-5 text-muted-foreground" />
-            </div>
-          </Link>
+          <>
+            <Link
+              href="/login"
+              className="hidden md:flex items-center gap-3 pl-6 lg:pl-8 border-l border-border group text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="로그인 또는 회원가입"
+            >
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] leading-none mb-0.5 uppercase text-muted-foreground">
+                  LOG IN ·
+                </span>
+                <span className="text-[9px] leading-none uppercase text-muted-foreground">
+                  SIGN UP
+                </span>
+              </div>
+              <div className="w-11 h-11 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center group-hover:border-foreground transition-colors shrink-0">
+                <User className="size-5 text-muted-foreground" />
+              </div>
+            </Link>
+          </>
         )}
       </div>
     </nav>
