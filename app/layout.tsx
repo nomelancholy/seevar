@@ -65,6 +65,11 @@ export default async function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6300878538210736"
+          crossOrigin="anonymous"
+        />
         <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
