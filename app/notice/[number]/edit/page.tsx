@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
+import type { Prisma } from "@prisma/client"
 import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -35,9 +36,25 @@ export default async function NoticeEditPage({
 
   const notice = await prisma.notice.findUnique({
     where: { number: num },
-    select: { id: true, number: true, title: true, content: true, allowComments: true, isPinned: true },
+    select: {
+      id: true,
+      number: true,
+      title: true,
+      content: true,
+      allowComments: true,
+      isPinned: true,
+      attachments: true,
+      youtubeUrls: true,
+    } as Prisma.NoticeSelect,
   })
   if (!notice) notFound()
+
+  type NoticeWithMedia = typeof notice & { attachments?: unknown; youtubeUrls?: unknown }
+  const n = notice as NoticeWithMedia
+  const initialAttachments = Array.isArray(n.attachments)
+    ? (n.attachments as { name: string; url: string }[])
+    : []
+  const initialYoutubeUrls = Array.isArray(n.youtubeUrls) ? (n.youtubeUrls as string[]) : []
 
   return (
     <main className="max-w-4xl mx-auto py-8 md:py-12">
@@ -64,6 +81,8 @@ export default async function NoticeEditPage({
         initialContent={notice.content}
         initialAllowComments={notice.allowComments}
         initialIsPinned={notice.isPinned}
+        initialAttachments={initialAttachments}
+        initialYoutubeUrls={initialYoutubeUrls}
         mode="edit"
       />
     </main>

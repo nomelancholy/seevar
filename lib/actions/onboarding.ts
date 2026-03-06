@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth-options"
 import { prisma } from "@/lib/prisma"
+import { validateDisplayName } from "@/lib/filters/profanity"
 
 export type OnboardingResult = { ok: true } | { ok: false; error: string }
 
@@ -25,6 +26,11 @@ export async function completeOnboarding(
   }
   if (!supportingTeamId) {
     return { ok: false, error: "응원팀을 선택해 주세요." }
+  }
+
+  const nameCheck = await validateDisplayName(trimmedName)
+  if (!nameCheck.allowed) {
+    return { ok: false, error: nameCheck.error }
   }
 
   try {

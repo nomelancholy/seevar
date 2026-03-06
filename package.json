@@ -18,7 +18,9 @@
     "db:backfill-team-slug": "npx tsx scripts/backfill-team-slug.ts",
     "db:backfill-referee-slug": "npx tsx scripts/backfill-referee-slug.ts",
     "cron:match-status": "npx tsx scripts/run-update-match-status.ts",
-    "cron:round-focus": "npx tsx scripts/run-update-round-focus.ts"
+    "cron:round-focus": "npx tsx scripts/run-update-round-focus.ts",
+    "audit:content": "npx tsx scripts/audit-content.ts",
+    "audit:nicknames": "npx tsx scripts/audit-content.ts --no-content"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

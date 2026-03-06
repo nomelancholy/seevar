@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import type { ContentStatus } from "@prisma/client"
-import { checkProfanity } from "@/lib/filters/profanity"
+import { checkProfanity, cleanText } from "@/lib/filters/profanity"
 import {
   XP_REVIEW_CREATE,
   XP_REVIEW_REPLY_CREATE,
@@ -47,7 +47,10 @@ export async function createRefereeReview(
     return { ok: false, error: "해당 경기에 배정된 심판이 아닙니다." }
   }
 
-  const commentTrimmed = comment?.trim().slice(0, 100) ?? null
+  const commentRaw = comment?.trim().slice(0, 100) ?? null
+  const commentTrimmed = commentRaw
+    ? (await cleanText(commentRaw)).cleanedText.slice(0, 100)
+    : null
 
   const existingReview = await prisma.refereeReview.findUnique({
     where: {
@@ -245,6 +248,8 @@ export async function createRefereeReviewReply(
     return { ok: false, error: msg }
   }
 
+  const { cleanedText: contentToSave } = await cleanText(parsed.data)
+
   const review = await prisma.refereeReview.findUnique({
     where: { id: reviewId },
     select: { id: true, status: true, matchId: true },
@@ -257,7 +262,7 @@ export async function createRefereeReviewReply(
     where: {
       reviewId,
       userId: user.id,
-      content: parsed.data,
+      content: contentToSave,
       createdAt: { gte: twoMinutesAgo },
     },
     select: { id: true },
@@ -271,7 +276,7 @@ export async function createRefereeReviewReply(
       data: {
         reviewId,
         userId: user.id,
-        content: parsed.data,
+        content: contentToSave,
       },
     })
     await prisma.user.update({
@@ -358,6 +363,8 @@ export async function updateRefereeReviewReply(
     return { ok: false, error: msg }
   }
 
+  const { cleanedText } = await cleanText(parsed.data)
+
   const reply = await prisma.refereeReviewReply.findUnique({
     where: { id: replyId },
     select: { id: true, userId: true, review: { select: { matchId: true } } },
@@ -368,7 +375,7 @@ export async function updateRefereeReviewReply(
   try {
     await prisma.refereeReviewReply.update({
       where: { id: replyId },
-      data: { content: parsed.data },
+      data: { content: cleanedText },
     })
     revalidatePath("/matches")
     revalidatePath("/referees")

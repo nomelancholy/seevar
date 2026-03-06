@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { ChevronLeft } from "lucide-react"
 import { NoticeDeleteButton } from "./NoticeDeleteButton"
 import { NoticeCommentSection } from "./NoticeCommentSection"
+import { NoticeContentWithAttachments } from "./NoticeContentWithAttachments"
 
 /** 배포 후에도 항상 최신 공지·댓글을 DB에서 가져오도록 정적 캐시 비활성화 */
 export const dynamic = "force-dynamic"
@@ -48,6 +49,16 @@ export default async function NoticeDetailPage({
   })
   if (!notice) notFound()
 
+  type NoticeWithMedia = typeof notice & {
+    attachments?: unknown
+    youtubeUrls?: unknown
+  }
+  const n = notice as NoticeWithMedia
+  const attachments = Array.isArray(n.attachments)
+    ? (n.attachments as { name: string; url: string }[])
+    : []
+  const youtubeUrls = Array.isArray(n.youtubeUrls) ? (n.youtubeUrls as string[]) : []
+
   return (
     <main className="max-w-4xl mx-auto py-8 md:py-12">
       <div className="mb-6 md:mb-8">
@@ -71,9 +82,7 @@ export default async function NoticeDetailPage({
             {!notice.allowComments && " · 댓글 비허용"}
           </p>
         </header>
-        <div className="prose prose-invert max-w-none font-mono text-sm md:text-base whitespace-pre-wrap text-foreground/90">
-          {notice.content.trim() || "—"}
-        </div>
+        <NoticeContentWithAttachments content={notice.content} attachments={attachments} youtubeUrls={youtubeUrls} />
         {isAdmin && (
           <div className="mt-6 pt-4 border-t border-border flex gap-2">
             <Link

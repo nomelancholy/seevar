@@ -3,42 +3,63 @@
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
-import { updateProfileSchema } from "@/lib/schemas/profile"
 import { uploadToSpaces } from "@/lib/spaces"
+import { validateDisplayName } from "@/lib/filters/profanity"
 
 export type UpdateProfileResult = { ok: true } | { ok: false; error: string }
 
-export async function updateProfile(formData: {
-  name: string | null
-  supportingTeamId: string | null
-}): Promise<UpdateProfileResult> {
+/** 닉네임만 변경 (내 정보 페이지의 "닉네임 변경" 버튼용) */
+export async function updateNickname(
+  name: string | null,
+): Promise<UpdateProfileResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
 
-  const parsed = updateProfileSchema.safeParse(formData)
-  if (!parsed.success) {
-    const msg = parsed.error.flatten().formErrors[0] ?? parsed.error.message
-    return { ok: false, error: msg }
+  const trimmed = name?.trim() ?? ""
+  if (!trimmed) return { ok: false, error: "닉네임을 입력해 주세요." }
+
+  const nameCheck = await validateDisplayName(trimmed)
+  if (!nameCheck.allowed) return { ok: false, error: nameCheck.error }
+
+  const duplicated = await prisma.user.findFirst({
+    where: { name: trimmed, NOT: { id: user.id } },
+    select: { id: true },
+  })
+  if (duplicated) {
+    return { ok: false, error: "이미 사용 중인 닉네임입니다. 다른 닉네임을 선택해 주세요." }
   }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { name: trimmed },
+  })
+  revalidatePath("/my")
+  revalidatePath("/")
+  return { ok: true }
+}
+
+/** 응원팀만 변경 (내 정보 페이지의 "응원팀 변경" 버튼용) */
+export async function updateSupportingTeam(
+  supportingTeamId: string | null,
+): Promise<UpdateProfileResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "로그인이 필요합니다." }
 
   const existing = await prisma.user.findUnique({
     where: { id: user.id },
     select: { supportingTeamId: true, lastTeamChangeAt: true },
   })
-  if (!existing) {
-    return { ok: false, error: "사용자 정보를 찾을 수 없습니다." }
-  }
+  if (!existing) return { ok: false, error: "사용자 정보를 찾을 수 없습니다." }
 
-  const newTeamId: string | null = parsed.data.supportingTeamId ?? null
-  const currentTeamId: string | null = existing.supportingTeamId
-
+  const newTeamId = supportingTeamId ?? null
+  const currentTeamId = existing.supportingTeamId
   const isTeamChanged = newTeamId !== currentTeamId
 
   if (isTeamChanged && existing.lastTeamChangeAt) {
-    const last = existing.lastTeamChangeAt
-    const nextAvailable = new Date(last.getTime() + 180 * 24 * 60 * 60 * 1000)
-    const now = new Date()
-    if (now < nextAvailable) {
+    const nextAvailable = new Date(
+      existing.lastTeamChangeAt.getTime() + 180 * 24 * 60 * 60 * 1000,
+    )
+    if (new Date() < nextAvailable) {
       const y = nextAvailable.getFullYear()
       const m = String(nextAvailable.getMonth() + 1).padStart(2, "0")
       const d = String(nextAvailable.getDate()).padStart(2, "0")
@@ -49,37 +70,12 @@ export async function updateProfile(formData: {
     }
   }
 
-  if (parsed.data.name) {
-    const trimmed = parsed.data.name.trim()
-    if (trimmed) {
-      const duplicated = await prisma.user.findFirst({
-        where: {
-          name: trimmed,
-          NOT: { id: user.id },
-        },
-        select: { id: true },
-      })
-      if (duplicated) {
-        return { ok: false, error: "이미 사용 중인 닉네임입니다. 다른 닉네임을 선택해 주세요." }
-      }
-    }
-  }
-
-  const updateData: {
-    name?: string | null
-    supportingTeamId?: string | null
-    lastTeamChangeAt?: Date
-  } = {}
-
-  updateData.name = parsed.data.name ?? undefined
-  updateData.supportingTeamId = newTeamId
-  if (isTeamChanged) {
-    updateData.lastTeamChangeAt = new Date()
-  }
-
   await prisma.user.update({
     where: { id: user.id },
-    data: updateData,
+    data: {
+      supportingTeamId: newTeamId,
+      ...(isTeamChanged && { lastTeamChangeAt: new Date() }),
+    },
   })
   revalidatePath("/my")
   revalidatePath("/")

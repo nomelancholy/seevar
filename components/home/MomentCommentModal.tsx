@@ -186,7 +186,7 @@ function SortableAttachedItem({ item, onRemove }: { item: AttachedItem; onRemove
 }
 
 const refetchDetail = (momentId: string, setDetail: (d: MomentDetail | null) => void) => {
-  fetch(`/api/moments/${momentId}`)
+  fetch(`/api/moments/${momentId}`, { cache: "no-store" })
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => setDetail(data))
 }
@@ -291,7 +291,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
   const fetchDetail = useCallback(() => {
     if (!moment?.momentId) return
     setLoading(true)
-    fetch(`/api/moments/${moment.momentId}`)
+    fetch(`/api/moments/${moment.momentId}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setDetail(data))
       .finally(() => setLoading(false))
@@ -678,7 +678,7 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                     setDetail((prev) =>
                       prev ? { ...prev, seeVarCount: result.seeVarCount, hasSeeVarByMe: true } : null
                     )
-                    fetch(`/api/moments/${detail.id}`)
+                    fetch(`/api/moments/${detail.id}`, { cache: "no-store" })
                       .then((res) => (res.ok ? res.json() : null))
                       .then((data) => data && setDetail(data))
                   } else {

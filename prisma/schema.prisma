@@ -446,6 +446,10 @@ model Notice {
   number        Int              @unique // URL용 순번 (1, 2, 3, ...)
   title         String
   content       String           @db.Text
+  /** 첨부파일: [{ name: string, url: string }] */
+  attachments   Json?
+  /** 유튜브 링크 순서: [url1, url2, ...] → 본문 [유튜브1], [유튜브2] */
+  youtubeUrls   Json?
   authorId      String
   author        User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
   allowComments Boolean          @default(true)

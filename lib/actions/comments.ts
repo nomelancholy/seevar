@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
 import { createCommentSchema, updateCommentSchema, reportCommentSchema } from "@/lib/schemas/comment"
 import type { ContentStatus } from "@prisma/client"
-import { checkProfanity } from "@/lib/filters/profanity"
+import { checkProfanity, cleanText } from "@/lib/filters/profanity"
 
 export type CreateCommentResult = { ok: true; commentId: string } | { ok: false; error: string }
 export type UpdateCommentResult = { ok: true } | { ok: false; error: string }
@@ -36,7 +36,8 @@ export async function createComment(
   })
   if (!moment) return { ok: false, error: "모멘트를 찾을 수 없습니다." }
 
-  const content = parsed.data.content || " "
+  const rawContent = parsed.data.content || " "
+  const { cleanedText: content } = await cleanText(rawContent)
 
   try {
     const comment = await prisma.comment.create({
@@ -133,8 +134,9 @@ export async function updateComment(commentId: string, content: string): Promise
   if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
   if (comment.userId !== user.id) return { ok: false, error: "본인이 작성한 댓글만 수정할 수 있습니다." }
 
+  const { cleanedText } = await cleanText(parsed.data.content)
   const data: { content: string; status?: ContentStatus; filterReason?: string | null } = {
-    content: parsed.data.content,
+    content: cleanedText,
   }
   if (comment.status === "HIDDEN") {
     data.status = "PENDING_REAPPROVAL"

@@ -166,11 +166,18 @@ export async function GET(_request: Request, { params }: { params: Params }) {
   const seeVarByTeamOtherTeams = [...otherTeamsMap.values()].sort((a, b) => b.count - a.count)
   const other = seeVarByTeamOtherTeams.reduce((s, t) => s + t.count, 0)
 
-  return NextResponse.json({
-    ...moment,
-    currentUserId: currentUser?.id ?? null,
-    hasSeeVarByMe,
-    seeVarByTeam: { home, away, other },
-    seeVarByTeamOtherTeams,
-  })
+  return NextResponse.json(
+    {
+      ...moment,
+      currentUserId: currentUser?.id ?? null,
+      hasSeeVarByMe,
+      seeVarByTeam: { home, away, other },
+      seeVarByTeamOtherTeams,
+    },
+    {
+      headers: {
+        "Cache-Control": "private, no-store, max-age=0",
+      },
+    }
+  )
 }

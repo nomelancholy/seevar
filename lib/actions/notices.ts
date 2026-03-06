@@ -1,9 +1,11 @@
 "use server"
 
+import type { Prisma } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { cleanText } from "@/lib/filters/profanity"
 
 export type CreateNoticeResult = { ok: true; number: number } | { ok: false; error: string }
 export type UpdateNoticeResult = { ok: true } | { ok: false; error: string }
@@ -12,8 +14,17 @@ export type CreateNoticeCommentResult = { ok: true; id: string } | { ok: false; 
 export type UpdateNoticeCommentResult = { ok: true } | { ok: false; error: string }
 export type DeleteNoticeCommentResult = { ok: true } | { ok: false; error: string }
 
+export type NoticeAttachment = { name: string; url: string }
+
 export async function createNotice(
-  input: { title: string; content: string; allowComments: boolean; isPinned: boolean }
+  input: {
+    title: string
+    content: string
+    allowComments: boolean
+    isPinned: boolean
+    attachments?: NoticeAttachment[]
+    youtubeUrls?: string[]
+  }
 ): Promise<CreateNoticeResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
@@ -23,6 +34,15 @@ export async function createNotice(
   const content = input.content?.trim() ?? ""
   if (!title) return { ok: false, error: "제목을 입력해 주세요." }
 
+  const attachments =
+    Array.isArray(input.attachments) && input.attachments.length > 0
+      ? (input.attachments as unknown as Prisma.InputJsonValue)
+      : undefined
+  const youtubeUrls =
+    Array.isArray(input.youtubeUrls) && input.youtubeUrls.length > 0
+      ? (input.youtubeUrls as unknown as Prisma.InputJsonValue)
+      : undefined
+
   try {
     const max = await prisma.notice.aggregate({ _max: { number: true } })
     const number = (max._max.number ?? 0) + 1
@@ -31,10 +51,12 @@ export async function createNotice(
         number,
         title,
         content: content || " ",
+        attachments,
+        youtubeUrls,
         authorId: user.id,
         allowComments: !!input.allowComments,
         isPinned: !!input.isPinned,
-      },
+      } as unknown as Prisma.NoticeCreateInput,
     })
     revalidatePath("/notice")
     return { ok: true, number: notice.number }
@@ -65,6 +87,8 @@ export async function updateNoticeComment(
   const trimmed = content?.trim() ?? ""
   if (!trimmed) return { ok: false, error: "내용을 입력해 주세요." }
 
+  const { cleanedText } = await cleanText(trimmed)
+
   const comment = await prisma.noticeComment.findUnique({
     where: { id: commentId },
     select: { id: true, userId: true, noticeId: true },
@@ -77,7 +101,7 @@ export async function updateNoticeComment(
   try {
     await prisma.noticeComment.update({
       where: { id: commentId },
-      data: { content: trimmed },
+      data: { content: cleanedText },
     })
     await revalidateNoticeById(comment.noticeId)
     return { ok: true }
@@ -114,7 +138,14 @@ export async function deleteNoticeComment(
 
 export async function updateNotice(
   id: string,
-  input: { title: string; content: string; allowComments: boolean; isPinned: boolean }
+  input: {
+    title: string
+    content: string
+    allowComments: boolean
+    isPinned: boolean
+    attachments?: NoticeAttachment[]
+    youtubeUrls?: string[]
+  }
 ): Promise<UpdateNoticeResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
@@ -126,12 +157,19 @@ export async function updateNotice(
   const title = input.title?.trim() ?? ""
   if (!title) return { ok: false, error: "제목을 입력해 주세요." }
 
+  const attachments =
+    Array.isArray(input.attachments) ? (input.attachments as unknown as Prisma.InputJsonValue) : undefined
+  const youtubeUrls =
+    Array.isArray(input.youtubeUrls) ? (input.youtubeUrls as unknown as Prisma.InputJsonValue) : undefined
+
   try {
     await prisma.notice.update({
       where: { id },
       data: {
         title,
         content: (input.content?.trim() ?? "") || " ",
+        ...(attachments !== undefined && { attachments }),
+        ...(youtubeUrls !== undefined && { youtubeUrls }),
         allowComments: !!input.allowComments,
         isPinned: !!input.isPinned,
       },
@@ -178,9 +216,11 @@ export async function createNoticeComment(
   const trimmed = content?.trim() ?? ""
   if (!trimmed) return { ok: false, error: "내용을 입력해 주세요." }
 
+  const { cleanedText } = await cleanText(trimmed)
+
   try {
     const comment = await prisma.noticeComment.create({
-      data: { noticeId, userId: user.id, content: trimmed },
+      data: { noticeId, userId: user.id, content: cleanedText },
     })
     const noticeWithNumber = await prisma.notice.findUnique({
       where: { id: noticeId },

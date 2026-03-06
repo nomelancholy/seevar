@@ -61,6 +61,7 @@ jobs:
             echo "ADMIN_USER_IDS=${{ secrets.ADMIN_USER_IDS }}" >> .env
 
             echo "CRAWLER_API_KEY=${{ secrets.CRAWLER_API_KEY }}" >> .env
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
 
             echo "SPACES_BUCKET=${{ secrets.SPACES_BUCKET }}" >> .env
             echo "SPACES_ENDPOINT=${{ secrets.SPACES_ENDPOINT }}" >> .env
