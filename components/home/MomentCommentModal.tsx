@@ -106,6 +106,8 @@ type MomentDetail = {
   hasSeeVarByMe?: boolean
   /** 이의 제기한 사람을 팀별 인원 (홈/원정/기타) */
   seeVarByTeam?: { home: number; away: number; other: number }
+  /** 기타 팀(홈/원정 제외)별 이의 제기 인원·엠블럼 표시용 */
+  seeVarByTeamOtherTeams?: { teamId: string; name: string; emblemPath: string | null; count: number }[]
   match: {
     homeTeam: { name: string; emblemPath: string | null }
     awayTeam: { name: string; emblemPath: string | null }
@@ -590,7 +592,10 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
               {detail?.seeVarByTeam && (detail.seeVarByTeam.home > 0 || detail.seeVarByTeam.away > 0 || detail.seeVarByTeam.other > 0) && (
                 <div className="flex flex-wrap items-center gap-3" role="list" aria-label="팀별 이의 제기 인원">
                   {detail.seeVarByTeam.home > 0 && (
-                    <span className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground" title={`${detail.match.homeTeam.name} ${detail.seeVarByTeam.home}명`}>
+                    <span
+                      className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground cursor-default"
+                      title={`${detail.match.homeTeam.name} ${detail.seeVarByTeam.home}명`}
+                    >
                       <EmblemImage
                         src={detail.match.homeTeam.emblemPath}
                         alt={detail.match.homeTeam.name}
@@ -598,11 +603,16 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                         height={20}
                         className="w-5 h-5 shrink-0 rounded-sm object-contain"
                       />
-                      <span className="tabular-nums font-medium text-foreground/90">{detail.seeVarByTeam.home}</span>
+                      <span className="tabular-nums font-medium text-foreground/90" title={`${detail.match.homeTeam.name} ${detail.seeVarByTeam.home}명`}>
+                        {detail.seeVarByTeam.home}
+                      </span>
                     </span>
                   )}
                   {detail.seeVarByTeam.away > 0 && (
-                    <span className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground" title={`${detail.match.awayTeam.name} ${detail.seeVarByTeam.away}명`}>
+                    <span
+                      className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground cursor-default"
+                      title={`${detail.match.awayTeam.name} ${detail.seeVarByTeam.away}명`}
+                    >
                       <EmblemImage
                         src={detail.match.awayTeam.emblemPath}
                         alt={detail.match.awayTeam.name}
@@ -610,18 +620,43 @@ export function MomentCommentModal({ open, onClose, moment }: Props) {
                         height={20}
                         className="w-5 h-5 shrink-0 rounded-sm object-contain"
                       />
-                      <span className="tabular-nums font-medium text-foreground/90">{detail.seeVarByTeam.away}</span>
+                      <span className="tabular-nums font-medium text-foreground/90" title={`${detail.match.awayTeam.name} ${detail.seeVarByTeam.away}명`}>
+                        {detail.seeVarByTeam.away}
+                      </span>
                     </span>
                   )}
-                  {detail.seeVarByTeam.other > 0 && (
+                  {(detail.seeVarByTeamOtherTeams?.length
+                    ? detail.seeVarByTeamOtherTeams
+                    : detail.seeVarByTeam.other > 0
+                      ? [{ teamId: "_other", name: "기타 팀", emblemPath: null, count: detail.seeVarByTeam.other }]
+                      : []
+                  ).map((t) => (
                     <span
-                      className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground"
-                      title={`기타 팀 응원 ${detail.seeVarByTeam.other}명`}
+                      key={t.teamId}
+                      className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground cursor-default"
+                      title={`${t.name} ${t.count}명`}
                     >
-                      <span className="w-5 h-5 shrink-0 rounded-sm bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground">?</span>
-                      <span className="tabular-nums font-medium text-foreground/90">{detail.seeVarByTeam.other}</span>
+                      {t.emblemPath ? (
+                        <EmblemImage
+                          src={t.emblemPath}
+                          alt={t.name}
+                          width={20}
+                          height={20}
+                          className="w-5 h-5 shrink-0 rounded-sm object-contain"
+                        />
+                      ) : (
+                        <span
+                          className="w-5 h-5 shrink-0 rounded-sm bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground"
+                          title={t.name}
+                        >
+                          ?
+                        </span>
+                      )}
+                      <span className="tabular-nums font-medium text-foreground/90" title={`${t.name} ${t.count}명`}>
+                        {t.count}
+                      </span>
                     </span>
-                  )}
+                  ))}
                 </div>
               )}
             </div>

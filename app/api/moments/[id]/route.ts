@@ -11,7 +11,14 @@ export async function GET(_request: Request, { params }: { params: Params }) {
     prisma.moment.findUnique({
     where: { id: momentId },
     include: {
-      author: { select: { id: true, name: true, supportingTeamId: true } },
+      author: {
+        select: {
+          id: true,
+          name: true,
+          supportingTeamId: true,
+          supportingTeam: { select: { id: true, name: true, emblemPath: true } },
+        },
+      },
       match: {
         include: {
           homeTeam: true,
@@ -99,32 +106,71 @@ export async function GET(_request: Request, { params }: { params: Params }) {
       commentId: null,
       type: "SEE_VAR",
     },
-    select: { user: { select: { supportingTeamId: true } } },
+    select: {
+      user: {
+        select: {
+          supportingTeamId: true,
+          supportingTeam: { select: { id: true, name: true, emblemPath: true } },
+        },
+      },
+    },
   })
 
-  const authorTeamId = moment.author && "supportingTeamId" in moment.author
-    ? (moment.author as { supportingTeamId: string | null }).supportingTeamId ?? null
-    : null
+  type AuthorWithTeam = {
+    supportingTeamId?: string | null
+    supportingTeam?: { id: string; name: string; emblemPath: string | null } | null
+  }
+  const authorTeamId =
+    moment.author && "supportingTeamId" in moment.author
+      ? (moment.author as AuthorWithTeam).supportingTeamId ?? null
+      : null
+  const authorTeam =
+    moment.author && "supportingTeam" in moment.author
+      ? (moment.author as AuthorWithTeam).supportingTeam ?? null
+      : null
 
   let home = 0
   let away = 0
-  let other = 0
+  const otherTeamsMap = new Map<
+    string,
+    { teamId: string; name: string; emblemPath: string | null; count: number }
+  >()
+
   for (const { user } of seeVarUserTeams) {
     const tid = user.supportingTeamId
     if (tid === homeTeamId) home++
     else if (tid === awayTeamId) away++
-    else other++
+    else if (tid && user.supportingTeam) {
+      const t = user.supportingTeam
+      const cur = otherTeamsMap.get(t.id)
+      if (cur) cur.count++
+      else otherTeamsMap.set(t.id, { teamId: t.id, name: t.name, emblemPath: t.emblemPath, count: 1 })
+    }
   }
   if (moment.userId) {
     if (authorTeamId === homeTeamId) home++
     else if (authorTeamId === awayTeamId) away++
-    else other++
+    else if (authorTeamId && authorTeam) {
+      const cur = otherTeamsMap.get(authorTeam.id)
+      if (cur) cur.count++
+      else
+        otherTeamsMap.set(authorTeam.id, {
+          teamId: authorTeam.id,
+          name: authorTeam.name,
+          emblemPath: authorTeam.emblemPath,
+          count: 1,
+        })
+    }
   }
+
+  const seeVarByTeamOtherTeams = [...otherTeamsMap.values()].sort((a, b) => b.count - a.count)
+  const other = seeVarByTeamOtherTeams.reduce((s, t) => s + t.count, 0)
 
   return NextResponse.json({
     ...moment,
     currentUserId: currentUser?.id ?? null,
     hasSeeVarByMe,
     seeVarByTeam: { home, away, other },
+    seeVarByTeamOtherTeams,
   })
 }
