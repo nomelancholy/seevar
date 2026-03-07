@@ -44,11 +44,13 @@ export function getLevelFromXp(xp: number): number {
 /** 현재 레벨에서 다음 레벨까지의 진행률 0~100 (%) */
 export function getXpProgressPercent(xp: number): number {
   const safe = Math.max(0, Math.floor(Number(xp)))
+  if (!Number.isFinite(safe)) return 0
   const level = getLevelFromXp(safe)
   const currentLevelXp = xpForLevel(level)
   const nextLevelXp = xpForLevel(level + 1)
   const need = nextLevelXp - currentLevelXp
   if (need <= 0) return 100
   const have = safe - currentLevelXp
-  return Math.min(100, Math.round((have / need) * 100))
+  const pct = Math.round((have / need) * 100)
+  return Math.max(0, Math.min(100, pct))
 }

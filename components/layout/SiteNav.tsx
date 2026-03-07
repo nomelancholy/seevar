@@ -123,9 +123,8 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
         ) : null}
         {/* 모바일: 레벨/경험치 + 프로필(이미지) + 우하단 엠블럼 → 드로어 */}
         {user ? (
-          <div className="md:hidden flex flex-col items-end text-[9px] leading-tight text-muted-foreground mr-1">
-            <span>Lv. {getLevelFromXp(user.xp ?? 0)}</span>
-            <span>{getXpProgressPercent(user.xp ?? 0)}%</span>
+          <div className="md:hidden text-[9px] text-muted-foreground mr-1 whitespace-nowrap" aria-label={`레벨 ${getLevelFromXp(user.xp ?? 0)}, 진행률 ${getXpProgressPercent(user.xp ?? 0)}%`}>
+            Lv.{getLevelFromXp(user.xp ?? 0)} · {getXpProgressPercent(user.xp ?? 0)}%
           </div>
         ) : null}
         <Sheet>
@@ -228,9 +227,8 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
                       {user.supportingTeam?.name ?? "미설정"}
                     </span>
                   </div>
-                  <div className="flex flex-col items-end text-[10px] leading-tight text-muted-foreground">
-                    <span>Lv. {getLevelFromXp(user.xp ?? 0)}</span>
-                    <span>{getXpProgressPercent(user.xp ?? 0)}%</span>
+                  <div className="text-[10px] text-muted-foreground whitespace-nowrap text-right" aria-label={`레벨 ${getLevelFromXp(user.xp ?? 0)}, 진행률 ${getXpProgressPercent(user.xp ?? 0)}%`}>
+                    Lv.{getLevelFromXp(user.xp ?? 0)} · {getXpProgressPercent(user.xp ?? 0)}%
                   </div>
                   <div className="relative shrink-0">
                     <div className="w-11 h-11 rounded-full border border-border overflow-hidden bg-card flex items-center justify-center group-hover:border-foreground transition-colors relative">

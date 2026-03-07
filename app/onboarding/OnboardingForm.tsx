@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -98,6 +99,16 @@ export function OnboardingForm({ teams }: Props) {
         </div>
       </div>
 
+      <p className="text-[9px] md:text-[10px] font-mono text-muted-foreground text-center">
+        가입 시 동의한 정책:{" "}
+        <Link href="/terms" className="underline hover:text-foreground">
+          이용약관
+        </Link>
+        {" · "}
+        <Link href="/privacy" className="underline hover:text-foreground">
+          개인정보 처리 방침
+        </Link>
+      </p>
       <Button
         type="submit"
         className="w-full mt-8 font-black text-sm py-6 gap-2"

@@ -32,6 +32,15 @@ function formatDate(d: Date | null) {
     day: "2-digit",
   }).replace(/\. /g, "/").replace(".", "")
 }
+/** 모바일용: 년도 없이 월/일 */
+function formatDateShort(d: Date | null) {
+  if (!d) return "—"
+  return new Date(d).toLocaleDateString("ko-KR", {
+    timeZone: KST,
+    month: "numeric",
+    day: "numeric",
+  }).replace(/\. /g, "/").replace(".", "")
+}
 function formatTime(d: Date | null) {
   if (!d) return "—"
   return new Date(d).toLocaleTimeString("ko-KR", {
@@ -57,13 +66,13 @@ export function AdminMatchList({
 
   return (
     <div className="mt-4 ledger-surface border border-border overflow-hidden">
-      <div className="grid grid-cols-12 gap-2 p-3 border-b border-border font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-card/50">
-        <div className="col-span-2">일시</div>
-        <div className="col-span-1">경기</div>
-        <div className="col-span-4 text-center">매치업</div>
-        <div className="col-span-1">상태</div>
-        <div className="col-span-2">경기장</div>
-        <div className="col-span-2 text-right">작업</div>
+      <div className="grid grid-cols-4 md:grid-cols-12 gap-2 p-3 border-b border-border font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-card/50">
+        <div className="col-span-1 md:col-span-2">일시</div>
+        <div className="hidden md:block md:col-span-1">경기</div>
+        <div className="col-span-1 md:col-span-4 text-center">매치업</div>
+        <div className="col-span-1 md:col-span-1">상태</div>
+        <div className="hidden md:block md:col-span-2">경기장</div>
+        <div className="col-span-1 md:col-span-2 text-right">작업</div>
       </div>
       <div className="divide-y divide-border">
         {matches.length === 0 ? (
@@ -77,6 +86,7 @@ export function AdminMatchList({
               match={m}
               matchDetailPath={getMatchDetailPath(matchForPath(m))}
               dateStr={formatDate(m.playedAt)}
+              dateStrShort={formatDateShort(m.playedAt)}
               timeStr={formatTime(m.playedAt)}
             />
           ))

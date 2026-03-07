@@ -167,12 +167,12 @@ export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 �
                 <button
                   type="button"
                   onClick={() => toggleGroup(matchKey)}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-left font-mono text-sm md:text-base font-bold text-primary bg-muted/30 hover:bg-muted/50 transition-colors"
+                  className="w-full flex items-center gap-2 px-4 py-3 text-left font-mono text-sm md:text-base font-bold bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
                   {matchCollapsed ? (
-                    <ChevronRight className="size-4 md:size-5 shrink-0" aria-hidden />
+                    <ChevronRight className="size-4 md:size-5 shrink-0 text-muted-foreground" aria-hidden />
                   ) : (
-                    <ChevronDown className="size-4 md:size-5 shrink-0" aria-hidden />
+                    <ChevronDown className="size-4 md:size-5 shrink-0 text-muted-foreground" aria-hidden />
                   )}
                   <EmblemImage
                     src={match.homeEmblem}
@@ -180,7 +180,7 @@ export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 �
                     height={20}
                     className="w-4 h-4 md:w-5 md:h-5 shrink-0"
                   />
-                  <span className="truncate">{match.matchLabel}</span>
+                  <span className="truncate text-foreground">{match.matchLabel}</span>
                   <span className="text-muted-foreground font-normal text-xs md:text-sm shrink-0">
                     ({match.league} · {totalInMatch}건)
                   </span>

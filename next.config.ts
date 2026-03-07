@@ -7,6 +7,20 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["jose"],
   // 상위 폴더 lockfile 대신 이 프로젝트를 루트로 사용 (vendor-chunks 경로 등 안정화)
   outputFileTracingRoot: path.join(__dirname),
+  // HTTPS 강제: 브라우저에 HSTS 적용 (배포 환경에서 HTTPS 제공 시)
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+        ],
+      },
+    ];
+  },
   // 경기 일정 JSON 33개 등 대량 일괄 업로드 시 Chrome 등에서 body 크기 제한에 걸리지 않도록
   experimental: {
     serverActions: {

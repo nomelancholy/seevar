@@ -7,6 +7,7 @@ import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/u
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { LeagueMatchesSection } from "@/components/home/LeagueMatchesSection"
+import { RoundRefereeRatingsFolder } from "@/components/home/RoundRefereeRatingsFolder"
 import { HomeEmptyState } from "@/components/home/HomeEmptyState"
 
 type RoundWithMatches = Awaited<
@@ -40,6 +41,16 @@ type RefFeedback = {
   matchLabel: string
 }
 
+type RoundRefereeStat = {
+  id: string
+  slug: string
+  name: string
+  role: string
+  avg: number
+  voteCount: number
+  matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
+}
+
 type RoundHighlight = {
   leagueName: string
   roundNumber: number
@@ -52,7 +63,6 @@ type RoundHighlight = {
         avg: number
         voteCount: number
         feedbacks: RefFeedback[]
-        /** 해당 라운드에서 심판이 맡은 경기 (표시·링크용, 리뷰 기준 1경기) */
         matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
       }
     | null
@@ -68,6 +78,8 @@ type RoundHighlight = {
         matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
       }
     | null
+  /** 라운드 전체 심판 평점 (심판 라운드 평점 보기 폴더용) */
+  allRoundReferees: RoundRefereeStat[]
   youtubeEmbedUrl: string | null
   instagramEmbedUrl: string | null
 }
@@ -190,6 +202,8 @@ export default async function HomePage() {
   async function buildHighlight(round: RoundWithMatches | null): Promise<RoundHighlight | null> {
     if (!round) return null
 
+    let allRoundReferees: RoundRefereeStat[] = []
+
     const reviews = await prisma.refereeReview.findMany({
       where: {
         status: "VISIBLE",
@@ -231,6 +245,10 @@ export default async function HomePage() {
           role: string
           sum: number
           count: number
+          homeSum: number
+          homeCount: number
+          awaySum: number
+          awayCount: number
           feedbacks: RefFeedback[]
           matchForDisplay: { homeName: string; awayName: string; matchPath: string }
         }
@@ -243,6 +261,9 @@ export default async function HomePage() {
         const homeName = r.match.homeTeam.name
         const awayName = r.match.awayTeam.name
         const matchLabel = `${homeName} vs ${awayName}`
+        const match = r.match as { homeTeamId: string; awayTeamId: string }
+        const isHomeFan = r.fanTeamId != null && r.fanTeamId === match.homeTeamId
+        const isAwayFan = r.fanTeamId != null && r.fanTeamId === match.awayTeamId
 
         const baseFeedback: RefFeedback | null = r.comment
           ? {
@@ -265,11 +286,21 @@ export default async function HomePage() {
             getMatchDetailPathWithBack(r.match as unknown as MatchForPath, "/") +
             "&scroll=referee-rating&referee=" +
             encodeURIComponent((r.referee as { slug: string }).slug),
+          homeEmblemPath: (r.match.homeTeam as { emblemPath: string | null }).emblemPath ?? null,
+          awayEmblemPath: (r.match.awayTeam as { emblemPath: string | null }).emblemPath ?? null,
         }
 
         if (cur) {
           cur.sum += r.rating
           cur.count += 1
+          if (isHomeFan) {
+            cur.homeSum += r.rating
+            cur.homeCount += 1
+          }
+          if (isAwayFan) {
+            cur.awaySum += r.rating
+            cur.awayCount += 1
+          }
           if (baseFeedback) cur.feedbacks.push(baseFeedback)
         } else {
           byRef.set(key, {
@@ -279,26 +310,40 @@ export default async function HomePage() {
             role: r.role,
             sum: r.rating,
             count: 1,
+            homeSum: isHomeFan ? r.rating : 0,
+            homeCount: isHomeFan ? 1 : 0,
+            awaySum: isAwayFan ? r.rating : 0,
+            awayCount: isAwayFan ? 1 : 0,
             feedbacks: baseFeedback ? [baseFeedback] : [],
             matchForDisplay,
           })
         }
       }
 
-      const stats = [...byRef.values()].map((v) => ({
+      const stats: RoundRefereeStat[] = [...byRef.values()].map((v) => ({
         id: v.id,
         slug: v.slug,
         name: v.name,
         role: v.role,
         avg: v.count > 0 ? v.sum / v.count : 0,
         voteCount: v.count,
-        feedbacks: v.feedbacks.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
         matchForDisplay: v.matchForDisplay,
+        homeAvg: v.homeCount > 0 ? v.homeSum / v.homeCount : undefined,
+        awayAvg: v.awayCount > 0 ? v.awaySum / v.awayCount : undefined,
       }))
+      allRoundReferees = [...stats].sort((a, b) => b.avg - a.avg)
 
-      if (stats.length > 0) {
-        if (stats.length === 1) {
-          const single = stats[0]
+      const statsWithFeedbacks = stats.map((s) => {
+        const v = byRef.get(`${s.id}:${s.role}`)!
+        return {
+          ...s,
+          feedbacks: v.feedbacks.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
+        }
+      })
+
+      if (statsWithFeedbacks.length > 0) {
+        if (statsWithFeedbacks.length === 1) {
+          const single = statsWithFeedbacks[0]
           if (single.avg >= 2.5) {
             bestReferee = single
             worstReferee = null
@@ -307,8 +352,8 @@ export default async function HomePage() {
             worstReferee = single
           }
         } else {
-          const byBest = [...stats].sort((a, b) => b.avg - a.avg)
-          const byWorst = [...stats].sort((a, b) => a.avg - b.avg)
+          const byBest = [...statsWithFeedbacks].sort((a, b) => b.avg - a.avg)
+          const byWorst = [...statsWithFeedbacks].sort((a, b) => a.avg - b.avg)
           bestReferee = byBest[0]
           worstReferee = byWorst[0]
         }
@@ -329,6 +374,7 @@ export default async function HomePage() {
       roundNumber: round.number,
       bestReferee,
       worstReferee,
+      allRoundReferees,
       youtubeEmbedUrl,
       instagramEmbedUrl,
     }
@@ -642,6 +688,7 @@ export default async function HomePage() {
                     ),
                 )}
               </div>
+              <RoundRefereeRatingsFolder highlights={[k1Highlight, k2Highlight]} />
             </section>
           )}
 

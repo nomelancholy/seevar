@@ -8,6 +8,7 @@ import { shortNameFromSlug } from "@/lib/team-short-names"
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { ArchiveFilters } from "@/components/matches/ArchiveFilters"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
+import { RoundRefereeRatingsFolder } from "@/components/home/RoundRefereeRatingsFolder"
 import { getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
 import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
 
@@ -159,6 +160,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     comment: string
     matchLabel: string
   }[] = []
+  let allRoundReferees: { id: string; slug: string; name: string; role: string; avg: number; voteCount: number; matchForDisplay?: { homeName: string; awayName: string; matchPath: string } }[] = []
 
   function getRoundDataCached(roundIdParam: string, seasonIdParam: string) {
     return unstable_cache(
@@ -306,10 +308,15 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         string,
         {
           refereeId: string
+          refereeSlug: string
           name: string
           role: string
           sum: number
           count: number
+          homeSum: number
+          homeCount: number
+          awaySum: number
+          awayCount: number
           matchForDisplay: { homeName: string; awayName: string; matchPath: string }
           reviews: {
             id: string
@@ -330,6 +337,9 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         const homeName = r.match.homeTeam.name
         const awayName = r.match.awayTeam.name
         const matchLabel = `${homeName} vs ${awayName}`
+        const match = r.match as { homeTeamId: string; awayTeamId: string }
+        const isHomeFan = r.fanTeamId != null && r.fanTeamId === match.homeTeamId
+        const isAwayFan = r.fanTeamId != null && r.fanTeamId === match.awayTeamId
         const matchForDisplay = {
           homeName,
           awayName,
@@ -337,6 +347,8 @@ export default async function MatchesArchivePage({ params }: { params: Params })
             getMatchDetailPathWithBack(r.match as unknown as MatchForPath, archiveBackPath) +
             "&scroll=referee-rating&referee=" +
             encodeURIComponent((r.referee as { slug: string }).slug),
+          homeEmblemPath: (r.match.homeTeam as { emblemPath: string | null }).emblemPath ?? null,
+          awayEmblemPath: (r.match.awayTeam as { emblemPath: string | null }).emblemPath ?? null,
         }
         if (r.comment) {
           const summary = {
@@ -351,42 +363,85 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           }
           if (cur) {
             cur.reviews.push(summary)
+            cur.sum += r.rating
+            cur.count += 1
+            if (isHomeFan) {
+              cur.homeSum += r.rating
+              cur.homeCount += 1
+            }
+            if (isAwayFan) {
+              cur.awaySum += r.rating
+              cur.awayCount += 1
+            }
           } else {
             byRef.set(key, {
               refereeId: r.refereeId,
+              refereeSlug: (r.referee as { slug: string }).slug ?? r.refereeId,
               name: r.referee.name,
               role: r.role,
               sum: r.rating,
               count: 1,
+              homeSum: isHomeFan ? r.rating : 0,
+              homeCount: isHomeFan ? 1 : 0,
+              awaySum: isAwayFan ? r.rating : 0,
+              awayCount: isAwayFan ? 1 : 0,
               matchForDisplay,
               reviews: [summary],
             })
             continue
           }
-        }
-        if (cur) {
-          cur.sum += r.rating
-          cur.count += 1
         } else {
-          byRef.set(key, {
-            refereeId: r.refereeId,
-            name: r.referee.name,
-            role: r.role,
-            sum: r.rating,
-            count: 1,
-            matchForDisplay,
-            reviews: [],
-          })
+          if (cur) {
+            cur.sum += r.rating
+            cur.count += 1
+            if (isHomeFan) {
+              cur.homeSum += r.rating
+              cur.homeCount += 1
+            }
+            if (isAwayFan) {
+              cur.awaySum += r.rating
+              cur.awayCount += 1
+            }
+          } else {
+            byRef.set(key, {
+              refereeId: r.refereeId,
+              refereeSlug: (r.referee as { slug: string }).slug ?? r.refereeId,
+              name: r.referee.name,
+              role: r.role,
+              sum: r.rating,
+              count: 1,
+              homeSum: isHomeFan ? r.rating : 0,
+              homeCount: isHomeFan ? 1 : 0,
+              awaySum: isAwayFan ? r.rating : 0,
+              awayCount: isAwayFan ? 1 : 0,
+              matchForDisplay,
+              reviews: [],
+            })
+          }
         }
       }
       const stats = [...byRef.values()].map((v) => ({
         refereeId: v.refereeId,
+        refereeSlug: v.refereeSlug,
         name: v.name,
         role: v.role,
         avg: v.count > 0 ? v.sum / v.count : 0,
         voteCount: v.count,
         matchForDisplay: v.matchForDisplay,
+        homeAvg: v.homeCount > 0 ? v.homeSum / v.homeCount : undefined,
+        awayAvg: v.awayCount > 0 ? v.awaySum / v.awayCount : undefined,
         reviews: v.reviews.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
+      }))
+      allRoundReferees = [...stats].sort((a, b) => b.avg - a.avg).map((s) => ({
+        id: s.refereeId,
+        slug: s.refereeSlug,
+        name: s.name,
+        role: s.role,
+        avg: s.avg,
+        voteCount: s.voteCount,
+        matchForDisplay: s.matchForDisplay,
+        homeAvg: s.homeAvg,
+        awayAvg: s.awayAvg,
       }))
 
       if (stats.length > 0) {
@@ -702,6 +757,17 @@ export default async function MatchesArchivePage({ params }: { params: Params })
             )}
           </div>
         </section>
+      )}
+      {round && allRoundReferees.length > 0 && (
+        <RoundRefereeRatingsFolder
+          highlights={[
+            {
+              leagueName: round.league.name,
+              roundNumber: round.number,
+              allRoundReferees,
+            },
+          ]}
+        />
       )}
 
       {/* HOT MOMENTS */}

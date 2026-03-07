@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { deleteMatch, updateMatchSchedule } from "@/lib/actions/admin-matches"
 import type { MatchStatus } from "@prisma/client"
+import { EmblemImage } from "@/components/ui/EmblemImage"
 
 const STATUS_OPTIONS: { value: MatchStatus; label: string }[] = [
   { value: "SCHEDULED", label: "예정" },
@@ -20,18 +21,19 @@ type Match = {
   playedAt: Date | null
   venue: string | null
   status: MatchStatus
-  homeTeam: { name: string }
-  awayTeam: { name: string }
+  homeTeam: { name: string; emblemPath: string | null }
+  awayTeam: { name: string; emblemPath: string | null }
 }
 
 type Props = {
   match: Match
   matchDetailPath: string
   dateStr: string
+  dateStrShort: string
   timeStr: string
 }
 
-export function AdminMatchRow({ match, matchDetailPath, dateStr, timeStr }: Props) {
+export function AdminMatchRow({ match, matchDetailPath, dateStr, dateStrShort, timeStr }: Props) {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
   const [statusPending, setStatusPending] = useState(false)
@@ -56,14 +58,40 @@ export function AdminMatchRow({ match, matchDetailPath, dateStr, timeStr }: Prop
   }
 
   return (
-    <div className="grid grid-cols-12 gap-2 p-3 md:p-4 items-center font-mono text-xs">
-      <div className="col-span-2">
-        <p className="font-bold">{dateStr}</p>
-        <p className="text-muted-foreground text-[10px]">{timeStr} KST</p>
+    <div className="grid grid-cols-4 md:grid-cols-12 gap-2 p-3 md:p-4 items-center font-mono text-xs">
+      <div className="col-span-1 md:col-span-2">
+        <p className="font-bold md:hidden">{dateStrShort} {timeStr}</p>
+        <p className="hidden md:block font-bold">{dateStr}</p>
+        <p className="hidden md:block text-muted-foreground text-[10px]">{timeStr} KST</p>
       </div>
-      <div className="col-span-1 text-muted-foreground">{match.roundOrder}</div>
-      <div className="col-span-4 text-center">
-        {match.homeTeam.name} vs {match.awayTeam.name}
+      <div className="hidden md:flex col-span-1 text-muted-foreground">{match.roundOrder}</div>
+      <div className="col-span-1 md:col-span-4 flex items-center justify-center gap-1 md:gap-0">
+        <span className="flex md:hidden items-center justify-center gap-1 shrink-0">
+          {match.homeTeam.emblemPath ? (
+            <EmblemImage
+              src={match.homeTeam.emblemPath}
+              width={20}
+              height={20}
+              className="w-5 h-5 shrink-0 object-contain"
+            />
+          ) : (
+            <span className="w-5 h-5 rounded bg-muted shrink-0" />
+          )}
+          <span className="text-[10px] font-bold text-muted-foreground">VS</span>
+          {match.awayTeam.emblemPath ? (
+            <EmblemImage
+              src={match.awayTeam.emblemPath}
+              width={20}
+              height={20}
+              className="w-5 h-5 shrink-0 object-contain"
+            />
+          ) : (
+            <span className="w-5 h-5 rounded bg-muted shrink-0" />
+          )}
+        </span>
+        <span className="hidden md:inline text-center">
+          {match.homeTeam.name} vs {match.awayTeam.name}
+        </span>
       </div>
       <div className="col-span-1 flex items-center gap-1">
         <select
@@ -83,19 +111,21 @@ export function AdminMatchRow({ match, matchDetailPath, dateStr, timeStr }: Prop
           <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" aria-hidden />
         )}
       </div>
-      <div className="col-span-2 text-muted-foreground truncate">{match.venue ?? "—"}</div>
-      <div className="col-span-2 flex items-center justify-end gap-2">
+      <div className="hidden md:block col-span-2 text-muted-foreground truncate">
+        {match.venue ?? "—"}
+      </div>
+      <div className="col-span-1 md:col-span-2 flex flex-col md:flex-row items-stretch md:items-center justify-end gap-1 md:gap-2">
         <Link
           href={`/admin/matches/${match.id}/schedule`}
-          className="text-[10px] uppercase tracking-wider text-primary hover:underline"
+          className="text-[10px] uppercase tracking-wider text-primary hover:underline md:inline-block"
         >
-          일정 수정
+          일정수정
         </Link>
         <Link
           href={matchDetailPath}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[10px] uppercase tracking-wider text-muted-foreground hover:underline"
+          className="text-[10px] uppercase tracking-wider text-muted-foreground hover:underline md:inline-block"
         >
           상세
         </Link>
@@ -103,7 +133,7 @@ export function AdminMatchRow({ match, matchDetailPath, dateStr, timeStr }: Prop
           type="button"
           onClick={handleDelete}
           disabled={deleting}
-          className="text-[10px] uppercase tracking-wider text-destructive hover:underline disabled:opacity-50"
+          className="text-[10px] uppercase tracking-wider text-destructive hover:underline disabled:opacity-50 text-left md:text-right"
         >
           {deleting ? "삭제 중" : "삭제"}
         </button>
