@@ -518,7 +518,7 @@ export default async function MatchDetailBySlugPage({
       )}
 
       <section id="referee-rating" className="scroll-mt-6">
-      {isFinished ? (
+      {(isLive || isFinished) ? (
         <MatchRefereeRatingSectionDynamic
           matchId={match.id}
           homeTeamId={match.homeTeam.id}
@@ -589,7 +589,7 @@ export default async function MatchDetailBySlugPage({
             </button>
           </div>
           <div className="p-8 text-center font-mono text-xs text-muted-foreground">
-            심판 평가는 경기 종료 후 활성화됩니다.
+            심판 평가는 경기 시작 후 활성화됩니다.
           </div>
         </div>
       )}

@@ -84,6 +84,7 @@ export async function updateMatchSchedule(
     revalidatePath("/admin")
     revalidatePath("/admin/matches")
     revalidatePath("/matches")
+    revalidateTag("match-details")
     return { ok: true }
   } catch (e) {
     console.error("updateMatchSchedule:", e)

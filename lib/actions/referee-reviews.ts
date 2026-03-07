@@ -36,8 +36,8 @@ export async function createRefereeReview(
     select: { id: true, status: true, roundId: true },
   })
   if (!match) return { ok: false, error: "경기를 찾을 수 없습니다." }
-  if (match.status !== "FINISHED") {
-    return { ok: false, error: "경기 종료 후에만 평가할 수 있습니다." }
+  if (match.status !== "LIVE" && match.status !== "FINISHED") {
+    return { ok: false, error: "경기 시작 후에만 평가할 수 있습니다." }
   }
 
   const assigned = await prisma.matchReferee.findFirst({
