@@ -81,18 +81,22 @@ function groupByMatchThenTime(list: HotMomentItem[]): MatchGroup[] {
 
 function MomentCard({
   m,
+  displayRank,
   onOpen,
 }: {
   m: HotMomentItem
+  /** 경기 내 순위 (1, 2, 3, …). 미전달 시 m.rank 사용 */
+  displayRank?: number
   onOpen: (item: HotMomentItem) => void
 }) {
+  const rank = displayRank ?? m.rank
   return (
     <button
       type="button"
       onClick={() => onOpen(m)}
       className="hot-moment-card block w-full min-w-0 text-left cursor-pointer"
     >
-      <div className="rank-badge">{m.rank}</div>
+      <div className="rank-badge">{rank}</div>
       <div className="text-[8px] md:text-[10px] text-muted-foreground font-mono mb-1 md:mb-2">
         {m.league}
       </div>
@@ -131,6 +135,20 @@ export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 �
 
   const list = hotMoments
   const matchGroups = useMemo(() => groupByMatchThenTime(list), [list])
+
+  /** 경기별 카드 넘버링: 각 경기 안에서만 1, 2, 3, … (원본 rank 순) */
+  const rankInMatchByKey = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const match of matchGroups) {
+      const allItems = match.timeGroups.flatMap((t) => t.items)
+      allItems.sort((a, b) => a.rank - b.rank)
+      allItems.forEach((item, idx) => {
+        const key = item.momentId ?? `${item.matchId}-${item.time}-${item.rank}`
+        map.set(key, idx + 1)
+      })
+    }
+    return map
+  }, [matchGroups])
 
   const openModal = (m: HotMomentItem) => {
     setSelectedMoment(m)
@@ -209,9 +227,18 @@ export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 �
                           </button>
                           {!timeCollapsed && (
                             <div className="pl-6 pr-3 pb-3 pt-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                              {items.map((m) => (
-                                <MomentCard key={m.momentId ?? m.rank} m={m} onOpen={openModal} />
-                              ))}
+                              {items.map((m) => {
+                                const key = m.momentId ?? `${m.matchId}-${m.time}-${m.rank}`
+                                const displayRank = rankInMatchByKey.get(key)
+                                return (
+                                  <MomentCard
+                                    key={key}
+                                    m={m}
+                                    displayRank={displayRank}
+                                    onOpen={openModal}
+                                  />
+                                )
+                              })}
                             </div>
                           )}
                         </div>

@@ -134,6 +134,7 @@ export const BAD_WORDS_DATA = {
     "뒤지게",
     "꺼지라",
     "닥치라",
+    "정신병",
   ],
 
   // 5. 심판 타겟 비하 및 음모론 (Referee Specific)
@@ -348,20 +349,20 @@ export async function validateDisplayName(
 
 /** 관리자 페이지 등에서 저장용으로 사용하는 모더레이션 결과 타입 */
 export type ModerationForStorage = {
-  flagged: boolean
-  category_scores: Record<string, number> | null
-}
+  flagged: boolean;
+  category_scores: Record<string, number> | null;
+};
 
 /** 유해 댓글 확인 모달용: 점수만 반환하고 글은 바꾸지 않을 때 */
 export type ModerationWarning = {
-  scores: Record<string, number>
-  flagged: boolean
-}
+  scores: Record<string, number>;
+  flagged: boolean;
+};
 
 export type CleanTextOptions = {
   /** true면 Moderation 위반 시 글을 CUTE_WORDS로 바꾸지 않고, moderationWarning으로 반환해 클라이언트에서 확인 모달 띄우도록 */
-  returnModerationWarningInsteadOfReplace?: boolean
-}
+  returnModerationWarningInsteadOfReplace?: boolean;
+};
 
 /**
  * 2단계 필터: 1) 자체 금칙어 → DOG_SOUNDS 치환, 2) OpenAI Moderation → 위반 시 CUTE_WORDS로 전체 교체(또는 확인 모달용 반환).
@@ -372,10 +373,10 @@ export async function cleanText(
   content: string,
   options?: CleanTextOptions,
 ): Promise<{
-  cleanedText: string
-  isModified: boolean
-  moderation?: ModerationForStorage
-  moderationWarning?: ModerationWarning
+  cleanedText: string;
+  isModified: boolean;
+  moderation?: ModerationForStorage;
+  moderationWarning?: ModerationWarning;
 }> {
   const trimmed = content?.trim() ?? "";
   if (!trimmed) return { cleanedText: trimmed, isModified: false };
