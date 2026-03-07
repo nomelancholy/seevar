@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { Loader2 } from "lucide-react"
 import { deleteMatch, updateMatchSchedule } from "@/lib/actions/admin-matches"
 import type { MatchStatus } from "@prisma/client"
 
@@ -64,7 +65,7 @@ export function AdminMatchRow({ match, matchDetailPath, dateStr, timeStr }: Prop
       <div className="col-span-4 text-center">
         {match.homeTeam.name} vs {match.awayTeam.name}
       </div>
-      <div className="col-span-1">
+      <div className="col-span-1 flex items-center gap-1">
         <select
           value={match.status}
           onChange={handleStatusChange}
@@ -78,6 +79,9 @@ export function AdminMatchRow({ match, matchDetailPath, dateStr, timeStr }: Prop
             </option>
           ))}
         </select>
+        {statusPending && (
+          <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" aria-hidden />
+        )}
       </div>
       <div className="col-span-2 text-muted-foreground truncate">{match.venue ?? "—"}</div>
       <div className="col-span-2 flex items-center justify-end gap-2">

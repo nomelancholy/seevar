@@ -352,14 +352,31 @@ export type ModerationForStorage = {
   category_scores: Record<string, number> | null
 }
 
+/** 유해 댓글 확인 모달용: 점수만 반환하고 글은 바꾸지 않을 때 */
+export type ModerationWarning = {
+  scores: Record<string, number>
+  flagged: boolean
+}
+
+export type CleanTextOptions = {
+  /** true면 Moderation 위반 시 글을 CUTE_WORDS로 바꾸지 않고, moderationWarning으로 반환해 클라이언트에서 확인 모달 띄우도록 */
+  returnModerationWarningInsteadOfReplace?: boolean
+}
+
 /**
- * 2단계 필터: 1) 자체 금칙어 → DOG_SOUNDS 치환, 2) OpenAI Moderation → 위반 시 CUTE_WORDS로 전체 교체.
+ * 2단계 필터: 1) 자체 금칙어 → DOG_SOUNDS 치환, 2) OpenAI Moderation → 위반 시 CUTE_WORDS로 전체 교체(또는 확인 모달용 반환).
  * isModified 시 문구 하단에 안내 메시지를 붙여 반환.
  * moderation: API 호출 시 저장용 결과(관리자 페이지 노출).
  */
 export async function cleanText(
   content: string,
-): Promise<{ cleanedText: string; isModified: boolean; moderation?: ModerationForStorage }> {
+  options?: CleanTextOptions,
+): Promise<{
+  cleanedText: string
+  isModified: boolean
+  moderation?: ModerationForStorage
+  moderationWarning?: ModerationWarning
+}> {
   const trimmed = content?.trim() ?? "";
   if (!trimmed) return { cleanedText: trimmed, isModified: false };
 
@@ -381,13 +398,28 @@ export async function cleanText(
   const mod = await callOpenAIModeration(text);
   const moderation: ModerationForStorage | undefined = mod
     ? { flagged: mod.flagged, category_scores: mod.category_scores ?? null }
-    : undefined
+    : undefined;
   const overThreshold =
     mod?.category_scores &&
     Object.values(mod.category_scores).some(
       (s) => typeof s === "number" && s >= TOXICITY_THRESHOLD,
     );
-  if (mod?.flagged || overThreshold) {
+  const moderationHigh = mod?.flagged || overThreshold;
+
+  if (moderationHigh && options?.returnModerationWarningInsteadOfReplace) {
+    // 글 바꾸지 않고 확인 모달용 정보만 반환
+    return {
+      cleanedText: text,
+      isModified,
+      moderation,
+      moderationWarning: {
+        scores: mod?.category_scores ?? {},
+        flagged: mod?.flagged ?? false,
+      },
+    };
+  }
+
+  if (moderationHigh) {
     text = pickRandom(CUTE_WORDS);
     isModified = true;
   }
@@ -397,6 +429,18 @@ export async function cleanText(
   }
 
   return { cleanedText: text, isModified, moderation };
+}
+
+/** 그래도 등록 시 원문 그대로 저장할 때, 저장용 모더레이션 점수만 조회 */
+export async function getModerationForStorage(
+  content: string,
+): Promise<ModerationForStorage | null> {
+  const mod = await callOpenAIModeration(content?.trim() ?? "");
+  if (!mod) return null;
+  return {
+    flagged: mod.flagged,
+    category_scores: mod.category_scores ?? null,
+  };
 }
 
 /**

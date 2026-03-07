@@ -32,6 +32,7 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog"
 import { EmblemImage } from "@/components/ui/EmblemImage"
+import { ModerationConfirmDialog } from "@/components/moderation/ModerationConfirmDialog"
 
 type HotMomentItem = {
   momentId?: string
@@ -217,6 +218,24 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
   const [loginRequiredOpen, setLoginRequiredOpen] = useState(false)
   const [loginRequiredMessage, setLoginRequiredMessage] = useState("이 순간에 코멘트를 남기려면 먼저 로그인해주세요.")
   const [shareCopied, setShareCopied] = useState(false)
+  const [commentModerationOpen, setCommentModerationOpen] = useState(false)
+  const [commentModerationScores, setCommentModerationScores] = useState<Record<string, number>>({})
+  const [commentModerationFlagged, setCommentModerationFlagged] = useState(false)
+  const [commentModerationPayload, setCommentModerationPayload] = useState<{
+    momentId: string
+    content: string
+  } | null>(null)
+  const [commentModerationForcePending, setCommentModerationForcePending] = useState(false)
+  const [replyModerationOpen, setReplyModerationOpen] = useState(false)
+  const [replyModerationScores, setReplyModerationScores] = useState<Record<string, number>>({})
+  const [replyModerationFlagged, setReplyModerationFlagged] = useState(false)
+  const [replyModerationPayload, setReplyModerationPayload] = useState<{
+    momentId: string
+    content: string
+    parentId: string
+    mediaUrl: string | null
+  } | null>(null)
+  const [replyModerationForcePending, setReplyModerationForcePending] = useState(false)
   const submitLockRef = useRef(false)
   const replyLockRef = useRef(false)
   const replyPreviewUrlRef = useRef<string | null>(null)
@@ -325,6 +344,12 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
       const result = await createComment(detail.id, { content: textToSend })
       if (result.ok) {
         refetchDetail(detail.id, setDetail)
+      } else if ("code" in result && result.code === "MODERATION_WARNING") {
+        setCommentModerationScores(result.scores)
+        setCommentModerationFlagged(result.flagged)
+        setCommentModerationPayload({ momentId: detail.id, content: textToSend })
+        setCommentModerationOpen(true)
+        setCommentText(textToSend)
       } else {
         setActionError(result.error)
         setCommentText(textToSend)
@@ -334,6 +359,24 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
       submitLockRef.current = false
     }
   }, [detail?.id, detail?.currentUserId, commentText])
+
+  const handleCommentModerationForceSubmit = useCallback(async () => {
+    if (!commentModerationPayload) return
+    setCommentModerationForcePending(true)
+    const result = await createComment(commentModerationPayload.momentId, {
+      content: commentModerationPayload.content,
+      forceSubmitAfterModeration: true,
+    })
+    setCommentModerationForcePending(false)
+    if (result.ok) {
+      setCommentModerationOpen(false)
+      setCommentModerationPayload(null)
+      setCommentText("")
+      refetchDetail(commentModerationPayload.momentId, setDetail)
+    } else if (!("code" in result && result.code === "MODERATION_WARNING")) {
+      setActionError(result.error)
+    }
+  }, [commentModerationPayload])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -503,6 +546,23 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
         if (result.ok) {
           setReplyToCommentId(null)
           refetchDetail(detail.id, setDetail)
+        } else if ("code" in result && result.code === "MODERATION_WARNING") {
+          setReplyModerationScores(result.scores)
+          setReplyModerationFlagged(result.flagged)
+          setReplyModerationPayload({
+            momentId: detail.id,
+            content: textToSend,
+            parentId,
+            mediaUrl,
+          })
+          setReplyModerationOpen(true)
+          setReplyText(content || "")
+          if (fileToUpload) {
+            setReplyAttachment(fileToUpload)
+            const url = URL.createObjectURL(fileToUpload)
+            replyPreviewUrlRef.current = url
+            setReplyPreviewUrl(url)
+          }
         } else {
           setActionError(result.error)
           setReplyText(content || "")
@@ -534,6 +594,33 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
     },
     [detail?.id, replyText, replyAttachment]
   )
+
+  const handleReplyModerationForceSubmit = useCallback(async () => {
+    if (!replyModerationPayload) return
+    setReplyModerationForcePending(true)
+    const result = await createComment(replyModerationPayload.momentId, {
+      content: replyModerationPayload.content,
+      parentId: replyModerationPayload.parentId,
+      mediaUrl: replyModerationPayload.mediaUrl,
+      forceSubmitAfterModeration: true,
+    })
+    setReplyModerationForcePending(false)
+    if (result.ok) {
+      setReplyModerationOpen(false)
+      setReplyModerationPayload(null)
+      setReplyToCommentId(null)
+      setReplyText("")
+      setReplyAttachment(null)
+      if (replyPreviewUrlRef.current) {
+        URL.revokeObjectURL(replyPreviewUrlRef.current)
+        replyPreviewUrlRef.current = null
+      }
+      setReplyPreviewUrl(null)
+      refetchDetail(replyModerationPayload.momentId, setDetail)
+    } else if (!("code" in result && result.code === "MODERATION_WARNING")) {
+      setActionError(result.error)
+    }
+  }, [replyModerationPayload])
 
   if (!open) return null
 
@@ -1449,6 +1536,24 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
           </div>
         </div>
       </div>
+      <ModerationConfirmDialog
+        open={commentModerationOpen}
+        onOpenChange={setCommentModerationOpen}
+        scores={commentModerationScores}
+        flagged={commentModerationFlagged}
+        onEdit={() => {}}
+        onConfirmAnyway={handleCommentModerationForceSubmit}
+        confirmAnywayPending={commentModerationForcePending}
+      />
+      <ModerationConfirmDialog
+        open={replyModerationOpen}
+        onOpenChange={setReplyModerationOpen}
+        scores={replyModerationScores}
+        flagged={replyModerationFlagged}
+        onEdit={() => {}}
+        onConfirmAnyway={handleReplyModerationForceSubmit}
+        confirmAnywayPending={replyModerationForcePending}
+      />
       <LoginRequiredDialog
         open={loginRequiredOpen}
         onClose={() => setLoginRequiredOpen(false)}

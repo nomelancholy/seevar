@@ -103,6 +103,10 @@ export async function updateMatchResult(
     revalidatePath("/matches")
     revalidatePath("/referees")
     revalidatePath("/teams")
+    revalidatePath("/")
+    revalidateTag("match-details")
+    revalidateTag("focus-rounds")
+    revalidateTag("archive-rounds")
     return { ok: true }
   } catch (e) {
     console.error("updateMatchResult:", e)

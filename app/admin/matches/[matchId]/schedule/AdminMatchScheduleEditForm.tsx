@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import { updateMatchSchedule } from "@/lib/actions/admin-matches"
 import type { MatchStatus } from "@prisma/client"
 
@@ -69,7 +70,18 @@ export function AdminMatchScheduleEditForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 ledger-surface border border-border p-6">
+    <form onSubmit={handleSubmit} className="relative space-y-4 ledger-surface border border-border p-6">
+      {pending && (
+        <div
+          className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/80 backdrop-blur-[2px]"
+          aria-hidden
+        >
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="size-10 text-primary animate-spin" />
+            <span className="font-mono text-xs text-muted-foreground">저장 중...</span>
+          </div>
+        </div>
+      )}
       <label className="block font-mono text-xs">
         <span className="block text-muted-foreground mb-1">경기 일자</span>
         <input
@@ -137,8 +149,9 @@ export function AdminMatchScheduleEditForm({
         <button
           type="submit"
           disabled={pending}
-          className="border border-primary bg-primary text-primary-foreground px-4 py-2 font-mono text-xs uppercase tracking-wider disabled:opacity-50"
+          className="border border-primary bg-primary text-primary-foreground px-4 py-2 font-mono text-xs uppercase tracking-wider disabled:opacity-50 inline-flex items-center gap-2"
         >
+          {pending && <Loader2 className="size-3.5 shrink-0 animate-spin" />}
           {pending ? "저장 중..." : "저장"}
         </button>
         <Link

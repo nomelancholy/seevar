@@ -22,6 +22,7 @@ import {
   updateRefereeReviewReply,
   deleteRefereeReviewReply,
 } from "@/lib/actions/referee-reviews"
+import { ModerationConfirmDialog } from "@/components/moderation/ModerationConfirmDialog"
 
 const STAR_CLIP =
   "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
@@ -245,8 +246,33 @@ export function MatchRefereeRatingSection({
   const [reportReplyDescription, setReportReplyDescription] = useState("")
   const [reportReplyPending, setReportReplyPending] = useState(false)
   const [reportReplyError, setReportReplyError] = useState<string | null>(null)
+  const [moderationModalOpen, setModerationModalOpen] = useState(false)
+  const [moderationScores, setModerationScores] = useState<Record<string, number>>({})
+  const [moderationFlagged, setModerationFlagged] = useState(false)
+  const [moderationPayload, setModerationPayload] = useState<{
+    matchId: string
+    refereeIds: string[]
+    role: "MAIN" | "ASSISTANT" | "VAR" | "WAITING"
+    rating: number
+    comment: string | null
+  } | null>(null)
+  const [moderationForceSubmitPending, setModerationForceSubmitPending] = useState(false)
+  const [replyModerationModalOpen, setReplyModerationModalOpen] = useState(false)
+  const [replyModerationScores, setReplyModerationScores] = useState<Record<string, number>>({})
+  const [replyModerationFlagged, setReplyModerationFlagged] = useState(false)
+  const [replyModerationPayload, setReplyModerationPayload] = useState<{
+    reviewId: string
+    content: string
+  } | null>(null)
+  const [replyModerationForceSubmitPending, setReplyModerationForceSubmitPending] = useState(false)
+  /** 제출 직후 서버 갱신 전에 창에 바로 보이도록 낙관적 추가 리뷰 */
+  const [addedReviews, setAddedReviews] = useState<ReviewItem[]>([])
   const router = useRouter()
-  const reviews = initialReviews
+  const reviews = useMemo(() => {
+    const serverIds = new Set(initialReviews.map((r) => r.id))
+    const onlyNew = addedReviews.filter((a) => !serverIds.has(a.id))
+    return [...initialReviews, ...onlyNew]
+  }, [initialReviews, addedReviews])
 
   const ratingSlots = useMemo(() => buildRatingSlots(matchReferees), [matchReferees])
 
@@ -425,7 +451,14 @@ export function MatchRefereeRatingSection({
     try {
       const result = await createRefereeReviewReply(reviewId, text)
       if (!result.ok) {
-        setReplyError(result.error)
+        if ("code" in result && result.code === "MODERATION_WARNING") {
+          setReplyModerationScores(result.scores)
+          setReplyModerationFlagged(result.flagged)
+          setReplyModerationPayload({ reviewId, content: text })
+          setReplyModerationModalOpen(true)
+        } else {
+          setReplyError(result.error)
+        }
         return
       }
       setAddedReplies((prev) => ({
@@ -444,8 +477,8 @@ export function MatchRefereeRatingSection({
             },
             reactions: [],
           },
-      ],
-    }))
+        ],
+      }))
       closeReplyForm()
     } finally {
       replySubmitLockRef.current = false
@@ -540,13 +573,69 @@ export function MatchRefereeRatingSection({
     setPending(true)
     setError(null)
     const role = selected.role as "MAIN" | "ASSISTANT" | "VAR" | "WAITING"
-    for (const refereeId of selected.refereeIds) {
-      const result = await createRefereeReview(matchId, refereeId, role, rating, comment || null)
+    const firstResult = await createRefereeReview(
+      matchId,
+      selected.refereeIds[0],
+      role,
+      rating,
+      comment || null
+    )
+    if (!firstResult.ok) {
+      if ("code" in firstResult && firstResult.code === "MODERATION_WARNING") {
+        setModerationScores(firstResult.scores)
+        setModerationFlagged(firstResult.flagged)
+        setModerationPayload({
+          matchId,
+          refereeIds: selected.refereeIds,
+          role,
+          rating,
+          comment: comment || null,
+        })
+        setModerationModalOpen(true)
+      } else {
+        setError(firstResult.error)
+      }
+      setPending(false)
+      return
+    }
+    const created: { refereeId: string; reviewId: string }[] = [
+      { refereeId: selected.refereeIds[0], reviewId: firstResult.reviewId },
+    ]
+    for (let i = 1; i < selected.refereeIds.length; i++) {
+      const result = await createRefereeReview(
+        matchId,
+        selected.refereeIds[i],
+        role,
+        rating,
+        comment || null
+      )
       if (!result.ok) {
         setPending(false)
         setError(result.error)
         return
       }
+      created.push({ refereeId: selected.refereeIds[i], reviewId: result.reviewId })
+    }
+    if (!myReview && currentUserId) {
+      const newItems: ReviewItem[] = created.map(({ refereeId, reviewId }) => ({
+        id: reviewId,
+        refereeId,
+        userId: currentUserId,
+        rating,
+        comment: comment || null,
+        status: "VISIBLE",
+        user: {
+          name: currentUserName ?? null,
+          image: currentUserImage ?? null,
+        },
+        fanTeamId: null,
+        fanTeam: currentUserSupportingTeam
+          ? { name: currentUserSupportingTeam.name, emblemPath: currentUserSupportingTeam.emblemPath }
+          : null,
+        reactions: [],
+        replies: [],
+      }))
+      setAddedReviews((prev) => [...prev, ...newItems])
     }
     setPending(false)
     if (!myReview) {
@@ -556,6 +645,95 @@ export function MatchRefereeRatingSection({
       setIsEditing(false)
     }
     router.refresh()
+  }
+
+  const handleModerationForceSubmitReview = async () => {
+    if (!moderationPayload || !currentUserId) return
+    setModerationForceSubmitPending(true)
+    const created: { refereeId: string; reviewId: string }[] = []
+    for (const refereeId of moderationPayload.refereeIds) {
+      const result = await createRefereeReview(
+        moderationPayload.matchId,
+        refereeId,
+        moderationPayload.role,
+        moderationPayload.rating,
+        moderationPayload.comment,
+        true
+      )
+      if (!result.ok && !("code" in result && result.code === "MODERATION_WARNING")) {
+        setError(result.error)
+        setModerationForceSubmitPending(false)
+        return
+      }
+      if (result.ok) created.push({ refereeId, reviewId: result.reviewId })
+    }
+    if (created.length > 0) {
+      const newItems: ReviewItem[] = created.map(({ refereeId, reviewId }) => ({
+        id: reviewId,
+        refereeId,
+        userId: currentUserId,
+        rating: moderationPayload.rating,
+        comment: moderationPayload.comment,
+        status: "VISIBLE",
+        user: {
+          name: currentUserName ?? null,
+          image: currentUserImage ?? null,
+        },
+        fanTeamId: null,
+        fanTeam: currentUserSupportingTeam
+          ? { name: currentUserSupportingTeam.name, emblemPath: currentUserSupportingTeam.emblemPath }
+          : null,
+        reactions: [],
+        replies: [],
+      }))
+      setAddedReviews((prev) => [...prev, ...newItems])
+    }
+    setModerationForceSubmitPending(false)
+    setModerationModalOpen(false)
+    setModerationPayload(null)
+    if (!myReview) {
+      setRating(0)
+      setComment("")
+    } else {
+      setIsEditing(false)
+    }
+    router.refresh()
+  }
+
+  const handleReplyModerationForceSubmit = async () => {
+    if (!replyModerationPayload) return
+    setReplyModerationForceSubmitPending(true)
+    const result = await createRefereeReviewReply(
+      replyModerationPayload.reviewId,
+      replyModerationPayload.content,
+      true
+    )
+    setReplyModerationForceSubmitPending(false)
+    if (result.ok) {
+      setAddedReplies((prev) => ({
+        ...prev,
+        [replyModerationPayload.reviewId]: [
+          ...(prev[replyModerationPayload.reviewId] ?? []),
+          {
+            id: result.replyId,
+            userId: currentUserId!,
+            content: replyModerationPayload.content,
+            createdAt: new Date(),
+            user: {
+              name: currentUserName ?? "나",
+              image: currentUserImage ?? null,
+              supportingTeam: currentUserSupportingTeam ?? null,
+            },
+            reactions: [],
+          },
+        ],
+      }))
+      setReplyModerationModalOpen(false)
+      setReplyModerationPayload(null)
+      closeReplyForm()
+    } else if (!("code" in result && result.code === "MODERATION_WARNING")) {
+      setReplyError(result.error)
+    }
   }
 
   if (matchReferees.length === 0) return null
@@ -1285,6 +1463,25 @@ export function MatchRefereeRatingSection({
           </div>
         )}
       </div>
+
+      <ModerationConfirmDialog
+        open={moderationModalOpen}
+        onOpenChange={setModerationModalOpen}
+        scores={moderationScores}
+        flagged={moderationFlagged}
+        onEdit={() => {}}
+        onConfirmAnyway={handleModerationForceSubmitReview}
+        confirmAnywayPending={moderationForceSubmitPending}
+      />
+      <ModerationConfirmDialog
+        open={replyModerationModalOpen}
+        onOpenChange={setReplyModerationModalOpen}
+        scores={replyModerationScores}
+        flagged={replyModerationFlagged}
+        onEdit={() => {}}
+        onConfirmAnyway={handleReplyModerationForceSubmit}
+        confirmAnywayPending={replyModerationForceSubmitPending}
+      />
 
       {/* 댓글 삭제 확인 모달 */}
       <Dialog open={deleteReplyModalReplyId !== null} onOpenChange={(open) => !open && closeDeleteReplyModal()}>

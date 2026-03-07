@@ -5,7 +5,12 @@ import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { type ContentStatus, Prisma } from "@prisma/client"
-import { checkProfanity, cleanText } from "@/lib/filters/profanity"
+import {
+  checkProfanity,
+  cleanText,
+  getModerationForStorage,
+  type ModerationForStorage,
+} from "@/lib/filters/profanity"
 import {
   XP_REVIEW_CREATE,
   XP_REVIEW_REPLY_CREATE,
@@ -15,13 +20,15 @@ import {
 export type CreateRefereeReviewResult =
   | { ok: true; reviewId: string }
   | { ok: false; error: string }
+  | { ok: false; error: null; code: "MODERATION_WARNING"; scores: Record<string, number>; flagged: boolean }
 
 export async function createRefereeReview(
   matchId: string,
   refereeId: string,
   role: "MAIN" | "ASSISTANT" | "VAR" | "WAITING",
   rating: number,
-  comment?: string | null
+  comment?: string | null,
+  forceSubmitAfterModeration?: boolean
 ): Promise<CreateRefereeReviewResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
@@ -48,9 +55,27 @@ export async function createRefereeReview(
   }
 
   const commentRaw = comment?.trim().slice(0, 100) ?? null
-  const cleanResult = commentRaw ? await cleanText(commentRaw) : null
-  const commentTrimmed = cleanResult ? cleanResult.cleanedText.slice(0, 100) : null
-  const moderation = cleanResult?.moderation
+  let commentTrimmed: string | null = null
+  let moderation: ModerationForStorage | undefined
+
+  if (forceSubmitAfterModeration && commentRaw) {
+    commentTrimmed = commentRaw
+    const mod = await getModerationForStorage(commentRaw)
+    moderation = mod ?? undefined
+  } else if (commentRaw) {
+    const cleanResult = await cleanText(commentRaw, { returnModerationWarningInsteadOfReplace: true })
+    if (cleanResult.moderationWarning) {
+      return {
+        ok: false,
+        error: null,
+        code: "MODERATION_WARNING",
+        scores: cleanResult.moderationWarning.scores,
+        flagged: cleanResult.moderationWarning.flagged,
+      }
+    }
+    commentTrimmed = cleanResult.cleanedText.slice(0, 100)
+    moderation = cleanResult.moderation
+  }
 
   const existingReview = await prisma.refereeReview.findUnique({
     where: {
@@ -237,12 +262,14 @@ export async function reportRefereeReview(
 export type CreateReviewReplyResult =
   | { ok: true; replyId: string }
   | { ok: false; error: string }
+  | { ok: false; error: null; code: "MODERATION_WARNING"; scores: Record<string, number>; flagged: boolean }
 
 const replyContentSchema = z.string().min(1, "내용을 입력해주세요.").max(500, "500자 이내로 입력해주세요.")
 
 export async function createRefereeReviewReply(
   reviewId: string,
-  content: string
+  content: string,
+  forceSubmitAfterModeration?: boolean
 ): Promise<CreateReviewReplyResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
@@ -253,7 +280,22 @@ export async function createRefereeReviewReply(
     return { ok: false, error: msg }
   }
 
-  const { cleanedText: contentToSave } = await cleanText(parsed.data)
+  let contentToSave: string
+  if (forceSubmitAfterModeration) {
+    contentToSave = parsed.data
+  } else {
+    const cleanResult = await cleanText(parsed.data, { returnModerationWarningInsteadOfReplace: true })
+    if (cleanResult.moderationWarning) {
+      return {
+        ok: false,
+        error: null,
+        code: "MODERATION_WARNING",
+        scores: cleanResult.moderationWarning.scores,
+        flagged: cleanResult.moderationWarning.flagged,
+      }
+    }
+    contentToSave = cleanResult.cleanedText
+  }
 
   const review = await prisma.refereeReview.findUnique({
     where: { id: reviewId },

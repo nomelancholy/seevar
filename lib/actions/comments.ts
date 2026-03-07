@@ -6,9 +6,12 @@ import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
 import { createCommentSchema, updateCommentSchema, reportCommentSchema } from "@/lib/schemas/comment"
 import type { ContentStatus } from "@prisma/client"
-import { checkProfanity, cleanText } from "@/lib/filters/profanity"
+import { checkProfanity, cleanText, getModerationForStorage } from "@/lib/filters/profanity"
 
-export type CreateCommentResult = { ok: true; commentId: string } | { ok: false; error: string }
+export type CreateCommentResult =
+  | { ok: true; commentId: string }
+  | { ok: false; error: string }
+  | { ok: false; error: null; code: "MODERATION_WARNING"; scores: Record<string, number>; flagged: boolean }
 export type UpdateCommentResult = { ok: true } | { ok: false; error: string }
 export type DeleteCommentResult = { ok: true } | { ok: false; error: string }
 export type ToggleCommentLikeResult = { ok: true; liked: boolean } | { ok: false; error: string }
@@ -19,7 +22,12 @@ type ReportReasonValue = (typeof REPORT_REASONS)[number]
 
 export async function createComment(
   momentId: string,
-  input: { content: string; parentId?: string | null; mediaUrl?: string | null }
+  input: {
+    content: string
+    parentId?: string | null
+    mediaUrl?: string | null
+    forceSubmitAfterModeration?: boolean
+  }
 ): Promise<CreateCommentResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
@@ -37,7 +45,28 @@ export async function createComment(
   if (!moment) return { ok: false, error: "모멘트를 찾을 수 없습니다." }
 
   const rawContent = parsed.data.content || " "
-  const { cleanedText: content, moderation } = await cleanText(rawContent)
+  const forceSubmit = Boolean(input.forceSubmitAfterModeration)
+  let content: string
+  let moderation: { flagged: boolean; category_scores: Record<string, number> | null } | undefined
+
+  if (forceSubmit) {
+    content = rawContent
+    const mod = await getModerationForStorage(rawContent)
+    moderation = mod ?? undefined
+  } else {
+    const cleanResult = await cleanText(rawContent, { returnModerationWarningInsteadOfReplace: true })
+    if (cleanResult.moderationWarning) {
+      return {
+        ok: false,
+        error: null,
+        code: "MODERATION_WARNING",
+        scores: cleanResult.moderationWarning.scores,
+        flagged: cleanResult.moderationWarning.flagged,
+      }
+    }
+    content = cleanResult.cleanedText
+    moderation = cleanResult.moderation
+  }
 
   try {
     const comment = await prisma.comment.create({
