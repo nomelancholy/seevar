@@ -245,7 +245,7 @@ export default async function MatchDetailBySlugPage({
   })
 
   const matchReviewsRaw =
-    status === "FINISHED" &&
+    (isLive || isFinished) &&
     (await unstable_cache(
       async () =>
         prisma.refereeReview.findMany({
