@@ -39,6 +39,18 @@ type MatchGroup = {
   timeGroups: TimeGroup[]
 }
 
+/** "전반 1분", "후반 43분" 등 시간 라벨을 전반→후반 순서로 정렬하기 위한 키 (작을수록 먼저) */
+function timeLabelSortKey(timeLabel: string): number {
+  const 전반 = timeLabel.startsWith("전반")
+  const 후반 = timeLabel.startsWith("후반")
+  const 연장전반 = timeLabel.startsWith("연장 전반")
+  const 연장후반 = timeLabel.startsWith("연장 후반")
+  const periodOrder = 연장전반 ? 2 : 연장후반 ? 3 : 전반 ? 0 : 후반 ? 1 : 4
+  const minuteMatch = timeLabel.match(/(\d+)\s*분/)
+  const minute = minuteMatch ? parseInt(minuteMatch[1], 10) : 0
+  return periodOrder * 1000 + minute
+}
+
 function groupByMatchThenTime(list: HotMomentItem[]): MatchGroup[] {
   const byMatch = new Map<string, HotMomentItem[]>()
   for (const m of list) {
@@ -59,9 +71,7 @@ function groupByMatchThenTime(list: HotMomentItem[]): MatchGroup[] {
       timeLabel,
       items: timeItems,
     }))
-    timeGroups.sort(
-      (a, b) => Math.min(...a.items.map((i) => i.rank)) - Math.min(...b.items.map((i) => i.rank))
-    )
+    timeGroups.sort((a, b) => timeLabelSortKey(a.timeLabel) - timeLabelSortKey(b.timeLabel))
     matchGroups.push({
       matchId,
       matchLabel: `${first.homeName} vs ${first.awayName}`,
