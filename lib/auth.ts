@@ -28,3 +28,20 @@ export function getIsAdmin(user: { id?: string; email?: string | null } | null):
   const emails = process.env.ADMIN_EMAILS?.trim().split(/[\s,]+/).filter(Boolean) ?? []
   return emails.includes(user.email)
 }
+
+/** 알림 등에 쓸 관리자 userId 목록 (ADMIN_USER_IDS + ADMIN_EMAILS로 조회) */
+export async function getAdminUserIds(): Promise<string[]> {
+  const ids = process.env.ADMIN_USER_IDS?.trim().split(/[\s,]+/).filter(Boolean) ?? []
+  const emails = process.env.ADMIN_EMAILS?.trim().split(/[\s,]+/).filter(Boolean) ?? []
+  if (ids.length === 0 && emails.length === 0) return []
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        ...(ids.length > 0 ? [{ id: { in: ids } }] : []),
+        ...(emails.length > 0 ? [{ email: { in: emails } }] : []),
+      ],
+    },
+    select: { id: true },
+  })
+  return [...new Set(users.map((u) => u.id))]
+}

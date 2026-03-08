@@ -475,5 +475,8 @@ model NoticeComment {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   content   String   @db.Text
+  parentId  String?
+  parent    NoticeComment?  @relation("NoticeCommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   NoticeComment[] @relation("NoticeCommentReplies")
   createdAt DateTime @default(now())
 }

@@ -3,7 +3,7 @@
 import type { Prisma } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
-import { getIsAdmin } from "@/lib/auth"
+import { getIsAdmin, getAdminUserIds } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { cleanText } from "@/lib/filters/profanity"
 
@@ -233,17 +233,27 @@ export async function deleteNotice(id: string): Promise<DeleteNoticeResult> {
 
 export async function createNoticeComment(
   noticeId: string,
-  content: string
+  content: string,
+  parentId?: string | null
 ): Promise<CreateNoticeCommentResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
 
   const notice = await prisma.notice.findUnique({
     where: { id: noticeId },
-    select: { id: true, allowComments: true },
+    select: { id: true, allowComments: true, number: true, title: true },
   })
   if (!notice) return { ok: false, error: "공지를 찾을 수 없습니다." }
   if (!notice.allowComments) return { ok: false, error: "이 공지는 댓글을 허용하지 않습니다." }
+
+  let parentComment: { userId: string } | null = null
+  if (parentId) {
+    parentComment = await prisma.noticeComment.findUnique({
+      where: { id: parentId, noticeId },
+      select: { userId: true },
+    })
+    if (!parentComment) return { ok: false, error: "답글 대상 댓글을 찾을 수 없습니다." }
+  }
 
   const trimmed = content?.trim() ?? ""
   if (!trimmed) return { ok: false, error: "내용을 입력해 주세요." }
@@ -252,16 +262,39 @@ export async function createNoticeComment(
 
   try {
     const comment = await prisma.noticeComment.create({
-      data: { noticeId, userId: user.id, content: cleanedText },
+      data: { noticeId, userId: user.id, content: cleanedText, parentId: parentId || undefined },
     })
-    const noticeWithNumber = await prisma.notice.findUnique({
-      where: { id: noticeId },
-      select: { number: true },
-    })
-    if (noticeWithNumber != null) {
-      revalidatePath(`/notice/${noticeWithNumber.number}`, "page")
-      revalidatePath("/notice", "layout")
+
+    const link = `/notice/${notice.number}`
+    const replyPreview = cleanedText.slice(0, 80) + (cleanedText.length > 80 ? "…" : "")
+
+    if (parentId && parentComment && parentComment.userId !== user.id) {
+      await prisma.notification.create({
+        data: {
+          userId: parentComment.userId,
+          type: "REPLY",
+          content: `공지 "${notice.title}" 댓글에 답글이 달렸습니다.`,
+          link,
+          replyContent: replyPreview,
+        },
+      })
+    } else if (!parentId) {
+      const adminIds = await getAdminUserIds()
+      const recipientIds = adminIds.filter((id) => id !== user.id)
+      if (recipientIds.length > 0) {
+        await createNoticeNotificationsInBatches(
+          recipientIds.map((adminId) => ({
+            userId: adminId,
+            type: "SYSTEM" as const,
+            content: `공지 "${notice.title}"에 새 댓글이 달렸습니다.`,
+            link,
+          }))
+        )
+      }
     }
+
+    revalidatePath(`/notice/${notice.number}`, "page")
+    revalidatePath("/notice", "layout")
     return { ok: true, id: comment.id }
   } catch (e) {
     console.error("createNoticeComment:", e)

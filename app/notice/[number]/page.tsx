@@ -42,12 +42,31 @@ export default async function NoticeDetailPage({
     include: {
       author: { select: { name: true } },
       comments: {
+        where: { parentId: null },
         orderBy: { createdAt: "asc" },
-        include: { user: { select: { name: true } } },
+        include: {
+          user: { select: { name: true } },
+          replies: { orderBy: { createdAt: "asc" }, include: { user: { select: { name: true } } } },
+        },
       },
     },
   })
   if (!notice) notFound()
+
+  const commentTree = notice.comments.map((c) => ({
+    id: c.id,
+    userId: c.userId,
+    content: c.content,
+    userName: c.user?.name ?? null,
+    createdAt: c.createdAt.toISOString(),
+    replies: (c.replies ?? []).map((r) => ({
+      id: r.id,
+      userId: r.userId,
+      content: r.content,
+      userName: r.user?.name ?? null,
+      createdAt: r.createdAt.toISOString(),
+    })),
+  }))
 
   type NoticeWithMedia = typeof notice & {
     attachments?: unknown
@@ -101,13 +120,7 @@ export default async function NoticeDetailPage({
       {notice.allowComments && (
         <NoticeCommentSection
           noticeId={notice.id}
-          comments={notice.comments.map((c) => ({
-            id: c.id,
-            userId: c.userId,
-            content: c.content,
-            userName: c.user?.name ?? null,
-            createdAt: c.createdAt.toISOString(),
-          }))}
+          comments={commentTree}
           currentUserId={user?.id ?? null}
         />
       )}
