@@ -212,11 +212,6 @@ export function RoundRefereeRatingsFolder({ highlights }: Props) {
                 </table>
                   </div>
                 )}
-              {filteredReferees.length > 0 && filteredReferees.some((r) => r.matchForDisplay) && (
-                <p className="mt-2 font-mono text-[10px] text-muted-foreground">
-                  경기별 상세 평가는 각 경기 상세 페이지 → 심판 평가에서 확인할 수 있습니다.
-                </p>
-              )}
             </div>
           )
           })}

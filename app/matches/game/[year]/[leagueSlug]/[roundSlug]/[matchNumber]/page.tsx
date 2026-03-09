@@ -8,11 +8,13 @@ import { prisma } from "@/lib/prisma"
 import { deriveMatchStatus } from "@/lib/utils/match-status"
 import { sortMomentsByStartThenDuration } from "@/lib/utils/sort-moments"
 import { MatchDetailBackLink } from "@/components/matches/MatchDetailBackLink"
-import { MatchMomentCards } from "@/components/matches/MatchMomentCards"
+import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { MatchRefereeRatingSectionDynamic } from "@/components/matches/MatchRefereeRatingSectionDynamic"
 import { ScrollToRefereeSection } from "@/components/matches/ScrollToRefereeSection"
 import { SeeVarButtonWithModal } from "@/components/matches/SeeVarButtonWithModal"
 import { getMatchDetailPath } from "@/lib/match-url"
+import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
+import { shortNameFromSlug } from "@/lib/team-short-names"
 import { getYouTubeEmbedUrl, getInstagramEmbedUrl } from "@/lib/embed-urls"
 
 type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string; matchNumber: string }>
@@ -30,7 +32,7 @@ type MatchReviewWithRelations = {
   status: string
   filterReason: string | null
   fanTeamId: string | null
-  user: { name: string | null; image: string | null }
+  user: { id: string; name: string | null; image: string | null; handle: string | null }
   fanTeam: { name: string; emblemPath: string | null } | null
   reactions: { userId: string }[]
   replies: Array<{
@@ -39,8 +41,10 @@ type MatchReviewWithRelations = {
     content: string
     createdAt: Date
     user: {
+      id: string
       name: string | null
       image: string | null
+      handle: string | null
       supportingTeam: { name: string; emblemPath: string | null } | null
     }
     reactions: { userId: string }[]
@@ -244,6 +248,30 @@ export default async function MatchDetailBySlugPage({
     }
   })
 
+  const hotMomentsForSection = momentsWithFirstComment.map((m, i) => {
+    const time =
+      m.startPeriod != null && m.startMinuteInPeriod != null
+        ? formatMomentTimeFromPeriod(m.startPeriod, m.startMinuteInPeriod)
+        : m.startMinute != null
+          ? formatMatchMinuteForDisplay(m.startMinute)
+          : (m.title ?? "—")
+    return {
+      rank: i + 1,
+      momentId: m.id,
+      matchId: match.id,
+      league: match.round.league.name.toUpperCase(),
+      homeName: shortNameFromSlug(match.homeTeam.slug ?? null),
+      awayName: shortNameFromSlug(match.awayTeam.slug ?? null),
+      homeEmblem: match.homeTeam.emblemPath ?? "",
+      awayEmblem: match.awayTeam.emblemPath ?? "",
+      time,
+      varCount: m.seeVarCount,
+      commentCount: m.commentCount,
+      firstCommentPreview: m.firstCommentPreview ?? undefined,
+      matchDetailPath: matchPath,
+    }
+  })
+
   const matchReviewsRaw =
     (isLive || isFinished) &&
     (await unstable_cache(
@@ -252,14 +280,18 @@ export default async function MatchDetailBySlugPage({
           where: { matchId: match.id, status: { in: ["VISIBLE", "HIDDEN"] } },
           orderBy: { createdAt: "desc" },
           include: {
-            user: { select: { name: true, image: true } },
+            user: { select: { id: true, name: true, image: true, handle: true } },
             fanTeam: { select: { name: true, emblemPath: true } },
             reactions: { select: { userId: true } },
             replies: {
               orderBy: { createdAt: "asc" },
               include: {
                 user: {
-                  include: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                    handle: true,
                     supportingTeam: { select: { name: true, emblemPath: true } },
                   },
                 },
@@ -267,7 +299,7 @@ export default async function MatchDetailBySlugPage({
             },
           },
         }),
-      ["match-reviews", match.id],
+      ["match-reviews-v2", match.id],
       { revalidate: 30, tags: [`match-reviews-${match.id}`] }
     )())
   const matchReviews = Array.isArray(matchReviewsRaw)
@@ -495,26 +527,12 @@ export default async function MatchDetailBySlugPage({
         </div>
       </section>
 
-      {(isLive || isFinished) && momentsWithFirstComment.length > 0 && (
-        <section className="mb-8 md:mb-12">
-          <div className="flex justify-between items-end mb-6">
-            <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase">
-              경기 쟁점 순간
-            </h2>
-          </div>
-          <MatchMomentCards
-            moments={momentsWithFirstComment}
-            match={{
-              homeTeam: match.homeTeam,
-              awayTeam: match.awayTeam,
-              round: match.round,
-            }}
-            matchId={match.id}
-            variant="hot"
-            initialOpenMomentId={openMomentId ?? undefined}
-            matchDetailPath={matchPath}
-          />
-        </section>
+      {(isLive || isFinished) && hotMomentsForSection.length > 0 && (
+        <HotMomentsSection
+          title="경기 쟁점 순간"
+          hotMoments={hotMomentsForSection}
+          initialOpenMomentId={openMomentId ?? undefined}
+        />
       )}
 
       <section id="referee-rating" className="scroll-mt-6">
@@ -538,8 +556,10 @@ export default async function MatchDetailBySlugPage({
             status: r.status,
             filterReason: r.filterReason,
             user: {
+              id: r.user.id,
               name: r.user.name,
               image: r.user.image ?? null,
+              handle: r.user.handle ?? null,
             },
             fanTeamId: r.fanTeamId,
             fanTeam: r.fanTeam
@@ -553,8 +573,10 @@ export default async function MatchDetailBySlugPage({
                 content: rp.content,
                 createdAt: rp.createdAt,
                 user: {
+                  id: rp.user.id,
                   name: rp.user.name,
                   image: rp.user.image ?? null,
+                  handle: rp.user.handle ?? null,
                   supportingTeam: rp.user.supportingTeam
                     ? {
                         name: rp.user.supportingTeam.name,

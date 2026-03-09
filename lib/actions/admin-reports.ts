@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
+import { REFEREE_REVIEW_COMMENT_MAX_LENGTH } from "@/lib/constants"
 import { XP_PENALTY_ON_HIDE } from "@/lib/utils/xp"
 import type { ContentStatus } from "@prisma/client"
 
@@ -351,7 +352,7 @@ export async function replaceReviewWithCute(reviewId: string): Promise<SetConten
 
   const { CUTE_WORDS } = await import("@/lib/filters/profanity")
   const cuteContent = CUTE_WORDS[Math.floor(Math.random() * CUTE_WORDS.length)]!
-  const newComment = cuteContent.slice(0, 100)
+  const newComment = cuteContent.slice(0, REFEREE_REVIEW_COMMENT_MAX_LENGTH)
 
   await prisma.refereeReview.update({
     where: { id: reviewId },

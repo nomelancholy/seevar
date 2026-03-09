@@ -1,6 +1,7 @@
 "use server"
 
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
+import { getPublicBaseUrl } from "@/lib/spaces-config"
 
 const SPACES_KEY = process.env.SPACES_KEY
 const SPACES_SECRET = process.env.SPACES_SECRET
@@ -35,26 +36,6 @@ function normalizeEndpoint(url: string): string {
     return `${u.protocol}//${region}.digitaloceanspaces.com`
   }
   return url
-}
-
-/**
- * Public base URL for objects (no trailing slash).
- * e.g. https://seevar.sgp1.digitaloceanspaces.com
- */
-function getPublicBaseUrl(): string | null {
-  if (!SPACES_ENDPOINT || !SPACES_BUCKET) return null
-  const u = new URL(SPACES_ENDPOINT)
-  const parts = u.hostname.split(".")
-  // Region endpoint: sgp1.digitaloceanspaces.com
-  if (parts.length === 3 && parts[1] === "digitaloceanspaces" && parts[2] === "com") {
-    const region = parts[0]
-    return `${u.protocol}//${SPACES_BUCKET}.${region}.digitaloceanspaces.com`
-  }
-  // Bucket endpoint: seevar.sgp1.digitaloceanspaces.com
-  if (parts.length === 4 && parts[2] === "digitaloceanspaces") {
-    return SPACES_ENDPOINT.replace(/\/$/, "")
-  }
-  return null
 }
 
 /**

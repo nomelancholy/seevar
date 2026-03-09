@@ -31,7 +31,7 @@ type Props = {
     comment: string | null
     status?: string
     filterReason?: string | null
-    user: { name: string | null; image: string | null }
+    user: { id?: string; name: string | null; image: string | null; handle?: string | null }
     fanTeamId: string | null
     fanTeam: { name: string; emblemPath: string | null } | null
     reactions?: { userId: string }[]
@@ -41,8 +41,10 @@ type Props = {
       content: string
       createdAt: Date | string
       user: {
+        id?: string
         name: string | null
         image?: string | null
+        handle?: string | null
         supportingTeam?: { name: string; emblemPath: string | null } | null
       }
       reactions?: { userId: string }[]

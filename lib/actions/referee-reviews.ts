@@ -16,6 +16,7 @@ import {
   XP_REVIEW_REPLY_CREATE,
   XP_CONTINUITY_BONUS,
 } from "@/lib/utils/xp"
+import { REFEREE_REVIEW_COMMENT_MAX_LENGTH } from "@/lib/constants"
 
 export type CreateRefereeReviewResult =
   | { ok: true; reviewId: string }
@@ -54,7 +55,7 @@ export async function createRefereeReview(
     return { ok: false, error: "해당 경기에 배정된 심판이 아닙니다." }
   }
 
-  const commentRaw = comment?.trim().slice(0, 100) ?? null
+  const commentRaw = comment?.trim().slice(0, REFEREE_REVIEW_COMMENT_MAX_LENGTH) ?? null
   let commentTrimmed: string | null = null
   let moderation: ModerationForStorage | undefined
 
@@ -73,7 +74,7 @@ export async function createRefereeReview(
         flagged: cleanResult.moderationWarning.flagged,
       }
     }
-    commentTrimmed = cleanResult.cleanedText.slice(0, 100)
+    commentTrimmed = cleanResult.cleanedText.slice(0, REFEREE_REVIEW_COMMENT_MAX_LENGTH)
     moderation = cleanResult.moderation
   }
 

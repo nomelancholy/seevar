@@ -407,8 +407,8 @@ export async function cleanText(
     );
   const moderationHigh = mod?.flagged || overThreshold;
 
-  if (moderationHigh && options?.returnModerationWarningInsteadOfReplace) {
-    // 글 바꾸지 않고 확인 모달용 정보만 반환
+  // Moderation 위반 시 전체 교체하지 않고, 확인 모달용 정보만 반환(컨펌창만 띄움). 금칙어 치환만 적용된 text 유지.
+  if (moderationHigh) {
     return {
       cleanedText: text,
       isModified,
@@ -418,11 +418,6 @@ export async function cleanText(
         flagged: mod?.flagged ?? false,
       },
     };
-  }
-
-  if (moderationHigh) {
-    text = pickRandom(CUTE_WORDS);
-    isModified = true;
   }
 
   if (isModified) {

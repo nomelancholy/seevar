@@ -10,6 +10,7 @@ type Comment = {
   id: string
   content: string
   status: string
+  mediaUrl: string | null
   moderationFlagged: boolean | null
   moderationScores: Record<string, number> | null
   createdAt: Date
@@ -126,6 +127,19 @@ export function AdminCommentList({ comments }: Props) {
                 </p>
               )}
               <p className="text-sm break-words line-clamp-2">{c.content}</p>
+              {c.mediaUrl && (
+                <p className="text-[10px] text-muted-foreground">
+                  첨부:{" "}
+                  <a
+                    href={`/api/admin/download-moment-media?url=${encodeURIComponent(c.mediaUrl)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono uppercase tracking-wider text-primary hover:underline"
+                  >
+                    첨부파일 다운로드
+                  </a>
+                </p>
+              )}
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 {openLink && (
                   <Link href={openLink} className="text-[10px] font-mono uppercase tracking-wider text-primary hover:underline">

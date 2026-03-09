@@ -7,7 +7,7 @@ import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/u
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { LeagueMatchesSection } from "@/components/home/LeagueMatchesSection"
-import { RoundRefereeRatingsFolder } from "@/components/home/RoundRefereeRatingsFolder"
+import { RoundRefereeBestWorstSection } from "@/components/home/RoundRefereeBestWorstSection"
 import { HomeEmptyState } from "@/components/home/HomeEmptyState"
 
 type RoundWithMatches = Awaited<
@@ -32,6 +32,7 @@ type RoundWithMatches = Awaited<
 type RefFeedback = {
   id: string
   userName: string
+  userHandle?: string | null
   userImage: string | null
   teamName: string | null
   teamSlug: string | null
@@ -48,37 +49,49 @@ type RoundRefereeStat = {
   role: string
   avg: number
   voteCount: number
-  matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
+  matchForDisplay?: {
+    homeName: string
+    awayName: string
+    matchPath: string
+    homeEmblemPath?: string | null
+    awayEmblemPath?: string | null
+  }
+  homeAvg?: number
+  awayAvg?: number
+}
+
+/** 역할별 베스트/워스트 카드용 (RoundRefereeBestWorstSection과 동일한 구조) */
+type RefereeCardPayload = {
+  refereeId: string
+  slug: string
+  name: string
+  role: string
+  avg: number
+  voteCount: number
+  matchForDisplay?: {
+    homeName: string
+    awayName: string
+    matchPath: string
+    homeEmblemPath?: string | null
+    awayEmblemPath?: string | null
+  }
+  reviews: {
+    id: string
+    userName: string
+    teamName: string | null
+    teamSlug: string | null
+    teamEmblem: string | null
+    likeCount: number
+    comment: string
+    matchLabel: string
+  }[]
 }
 
 type RoundHighlight = {
   leagueName: string
   roundNumber: number
-  bestReferee:
-    | {
-        id: string
-        slug: string
-        name: string
-        role: string
-        avg: number
-        voteCount: number
-        feedbacks: RefFeedback[]
-        matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
-      }
-    | null
-  worstReferee:
-    | {
-        id: string
-        slug: string
-        name: string
-        role: string
-        avg: number
-        voteCount: number
-        feedbacks: RefFeedback[]
-        matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
-      }
-    | null
-  /** 라운드 전체 심판 평점 (심판 라운드 평점 보기 폴더용) */
+  bestByRole: Partial<Record<string, RefereeCardPayload>>
+  worstByRole: Partial<Record<string, RefereeCardPayload>>
   allRoundReferees: RoundRefereeStat[]
   youtubeEmbedUrl: string | null
   instagramEmbedUrl: string | null
@@ -224,7 +237,7 @@ export default async function HomePage() {
           select: { name: true, slug: true, emblemPath: true },
         },
         user: {
-          select: { name: true, image: true },
+          select: { name: true, image: true, handle: true },
         },
         reactions: {
           select: { type: true },
@@ -232,8 +245,9 @@ export default async function HomePage() {
       },
     })
 
-    let bestReferee: RoundHighlight["bestReferee"] = null
-    let worstReferee: RoundHighlight["worstReferee"] = null
+    const ROLES_FOR_BEST_WORST = ["MAIN", "VAR", "ASSISTANT", "WAITING"] as const
+    let bestByRole: RoundHighlight["bestByRole"] = {}
+    let worstByRole: RoundHighlight["worstByRole"] = {}
 
     if (reviews.length > 0) {
       const byRef = new Map<
@@ -269,6 +283,7 @@ export default async function HomePage() {
           ? {
               id: r.id,
               userName: r.user?.name || "Supporter",
+              userHandle: (r.user as { handle?: string | null })?.handle ?? null,
               userImage: r.user?.image ?? null,
               teamName: r.fanTeam?.name ?? null,
               teamSlug: r.fanTeam?.slug ?? null,
@@ -342,20 +357,49 @@ export default async function HomePage() {
       })
 
       if (statsWithFeedbacks.length > 0) {
-        if (statsWithFeedbacks.length === 1) {
-          const single = statsWithFeedbacks[0]
-          if (single.avg >= 2.5) {
-            bestReferee = single
-            worstReferee = null
-          } else {
-            bestReferee = null
-            worstReferee = single
+        for (const role of ROLES_FOR_BEST_WORST) {
+          const byRole = statsWithFeedbacks.filter((s) => s.role === role)
+          const byBest = [...byRole].sort((a, b) => b.avg - a.avg)
+          const byWorst = [...byRole].sort((a, b) => a.avg - b.avg)
+          const best = byBest[0]
+          const worst = byWorst[0]
+          const toReviews = (fbs: RefFeedback[]) =>
+            fbs.map((fb) => ({
+              id: fb.id,
+              userName: fb.userName,
+              userHandle: fb.userHandle ?? null,
+              userImage: fb.userImage ?? null,
+              teamName: fb.teamName,
+              teamSlug: fb.teamSlug,
+              teamEmblem: fb.teamEmblem,
+              likeCount: fb.likeCount,
+              comment: fb.comment,
+              matchLabel: fb.matchLabel,
+            }))
+          if (best) {
+            bestByRole[role] = {
+              refereeId: best.id,
+              slug: best.slug,
+              name: best.name,
+              role: best.role,
+              avg: best.avg,
+              voteCount: best.voteCount,
+              matchForDisplay: best.matchForDisplay,
+              reviews: toReviews(best.feedbacks),
+            }
           }
-        } else {
-          const byBest = [...statsWithFeedbacks].sort((a, b) => b.avg - a.avg)
-          const byWorst = [...statsWithFeedbacks].sort((a, b) => a.avg - b.avg)
-          bestReferee = byBest[0]
-          worstReferee = byWorst[0]
+          if (worst) {
+            worstByRole[role] = {
+              refereeId: worst.id,
+              slug: worst.slug,
+              name: worst.name,
+              role: worst.role,
+              avg: worst.avg,
+              voteCount: worst.voteCount,
+              matchForDisplay: worst.matchForDisplay,
+              reviews: toReviews(worst.feedbacks),
+            }
+          }
         }
       }
     }
@@ -365,15 +409,19 @@ export default async function HomePage() {
       (round as { instagramUrl?: string | null }).instagramUrl ?? null
     )
 
-    if (!bestReferee && !worstReferee && !youtubeEmbedUrl && !instagramEmbedUrl) {
+    const hasRefereeData =
+      Object.keys(bestByRole).length > 0 ||
+      Object.keys(worstByRole).length > 0 ||
+      allRoundReferees.length > 0
+    if (!hasRefereeData && !youtubeEmbedUrl && !instagramEmbedUrl) {
       return null
     }
 
     return {
       leagueName: round.league.name,
       roundNumber: round.number,
-      bestReferee,
-      worstReferee,
+      bestByRole,
+      worstByRole,
       allRoundReferees,
       youtubeEmbedUrl,
       instagramEmbedUrl,
@@ -404,9 +452,9 @@ export default async function HomePage() {
   }> = []
   if (focusMatchIds.length > 0) {
     try {
+      // 포커스 라운드 경기별로 쟁점 순간이 있는 모든 경기가 메인에 나오도록 제한 없이 조회
       const rows = await prisma.moment.findMany({
         where: { matchId: { in: focusMatchIds } },
-        take: 10,
         orderBy: { seeVarCount: "desc" },
         include: {
           match: {
@@ -459,13 +507,6 @@ export default async function HomePage() {
     }
   }
 
-  const REFEREE_ROLE_LABEL: Record<string, string> = {
-    MAIN: "주심",
-    ASSISTANT: "부심",
-    WAITING: "대기심",
-    VAR: "VAR (비디오 판독)",
-  }
-
   return (
     <>
       {hasFocusRound ? (
@@ -479,216 +520,21 @@ export default async function HomePage() {
                 {[k1Highlight, k2Highlight].map(
                   (h) =>
                     h && (
-                      <div key={`${h.leagueName}-${h.roundNumber}`} className="space-y-4">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+                      <div key={`${h.leagueName}-${h.roundNumber}`} className="space-y-2">
+                        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest px-1">
                           {h.leagueName} · Round {h.roundNumber}
                         </p>
-
-                        {(h.bestReferee || h.worstReferee) && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-4 min-w-0">
-                            {/* BEST */}
-                            {h.bestReferee && (
-                            <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
-                              <div className="flex justify-between items-start mb-6 gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-[#00ff41] uppercase mb-1 not-italic">
-                                    라운드 베스트 심판
-                                  </p>
-                                  <Link
-                                    href={`/referees/${h.bestReferee.slug}`}
-                                    className="text-xl md:text-2xl font-black uppercase leading-none hover:text-[#00ff41] transition-colors not-italic"
-                                  >
-                                    {h.bestReferee.name}
-                                  </Link>
-                                  <div className="mt-3 flex items-center gap-2">
-                                    <span className="bg-zinc-800 text-white px-2 py-0.5 text-[10px] md:text-xs font-bold font-mono">
-                                      {REFEREE_ROLE_LABEL[h.bestReferee.role] ?? h.bestReferee.role}
-                                    </span>
-                                  </div>
-                                  {h.bestReferee.matchForDisplay && (
-                                    <Link
-                                      href={h.bestReferee.matchForDisplay.matchPath}
-                                      className="mt-2 block font-mono text-[10px] md:text-xs text-muted-foreground hover:text-[#00ff41] transition-colors not-italic whitespace-nowrap"
-                                    >
-                                      {h.bestReferee.matchForDisplay.homeName} vs {h.bestReferee.matchForDisplay.awayName} →
-                                    </Link>
-                                  )}
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <span className="bg-[#00ff41] text-black px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
-                                    최고점
-                                  </span>
-                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap not-italic">
-                                    AVG: {h.bestReferee.avg.toFixed(1)} / 5.0 ({h.bestReferee.voteCount}명)
-                                  </p>
-                                </div>
-                              </div>
-
-                              {h.bestReferee.feedbacks.length > 0 && (
-                                <div className="space-y-4">
-                                  <p className="font-mono text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
-                                    베스트 팬 한줄평
-                                  </p>
-                                  {h.bestReferee.feedbacks.map((fb) => (
-                                    <div key={fb.id} className="bg-zinc-900/50 p-3 border border-zinc-800">
-                                      <div className="flex justify-between items-center mb-2">
-                                        <div className="flex items-center gap-2 md:gap-3">
-                                          <div className="relative">
-                                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                                              {fb.userImage ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img
-                                                  src={fb.userImage}
-                                                  alt={fb.userName}
-                                                  className="relative z-10 w-full h-full object-cover"
-                                                  referrerPolicy="no-referrer"
-                                                />
-                                              ) : (
-                                                <span className="text-xs text-zinc-400 font-mono">
-                                                  {fb.userName.slice(0, 2).toUpperCase()}
-                                                </span>
-                                              )}
-                                            </div>
-                                            {fb.teamEmblem && (
-                                              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={fb.teamEmblem} alt={fb.teamName ?? ""} className="relative z-10 w-full h-full" referrerPolicy="no-referrer" />
-                                              </div>
-                                            )}
-                                          </div>
-                                          <div className="flex flex-col">
-                                            <span className="text-xs md:text-sm font-black text-white not-italic">
-                                              {fb.userName}
-                                            </span>
-                                            {fb.teamName && (
-                                              <span className="text-[10px] md:text-xs font-mono text-zinc-500 uppercase">
-                                                {fb.teamName} SUPPORTING
-                                              </span>
-                                            )}
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-blue-400">
-                                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                          </svg>
-                                          <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
-                                        </div>
-                                      </div>
-                                      <div className="text-xs md:text-sm text-zinc-300 not-italic">
-                                        <TextWithEmbedPreview text={fb.comment} />
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            )}
-
-                            {/* WORST */}
-                            {h.worstReferee && (
-                            <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
-                              <div className="flex justify-between items-start mb-6 gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <p className="font-mono text-[10px] md:text-xs font-black tracking-widest text-red-500 uppercase mb-1 not-italic">
-                                    라운드 워스트 심판
-                                  </p>
-                                  <Link
-                                    href={`/referees/${h.worstReferee.slug}`}
-                                    className="text-xl md:text-2xl font-black uppercase leading-none hover:text-red-500 transition-colors not-italic"
-                                  >
-                                    {h.worstReferee.name}
-                                  </Link>
-                                  <div className="mt-3 flex items-center gap-2">
-                                    <span className="bg-zinc-800 text-white px-2 py-0.5 text-[10px] md:text-xs font-bold font-mono">
-                                      {REFEREE_ROLE_LABEL[h.worstReferee.role] ?? h.worstReferee.role}
-                                    </span>
-                                  </div>
-                                  {h.worstReferee.matchForDisplay && (
-                                    <Link
-                                      href={h.worstReferee.matchForDisplay.matchPath}
-                                      className="mt-2 block font-mono text-[10px] md:text-xs text-muted-foreground hover:text-red-500 transition-colors not-italic whitespace-nowrap"
-                                    >
-                                      {h.worstReferee.matchForDisplay.homeName} vs {h.worstReferee.matchForDisplay.awayName} →
-                                    </Link>
-                                  )}
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <span className="bg-red-600 text-white px-2.5 py-1 text-[10px] md:text-xs font-black uppercase">
-                                    최저점
-                                  </span>
-                                  <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap not-italic">
-                                    AVG: {h.worstReferee.avg.toFixed(1)} / 5.0 ({h.worstReferee.voteCount}명)
-                                  </p>
-                                </div>
-                              </div>
-
-                              {h.worstReferee.feedbacks.length > 0 && (
-                                <div className="space-y-4">
-                                  <p className="font-mono text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">
-                                    베스트 팬 한줄평
-                                  </p>
-                                  {h.worstReferee.feedbacks.map((fb) => (
-                                    <div key={fb.id} className="bg-zinc-900/50 p-3 border border-zinc-800">
-                                      <div className="flex justify-between items-center mb-2">
-                                        <div className="flex items-center gap-2 md:gap-3">
-                                          <div className="relative">
-                                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                                              {fb.userImage ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img
-                                                  src={fb.userImage}
-                                                  alt={fb.userName}
-                                                  className="relative z-10 w-full h-full object-cover"
-                                                  referrerPolicy="no-referrer"
-                                                />
-                                              ) : (
-                                                <span className="text-xs text-zinc-400 font-mono">
-                                                  {fb.userName.slice(0, 2).toUpperCase()}
-                                                </span>
-                                              )}
-                                            </div>
-                                            {fb.teamEmblem && (
-                                              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={fb.teamEmblem} alt={fb.teamName ?? ""} className="relative z-10 w-full h-full" referrerPolicy="no-referrer" />
-                                              </div>
-                                            )}
-                                          </div>
-                                          <div className="flex flex-col">
-                                            <span className="text-xs md:text-sm font-black text-white not-italic">
-                                              {fb.userName}
-                                            </span>
-                                            {fb.teamName && (
-                                              <span className="text-[10px] md:text-xs font-mono text-zinc-500 uppercase">
-                                                {fb.teamName} SUPPORTING
-                                              </span>
-                                            )}
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-blue-400">
-                                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                          </svg>
-                                          <span className="font-mono text-xs md:text-sm font-black">{fb.likeCount}</span>
-                                        </div>
-                                      </div>
-                                      <div className="text-xs md:text-sm text-zinc-300 not-italic">
-                                        <TextWithEmbedPreview text={fb.comment} />
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            )}
-                          </div>
-                        )}
-
+                        <RoundRefereeBestWorstSection
+                          bestByRole={h.bestByRole}
+                          worstByRole={h.worstByRole}
+                          allRoundReferees={h.allRoundReferees}
+                          leagueName={h.leagueName}
+                          roundNumber={h.roundNumber}
+                        />
                       </div>
-                    ),
+                    )
                 )}
               </div>
-              <RoundRefereeRatingsFolder highlights={[k1Highlight, k2Highlight]} />
             </section>
           )}
 

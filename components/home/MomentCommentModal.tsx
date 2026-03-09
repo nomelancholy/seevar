@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { ImagePlus, Heart, Loader2, MessageCircle, Pencil, Flag, Trash2, X, Share2 } from "lucide-react"
 import {
   createComment,
@@ -33,6 +34,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { ModerationConfirmDialog } from "@/components/moderation/ModerationConfirmDialog"
+import { UserProfileLink } from "@/components/user/UserProfileLink"
 
 type HotMomentItem = {
   momentId?: string
@@ -51,6 +53,7 @@ type CommentAuthor = {
   id: string
   name: string | null
   image?: string | null
+  handle?: string | null
   supportingTeam?: { emblemPath: string | null } | null
 }
 type CommentReaction = { type: string; userId: string }
@@ -651,15 +654,32 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
       <div className="bg-card border border-border w-full max-w-[min(92vw,640px)] h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
         <div className="p-4 md:p-5 pr-4 md:pr-6 border-b border-border shrink-0">
           <div className="flex justify-between items-start gap-4">
-            <div className="min-w-0 flex-1">
-              <h4 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase">
-                {title}
-              </h4>
-              <div className="flex items-center gap-2 mt-1 font-mono text-[10px] text-muted-foreground">
-                <span>{moment?.league ?? ""}</span>
-                <span className="bg-muted px-2 py-0.5 rounded">{time}</span>
+            {matchDetailPath ? (
+              <Link
+                href={matchDetailPath}
+                className="min-w-0 flex-1 block hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded"
+                onClick={(e) => e.stopPropagation()}
+                title="경기 상세 보기"
+              >
+                <h4 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase">
+                  {title}
+                </h4>
+                <div className="flex items-center gap-2 mt-1 font-mono text-[10px] text-muted-foreground">
+                  <span>{moment?.league ?? ""}</span>
+                  <span className="bg-muted px-2 py-0.5 rounded">{time}</span>
+                </div>
+              </Link>
+            ) : (
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase">
+                  {title}
+                </h4>
+                <div className="flex items-center gap-2 mt-1 font-mono text-[10px] text-muted-foreground">
+                  <span>{moment?.league ?? ""}</span>
+                  <span className="bg-muted px-2 py-0.5 rounded">{time}</span>
+                </div>
               </div>
-            </div>
+            )}
             <div className="flex items-center gap-1 shrink-0">
               {matchDetailPath && (moment?.momentId ?? detail?.id) && (
                 <button
@@ -868,9 +888,12 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap justify-between">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] md:text-xs font-bold text-foreground">
+                          <UserProfileLink
+                            handle={c.author?.handle ?? null}
+                            className="text-[10px] md:text-xs font-bold text-foreground hover:underline"
+                          >
                             {c.author?.name ?? "Anonymous"}
-                          </span>
+                          </UserProfileLink>
                           <span className="font-mono text-[8px] text-muted-foreground">
                             {new Date(c.createdAt).toLocaleString("ko-KR")}
                           </span>
@@ -1187,9 +1210,12 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="text-[10px] md:text-xs font-bold">
+                                      <UserProfileLink
+                                        handle={r.author?.handle ?? null}
+                                        className="text-[10px] md:text-xs font-bold hover:underline"
+                                      >
                                         {r.author?.name ?? "Anonymous"}
-                                      </span>
+                                      </UserProfileLink>
                                       <span className="font-mono text-[8px] text-muted-foreground">
                                         {new Date(r.createdAt).toLocaleString("ko-KR")}
                                       </span>

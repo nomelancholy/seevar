@@ -25,6 +25,23 @@ export const authOptions: NextAuthOptions = {
     async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id
+        const u = user as { handle?: string | null; email?: string | null }
+        let handle = u.handle ?? null
+        if (!handle && u.email) {
+          const raw = u.email.split("@")[0].toLowerCase().replace(/[^a-z0-9_-]/g, "")
+          if (raw) {
+            try {
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { handle: raw },
+              })
+              handle = raw
+            } catch {
+              /* unique 등 충돌 시 무시 */
+            }
+          }
+        }
+        session.user.handle = handle ?? undefined
       }
       return session
     },

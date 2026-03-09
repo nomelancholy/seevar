@@ -65,6 +65,8 @@ model User {
   emailVerified     DateTime?
   name              String?
   image             String?
+  /** 공개 프로필 URL용. 가입 이메일 @ 앞부분(네이버 아이디). 예: starmekey@naver.com → starmekey */
+  handle            String?   @unique
   /** 경험치. 모멘트·평가 참여 시 증가, 신고 승인(숨김) 시 감소, 재심 통과 시 복구 */
   xp                Int       @default(0)
 
@@ -304,7 +306,7 @@ model RefereeReview {
   fanTeam       Team?          @relation(fields: [fanTeamId], references: [id])
 
   rating        Float
-  comment       String?        @db.VarChar(100)
+  comment       String?        @db.VarChar(200)
   role          RefereeRole    // 평점 당시 심판의 역할
 
   // 클린봇 & 신고 필드

@@ -22,7 +22,9 @@ import {
   updateRefereeReviewReply,
   deleteRefereeReviewReply,
 } from "@/lib/actions/referee-reviews"
+import { REFEREE_REVIEW_COMMENT_MAX_LENGTH } from "@/lib/constants"
 import { ModerationConfirmDialog } from "@/components/moderation/ModerationConfirmDialog"
+import { UserProfileLink } from "@/components/user/UserProfileLink"
 
 const STAR_CLIP =
   "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
@@ -789,14 +791,20 @@ export function MatchRefereeRatingSection({
                       <StarRatingInput value={rating} onChange={setRating} />
                     </div>
                     <div>
-                      <label className="block text-xs md:text-sm text-muted-foreground uppercase font-mono mb-2">
-                        한줄평
+                      <label className="flex items-center justify-between text-xs md:text-sm text-muted-foreground uppercase font-mono mb-2">
+                        <span>한줄평</span>
+                        <span className="tabular-nums normal-case">
+                          ({comment.length}/{REFEREE_REVIEW_COMMENT_MAX_LENGTH})
+                        </span>
                       </label>
                       <textarea
                         value={comment}
-                        onChange={(e) => setComment(e.target.value.slice(0, 100))}
+                        onChange={(e) =>
+                          setComment(e.target.value.slice(0, REFEREE_REVIEW_COMMENT_MAX_LENGTH))
+                        }
                         rows={3}
-                        placeholder="한줄평을 입력하세요"
+                        placeholder="한줄평을 입력하세요 (최대 200자)"
+                        maxLength={REFEREE_REVIEW_COMMENT_MAX_LENGTH}
                         className="w-full bg-background border border-border p-3 text-[10px] md:text-xs font-mono focus:border-primary outline-none resize-none"
                       />
                     </div>
@@ -876,14 +884,20 @@ export function MatchRefereeRatingSection({
                       <StarRatingInput value={rating} onChange={setRating} />
                     </div>
                     <div>
-                      <label className="block text-xs md:text-sm text-muted-foreground uppercase font-mono mb-2">
-                        한줄평
+                      <label className="flex items-center justify-between text-xs md:text-sm text-muted-foreground uppercase font-mono mb-2">
+                        <span>한줄평</span>
+                        <span className="tabular-nums normal-case">
+                          ({comment.length}/{REFEREE_REVIEW_COMMENT_MAX_LENGTH})
+                        </span>
                       </label>
                       <textarea
                         value={comment}
-                        onChange={(e) => setComment(e.target.value.slice(0, 100))}
+                        onChange={(e) =>
+                          setComment(e.target.value.slice(0, REFEREE_REVIEW_COMMENT_MAX_LENGTH))
+                        }
                         rows={3}
-                        placeholder="한줄평을 입력하세요"
+                        placeholder="한줄평을 입력하세요 (최대 200자)"
+                        maxLength={REFEREE_REVIEW_COMMENT_MAX_LENGTH}
                         className="w-full bg-background border border-border p-3 text-[10px] md:text-xs font-mono focus:border-primary outline-none resize-none"
                       />
                     </div>
@@ -1050,9 +1064,12 @@ export function MatchRefereeRatingSection({
                               )}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="text-[10px] md:text-xs font-bold text-muted-foreground truncate">
+                              <UserProfileLink
+                                handle={rev.user.handle ?? null}
+                                className="text-[10px] md:text-xs font-bold text-muted-foreground truncate hover:text-foreground"
+                              >
                                 {rev.user.name ?? "Anonymous"}
-                              </span>
+                              </UserProfileLink>
                             </div>
                           </div>
                           {rev.status !== "HIDDEN" && (
@@ -1190,9 +1207,12 @@ export function MatchRefereeRatingSection({
                                       ) : (
                                         <>
                                           <div className="min-w-0">
-                                            <span className="font-bold text-foreground/90">
+                                            <UserProfileLink
+                                              handle={rp.user.handle ?? null}
+                                              className="font-bold text-foreground/90 hover:underline"
+                                            >
                                               {rp.user.name ?? "Anonymous"}
-                                            </span>
+                                            </UserProfileLink>
                                             <span className="mx-1.5">·</span>
                                             <span>{rp.content}</span>
                                           </div>

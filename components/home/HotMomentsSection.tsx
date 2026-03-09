@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { MessageCircle, ChevronDown, ChevronRight } from "lucide-react"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { MomentCommentModal } from "./MomentCommentModal"
@@ -26,6 +26,8 @@ export type HotMomentItem = {
 type Props = {
   hotMoments?: HotMomentItem[]
   title?: string
+  /** 알림 등에서 진입 시 이 모멘트 카드 열기 + 스크롤 */
+  initialOpenMomentId?: string
 }
 
 /** 경기별로 묶고, 각 경기 안에서 시간대별로 묶음. 1단계: 경기 폴더, 2단계: 시간 폴더 */
@@ -51,14 +53,16 @@ function timeLabelSortKey(timeLabel: string): number {
   return periodOrder * 1000 + minute
 }
 
-function groupByMatchThenTime(list: HotMomentItem[]): MatchGroup[] {
+type TimeGroupWithSum = TimeGroup & { totalVarCount: number }
+
+function groupByMatchThenTime(list: HotMomentItem[]): (Omit<MatchGroup, "timeGroups"> & { timeGroups: TimeGroupWithSum[] })[] {
   const byMatch = new Map<string, HotMomentItem[]>()
   for (const m of list) {
     const arr = byMatch.get(m.matchId) ?? []
     arr.push(m)
     byMatch.set(m.matchId, arr)
   }
-  const matchGroups: MatchGroup[] = []
+  const matchGroups: (Omit<MatchGroup, "timeGroups"> & { timeGroups: TimeGroupWithSum[] })[] = []
   for (const [matchId, items] of byMatch.entries()) {
     const first = items[0]
     const byTime = new Map<string, HotMomentItem[]>()
@@ -67,9 +71,10 @@ function groupByMatchThenTime(list: HotMomentItem[]): MatchGroup[] {
       arr.push(m)
       byTime.set(m.time, arr)
     }
-    const timeGroups: TimeGroup[] = Array.from(byTime.entries()).map(([timeLabel, timeItems]) => ({
+    const timeGroups: TimeGroupWithSum[] = Array.from(byTime.entries()).map(([timeLabel, timeItems]) => ({
       timeLabel,
       items: timeItems,
+      totalVarCount: timeItems.reduce((s, i) => s + i.varCount, 0),
     }))
     timeGroups.sort((a, b) => timeLabelSortKey(a.timeLabel) - timeLabelSortKey(b.timeLabel))
     matchGroups.push({
@@ -89,24 +94,40 @@ function groupByMatchThenTime(list: HotMomentItem[]): MatchGroup[] {
   return matchGroups
 }
 
+const HOT_MIN_VAR_COUNT = 3
+const HOT_MAX_COUNT = 5
+
+/** 이의 제기 합계가 HOT_MIN_VAR_COUNT 이상인 시간 폴더만 대상, 상위 HOT_MAX_COUNT개에 HOT 표시. 해당 없으면 빈 Set */
+function timeGroupHotSet(matchGroups: (Omit<MatchGroup, "timeGroups"> & { timeGroups: TimeGroupWithSum[] })[]): Set<string> {
+  const entries: { key: string; totalVarCount: number }[] = []
+  for (const m of matchGroups) {
+    for (const t of m.timeGroups) {
+      if (t.totalVarCount >= HOT_MIN_VAR_COUNT) {
+        entries.push({ key: `${m.matchId}|${t.timeLabel}`, totalVarCount: t.totalVarCount })
+      }
+    }
+  }
+  if (entries.length === 0) return new Set()
+  entries.sort((a, b) => b.totalVarCount - a.totalVarCount)
+  const set = new Set<string>()
+  entries.slice(0, HOT_MAX_COUNT).forEach((e) => set.add(e.key))
+  return set
+}
+
 function MomentCard({
   m,
-  displayRank,
   onOpen,
 }: {
   m: HotMomentItem
-  /** 경기 내 순위 (1, 2, 3, …). 미전달 시 m.rank 사용 */
-  displayRank?: number
   onOpen: (item: HotMomentItem) => void
 }) {
-  const rank = displayRank ?? m.rank
   return (
     <button
       type="button"
+      {...(m.momentId ? { "data-moment-id": m.momentId } : {})}
       onClick={() => onOpen(m)}
       className="hot-moment-card block w-full min-w-0 text-left cursor-pointer"
     >
-      <div className="rank-badge">{rank}</div>
       <div className="text-[8px] md:text-[10px] text-muted-foreground font-mono mb-1 md:mb-2">
         {m.league}
       </div>
@@ -138,27 +159,45 @@ function MomentCard({
   )
 }
 
-export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 순간" }: Props) {
+export function HotMomentsSection({
+  hotMoments = [],
+  title = "라운드 쟁점 순간",
+  initialOpenMomentId,
+}: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedMoment, setSelectedMoment] = useState<HotMomentItem | null>(null)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+  const didOpenInitial = useRef(false)
+  const didSetInitialTimeCollapsed = useRef(false)
 
   const list = hotMoments
   const matchGroups = useMemo(() => groupByMatchThenTime(list), [list])
+  const timeHotSet = useMemo(() => timeGroupHotSet(matchGroups), [matchGroups])
 
-  /** 경기별 카드 넘버링: 각 경기 안에서만 1, 2, 3, … (원본 rank 순) */
-  const rankInMatchByKey = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const match of matchGroups) {
-      const allItems = match.timeGroups.flatMap((t) => t.items)
-      allItems.sort((a, b) => a.rank - b.rank)
-      allItems.forEach((item, idx) => {
-        const key = item.momentId ?? `${item.matchId}-${item.time}-${item.rank}`
-        map.set(key, idx + 1)
-      })
+  // 시간 폴더는 기본 접힘. 경기 폴더는 열림(키 없음 = 열림).
+  useEffect(() => {
+    if (matchGroups.length === 0 || didSetInitialTimeCollapsed.current) return
+    const timeKeys = matchGroups.flatMap((m) =>
+      m.timeGroups.map((t) => `${m.matchId}|${t.timeLabel}`)
+    )
+    if (timeKeys.length > 0) {
+      didSetInitialTimeCollapsed.current = true
+      setCollapsedGroups((prev) => new Set([...prev, ...timeKeys]))
     }
-    return map
   }, [matchGroups])
+
+  useEffect(() => {
+    if (!initialOpenMomentId || list.length === 0 || didOpenInitial.current) return
+    const item = list.find((m) => m.momentId === initialOpenMomentId)
+    if (!item) return
+    didOpenInitial.current = true
+    setSelectedMoment(item)
+    setModalOpen(true)
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`[data-moment-id="${initialOpenMomentId}"]`)
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" })
+    })
+  }, [initialOpenMomentId, list])
 
   const openModal = (m: HotMomentItem) => {
     setSelectedMoment(m)
@@ -218,6 +257,7 @@ export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 �
                     {match.timeGroups.map(({ timeLabel, items }) => {
                       const timeKey = `${matchKey}|${timeLabel}`
                       const timeCollapsed = collapsedGroups.has(timeKey)
+                      const isHot = timeHotSet.has(timeKey)
                       return (
                         <div key={timeKey} className="border-b border-border last:border-b-0">
                           <button
@@ -230,6 +270,14 @@ export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 �
                             ) : (
                               <ChevronDown className="size-3 md:size-4 shrink-0" aria-hidden />
                             )}
+                            {isHot && (
+                              <span
+                                className="shrink-0 bg-primary text-primary-foreground font-black italic px-2 py-0.5 text-sm"
+                                aria-label="이의 제기 3건 이상 HOT"
+                              >
+                                HOT
+                              </span>
+                            )}
                             <span>{timeLabel}</span>
                             <span className="text-muted-foreground/80 font-normal text-[10px] md:text-xs">
                               ({items.length}건)
@@ -239,14 +287,8 @@ export function HotMomentsSection({ hotMoments = [], title = "라운드 쟁점 �
                             <div className="pl-6 pr-3 pb-3 pt-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                               {items.map((m) => {
                                 const key = m.momentId ?? `${m.matchId}-${m.time}-${m.rank}`
-                                const displayRank = rankInMatchByKey.get(key)
                                 return (
-                                  <MomentCard
-                                    key={key}
-                                    m={m}
-                                    displayRank={displayRank}
-                                    onOpen={openModal}
-                                  />
+                                  <MomentCard key={key} m={m} onOpen={openModal} />
                                 )
                               })}
                             </div>
