@@ -2,6 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
+import { getAdminUserIds } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
 import { createCommentSchema, updateCommentSchema, reportCommentSchema } from "@/lib/schemas/comment"
@@ -177,6 +178,7 @@ export async function createComment(
 
     revalidatePath("/")
     revalidatePath("/matches")
+    revalidatePath("/my/notifications")
     revalidateTag("match-details")
     revalidateTag("archive-rounds")
     return { ok: true, commentId: comment.id }
@@ -340,7 +342,7 @@ export async function reportComment(
 
   const comment = await prisma.comment.findUnique({
     where: { id: parsed.data.commentId },
-    select: { id: true, content: true, status: true },
+    select: { id: true, content: true, status: true, momentId: true },
   })
   if (!comment) return { ok: false, error: "댓글을 찾을 수 없습니다." }
 
@@ -350,7 +352,7 @@ export async function reportComment(
   if (already) return { ok: false, error: "이미 신고한 댓글입니다." }
 
   try {
-    await prisma.report.create({
+    const report = await prisma.report.create({
       data: {
         reporterId: user.id,
         reason: parsed.data.reason,
@@ -372,8 +374,35 @@ export async function reportComment(
           : {}),
       },
     })
+
+    // 관리자에게 신고 알림 발송
+    const adminIds = await getAdminUserIds()
+    if (adminIds.length > 0) {
+      const preview = (comment.content || "").slice(0, 80)
+      const reasonLabelMap: Record<ReportReasonValue, string> = {
+        ABUSE: "욕설/비하",
+        SPAM: "스팸/홍보",
+        INAPPROPRIATE: "부적절한 내용",
+        FALSE_INFO: "허위 정보",
+      }
+      const reasonLabel = reasonLabelMap[parsed.data.reason as ReportReasonValue] ?? parsed.data.reason
+
+      const link = `/admin/reports?commentId=${encodeURIComponent(parsed.data.commentId)}`
+
+      await prisma.notification.createMany({
+        data: adminIds.map((adminId) => ({
+          userId: adminId,
+          type: "SYSTEM" as const,
+          content: `댓글 신고가 접수되었습니다. (사유: ${reasonLabel}, 내용: ${preview})`,
+          link,
+        })),
+      })
+    }
+
     revalidatePath("/")
     revalidatePath("/matches")
+    revalidatePath("/admin")
+    revalidatePath("/admin/reports")
     return { ok: true }
   } catch (e) {
     console.error("reportComment:", e)

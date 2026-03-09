@@ -361,6 +361,15 @@ export function MatchRefereeRatingSection({
     return { likeCount, likedByMe }
   }
 
+  /** 쟁점 순간과 동일: 본문에 @ 강조 없이 표시. 위에 @부모 표시 시 본문 선두 @멘션은 제거해 중복 방지 */
+  const replyDisplayContent = (content: string, parentDisplayName: string) => {
+    const raw = (content ?? "").trimStart()
+    if (!raw.startsWith("@")) return content ?? ""
+    const firstSpace = raw.indexOf(" ")
+    const rest = firstSpace === -1 ? "" : raw.slice(firstSpace).trim()
+    return rest || (content ?? "")
+  }
+
   const handleToggleLike = async (reviewId: string) => {
     if (!currentUserId || likePendingId) return
     setLikePendingId(reviewId)
@@ -430,10 +439,22 @@ export function MatchRefereeRatingSection({
     }
   }
 
-  const openReplyForm = (reviewId: string) => {
+  const openReplyForm = (reviewId: string, mentionName?: string | null) => {
     setReplyToReviewId(reviewId)
-    setReplyText("")
+    const prefix = mentionName ? `${mentionName} ` : ""
+    setReplyText(prefix)
     setReplyError(null)
+    // 폼 렌더 후 에디터에 포커스
+    setTimeout(() => {
+      if (replyFormRef.current) {
+        const textarea = replyFormRef.current.querySelector("textarea")
+        if (textarea instanceof HTMLTextAreaElement) {
+          textarea.focus()
+          const len = textarea.value.length
+          textarea.setSelectionRange(len, len)
+        }
+      }
+    }, 0)
   }
 
   const closeReplyForm = () => {
@@ -1077,62 +1098,66 @@ export function MatchRefereeRatingSection({
                             <StarRatingDisplay rating={rev.rating} size="small" />
                           )}
                         </div>
-                        {rev.status === "HIDDEN" || rev.status === "PENDING_REAPPROVAL" ? (
-                          <p className="text-xs md:text-sm text-muted-foreground not-italic">
-                            {hiddenReviewMessage()}
-                          </p>
-                        ) : (
-                          rev.comment && (
-                            <div className="text-xs md:text-sm text-muted-foreground">
-                              <TextWithEmbedPreview text={rev.comment} />
-                            </div>
-                          )
-                        )}
-                        {!isModerated && currentUserId && (
-                          <div className="mt-2 flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleLike(rev.id)}
-                              disabled={likePendingId === rev.id}
-                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
-                                likeState.likedByMe
-                                  ? "text-primary"
-                                  : "text-muted-foreground hover:text-foreground"
-                              }`}
-                              aria-label="좋아요"
-                            >
-                              <Heart
-                                className={`size-3.5 ${
-                                  likeState.likedByMe ? "fill-current" : ""
-                                }`}
-                              />
-                              {likeState.likeCount > 0 && (
-                                <span>{likeState.likeCount}</span>
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => openReportForm(rev.id)}
-                              className="p-1 text-muted-foreground hover:text-foreground rounded"
-                              aria-label="신고"
-                            >
-                              <Flag className="size-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => openReplyForm(rev.id)}
-                              className="p-1 text-muted-foreground hover:text-foreground rounded flex items-center gap-1"
-                              aria-label="답글"
-                            >
-                              <MessageCircle className="size-3.5" />
-                              {mergedRepliesForRev.length > 0 && (
-                                <span className="text-[10px] font-mono">
-                                  {mergedRepliesForRev.length}
-                                </span>
-                              )}
-                            </button>
+                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                          <div className="min-w-0 flex-1">
+                            {rev.status === "HIDDEN" || rev.status === "PENDING_REAPPROVAL" ? (
+                              <p className="text-xs md:text-sm text-muted-foreground not-italic">
+                                {hiddenReviewMessage()}
+                              </p>
+                            ) : (
+                              rev.comment && (
+                                <div className="text-xs md:text-sm text-muted-foreground">
+                                  <TextWithEmbedPreview text={rev.comment} />
+                                </div>
+                              )
+                            )}
                           </div>
-                        )}
+                          {!isModerated && currentUserId && (
+                            <div className="shrink-0 flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleLike(rev.id)}
+                                disabled={likePendingId === rev.id}
+                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                                  likeState.likedByMe
+                                    ? "text-primary"
+                                    : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                aria-label="좋아요"
+                              >
+                                <Heart
+                                  className={`size-3.5 ${
+                                    likeState.likedByMe ? "fill-current" : ""
+                                  }`}
+                                />
+                                {likeState.likeCount > 0 && (
+                                  <span>{likeState.likeCount}</span>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openReplyForm(rev.id)}
+                                className="p-1 text-muted-foreground hover:text-foreground rounded flex items-center gap-1"
+                                aria-label="답글"
+                              >
+                                <MessageCircle className="size-3.5" />
+                                {mergedRepliesForRev.length > 0 && (
+                                  <span className="text-[10px] font-mono">
+                                    {mergedRepliesForRev.length}
+                                  </span>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openReportForm(rev.id)}
+                                className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                aria-label="신고"
+                              >
+                                <Flag className="size-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                         {mergedRepliesForRev.length > 0 ? (
                           <div className="mt-3 pl-3 border-l-2 border-border space-y-3">
                             {mergedRepliesForRev.map((rp) => {
@@ -1166,7 +1191,7 @@ export function MatchRefereeRatingSection({
                                         </div>
                                       )}
                                     </div>
-                                    <div className="min-w-0 flex-1 flex items-start justify-between gap-2">
+                                    <div className="min-w-0 flex-1 flex flex-col gap-0.5">
                                       {isEditingThis ? (
                                         <div className="min-w-0 flex-1 space-y-1">
                                           <textarea
@@ -1207,73 +1232,104 @@ export function MatchRefereeRatingSection({
                                         </div>
                                       ) : (
                                         <>
-                                          <div className="min-w-0">
-                                            <UserProfileLink
-                                              handle={rp.user.handle ?? null}
-                                              className="font-bold text-foreground/90 hover:underline"
-                                            >
-                                              {rp.user.name ?? "Anonymous"}
-                                            </UserProfileLink>
-                                            <span className="mx-1.5">·</span>
-                                            <span>{rp.content}</span>
-                                          </div>
-                                          {currentUserId && (
-                                            <div className="shrink-0 flex items-center gap-1">
-                                              {isOwnReply && (
-                                                <>
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => handleStartEditReply(rp)}
-                                                    className="p-0.5 text-muted-foreground hover:text-foreground rounded"
-                                                    aria-label="수정"
-                                                  >
-                                                    <Pencil className="size-3" />
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => openDeleteReplyModal(rp.id)}
-                                                    disabled={deletingReplyId === rp.id}
-                                                    className="p-0.5 text-muted-foreground hover:text-destructive rounded disabled:opacity-50"
-                                                    aria-label="삭제"
-                                                  >
-                                                    {deletingReplyId === rp.id ? (
-                                                      <Loader2 className="size-3 animate-spin" />
-                                                    ) : (
-                                                      <Trash2 className="size-3" />
-                                                    )}
-                                                  </button>
-                                                </>
-                                              )}
-                                              <button
-                                                type="button"
-                                                onClick={() => handleToggleReplyLike(rp.id)}
-                                                disabled={likePendingReplyId === rp.id}
-                                                className={`flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-mono ${
-                                                  replyLikeState.likedByMe
-                                                    ? "text-primary"
-                                                    : "text-muted-foreground hover:text-foreground"
-                                                }`}
-                                                aria-label="좋아요"
-                                              >
-                                                <Heart
-                                                  className={`size-3 ${
-                                                    replyLikeState.likedByMe ? "fill-current" : ""
-                                                  }`}
-                                                />
-                                                {replyLikeState.likeCount > 0 && (
-                                                  <span>{replyLikeState.likeCount}</span>
-                                                )}
-                                              </button>
-                                              <button
-                                                type="button"
-                                                onClick={() => openReportReplyForm(rp.id)}
-                                                className="p-0.5 text-muted-foreground hover:text-foreground rounded"
-                                                aria-label="신고"
-                                              >
-                                                <Flag className="size-3" />
-                                              </button>
+                                          <div className="flex items-start justify-between gap-2 flex-wrap min-w-0 flex-1">
+                                            <div className="min-w-0 flex flex-col gap-0.5">
+                                              <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="text-[10px] text-muted-foreground">
+                                                  @{rev.user?.name ?? "Anonymous"}
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-2 flex-wrap">
+                                                <UserProfileLink
+                                                  handle={rp.user.handle ?? null}
+                                                  className="text-[10px] md:text-xs font-bold text-foreground hover:underline"
+                                                >
+                                                  {rp.user.name ?? "Anonymous"}
+                                                </UserProfileLink>
+                                                <span className="font-mono text-[8px] text-muted-foreground">
+                                                  {new Date(rp.createdAt).toLocaleString("ko-KR")}
+                                                </span>
+                                              </div>
+                                              <div className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                                                <span>
+                                                  {replyDisplayContent(
+                                                    rp.content,
+                                                    rev.user?.name ?? "Anonymous"
+                                                  )}
+                                                </span>
+                                              </div>
                                             </div>
-                                          )}
+                                            {currentUserId && (
+                                              <div className="shrink-0 flex items-center gap-1">
+                                                {isOwnReply && (
+                                                  <>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => handleStartEditReply(rp)}
+                                                      className="p-0.5 text-muted-foreground hover:text-foreground rounded"
+                                                      aria-label="수정"
+                                                    >
+                                                      <Pencil className="size-3" />
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => openDeleteReplyModal(rp.id)}
+                                                      disabled={deletingReplyId === rp.id}
+                                                      className="p-0.5 text-muted-foreground hover:text-destructive rounded disabled:opacity-50"
+                                                      aria-label="삭제"
+                                                    >
+                                                      {deletingReplyId === rp.id ? (
+                                                        <Loader2 className="size-3 animate-spin" />
+                                                      ) : (
+                                                        <Trash2 className="size-3" />
+                                                      )}
+                                                    </button>
+                                                  </>
+                                                )}
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleToggleReplyLike(rp.id)}
+                                                  disabled={likePendingReplyId === rp.id}
+                                                  className={`flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-mono ${
+                                                    replyLikeState.likedByMe
+                                                      ? "text-primary"
+                                                      : "text-muted-foreground hover:text-foreground"
+                                                  }`}
+                                                  aria-label="좋아요"
+                                                >
+                                                  <Heart
+                                                    className={`size-3 ${
+                                                      replyLikeState.likedByMe ? "fill-current" : ""
+                                                    }`}
+                                                  />
+                                                  {replyLikeState.likeCount > 0 && (
+                                                    <span>{replyLikeState.likeCount}</span>
+                                                  )}
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    openReplyForm(
+                                                      rev.id,
+                                                      rp.user.name ? `@${rp.user.name}` : undefined,
+                                                    )
+                                                  }
+                                                  className="p-0.5 text-muted-foreground hover:text-foreground rounded"
+                                                  aria-label="답글"
+                                                >
+                                                  <MessageCircle className="size-3" />
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => openReportReplyForm(rp.id)}
+                                                  className="p-0.5 text-muted-foreground hover:text-foreground rounded"
+                                                  aria-label="신고"
+                                                >
+                                                  <Flag className="size-3" />
+                                                </button>
+                                              </div>
+                                            )}
+                                          </div>
                                         </>
                                       )}
                                     </div>

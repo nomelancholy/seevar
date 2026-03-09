@@ -286,6 +286,7 @@ export default async function MatchDetailBySlugPage({
             replies: {
               orderBy: { createdAt: "asc" },
               include: {
+                reactions: { select: { userId: true } },
                 user: {
                   select: {
                     id: true,

@@ -40,6 +40,8 @@ type RefFeedback = {
   likeCount: number
   comment: string
   matchLabel: string
+  /** 이 한줄평 작성자가 부여한 평점 (1~5) */
+  rating: number
 }
 
 type RoundRefereeStat = {
@@ -78,12 +80,15 @@ type RefereeCardPayload = {
   reviews: {
     id: string
     userName: string
+    userHandle?: string | null
+    userImage: string | null
     teamName: string | null
     teamSlug: string | null
     teamEmblem: string | null
     likeCount: number
     comment: string
     matchLabel: string
+    rating: number
   }[]
 }
 
@@ -291,6 +296,7 @@ export default async function HomePage() {
               likeCount,
               comment: r.comment,
               matchLabel,
+              rating: r.rating,
             }
           : null
 
@@ -375,6 +381,7 @@ export default async function HomePage() {
               likeCount: fb.likeCount,
               comment: fb.comment,
               matchLabel: fb.matchLabel,
+              rating: fb.rating,
             }))
           if (best) {
             bestByRole[role] = {

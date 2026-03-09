@@ -919,7 +919,7 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                         </div>
                       )}
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 flex flex-col gap-1">
                       <div className="flex items-center gap-2 flex-wrap justify-between">
                         <div className="flex items-center gap-2 flex-wrap">
                           <UserProfileLink
@@ -932,7 +932,7 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                             {new Date(c.createdAt).toLocaleString("ko-KR")}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="hidden md:flex items-center gap-1">
                         {currentUserId && !isModerated && (
                           <>
                             <button
@@ -950,6 +950,19 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                               />
                               {getLikeState(c).likeCount > 0 && (
                                 <span>{getLikeState(c).likeCount}</span>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setReplyToCommentId(c.id)}
+                              className="p-1 text-muted-foreground hover:text-foreground rounded flex items-center gap-1"
+                              aria-label="답글"
+                            >
+                              <MessageCircle className="size-3.5" />
+                              {flattenReplies(c.replies).length > 0 && (
+                                <span className="text-[10px] font-mono">
+                                  {flattenReplies(c.replies).length}
+                                </span>
                               )}
                             </button>
                             <button
@@ -1030,6 +1043,73 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                         <TextWithEmbedPreview text={c.content} />
                       </div>
                       )}
+                      <div className="flex md:hidden items-center gap-1 mt-1">
+                        {currentUserId && !isModerated && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleLike(c.id)}
+                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                                getLikeState(c).likedByMe
+                                  ? "text-primary"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                              aria-label="좋아요"
+                            >
+                              <Heart
+                                className={`size-3.5 ${getLikeState(c).likedByMe ? "fill-current" : ""}`}
+                              />
+                              {getLikeState(c).likeCount > 0 && (
+                                <span>{getLikeState(c).likeCount}</span>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setReplyToCommentId(c.id)}
+                              className="p-1 text-muted-foreground hover:text-foreground rounded flex items-center gap-1"
+                              aria-label="답글"
+                            >
+                              <MessageCircle className="size-3.5" />
+                              {flattenReplies(c.replies).length > 0 && (
+                                <span className="text-[10px] font-mono">
+                                  {flattenReplies(c.replies).length}
+                                </span>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openReportForm(c.id)}
+                              className="p-1 text-muted-foreground hover:text-foreground rounded"
+                              aria-label="신고"
+                            >
+                              <Flag className="size-3.5" />
+                            </button>
+                          </>
+                        )}
+                        {isOwn && !isEditing && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCommentId(c.id)
+                                setEditingContent(c.content)
+                              }}
+                              className="p-1 text-muted-foreground hover:text-foreground rounded"
+                              aria-label="수정"
+                            >
+                              <Pencil className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(c.id)}
+                              className="p-1 text-muted-foreground hover:text-destructive rounded"
+                              aria-label="삭제"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                       {!isModerated && c.mediaUrl && (
                         <div className="mt-2 rounded overflow-hidden border border-border max-w-[280px]">
                           {c.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) ? (
@@ -1233,10 +1313,9 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                           )}
                         </div>
                       )}
-                      {currentUserId && !isModerated && (
+                      {currentUserId && !isModerated && replyToCommentId === c.id && (
                         <div className="mt-2">
-                          {replyToCommentId === c.id ? (
-                            <div className="space-y-2">
+                          <div className="space-y-2">
                               <div className="flex gap-2 items-end">
                                 <textarea
                                   value={replyText}
@@ -1306,16 +1385,6 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                                 </div>
                               )}
                             </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => setReplyToCommentId(c.id)}
-                              className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground hover:text-primary"
-                            >
-                              <MessageCircle className="size-3.5" />
-                              답글
-                            </button>
-                          )}
                         </div>
                       )}
                       {reportCommentId === c.id && (
@@ -1481,8 +1550,66 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                                       <TextWithEmbedPreview text={r.content} />
                                     </div>
                                     )}
+                                    <div className="flex md:hidden items-center gap-1 mt-1">
+                                      {currentUserId && !isReplyModerated && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleToggleLike(r.id)}
+                                            className={`p-1 rounded ${replyLike.likedByMe ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                                            aria-label="좋아요"
+                                          >
+                                            <Heart
+                                              className={`size-3 ${replyLike.likedByMe ? "fill-current" : ""}`}
+                                            />
+                                          </button>
+                                          {replyLike.likeCount > 0 && (
+                                            <span className="text-[10px] font-mono">{replyLike.likeCount}</span>
+                                          )}
+                                          <button
+                                            type="button"
+                                            onClick={() => setReplyToCommentId(r.id)}
+                                            className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                            aria-label="답글"
+                                          >
+                                            <MessageCircle className="size-3" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => openReportForm(r.id)}
+                                            className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                            aria-label="신고"
+                                          >
+                                            <Flag className="size-3" />
+                                          </button>
+                                          {isOwnReply && !isEditingReply && !isReplyModerated && (
+                                            <>
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  setEditingCommentId(r.id)
+                                                  setEditingContent(r.content)
+                                                }}
+                                                className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                                aria-label="수정"
+                                              >
+                                                <Pencil className="size-3" />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() => handleDelete(r.id)}
+                                                className="p-1 text-muted-foreground hover:text-destructive rounded"
+                                                aria-label="삭제"
+                                              >
+                                                <Trash2 className="size-3" />
+                                              </button>
+                                            </>
+                                          )}
+                                        </>
+                                      )}
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-1 shrink-0">
+                                  <div className="hidden md:flex items-center gap-1 shrink-0">
                                     {currentUserId && !isReplyModerated && (
                                       <>
                                         <button
@@ -1498,6 +1625,14 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                                         {replyLike.likeCount > 0 && (
                                           <span className="text-[10px] font-mono">{replyLike.likeCount}</span>
                                         )}
+                                        <button
+                                          type="button"
+                                          onClick={() => setReplyToCommentId(r.id)}
+                                          className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                          aria-label="답글"
+                                        >
+                                          <MessageCircle className="size-3" />
+                                        </button>
                                         <button
                                           type="button"
                                           onClick={() => openReportForm(r.id)}
@@ -1533,9 +1668,8 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                                     )}
                                   </div>
                                 </div>
-                                {currentUserId && (
+                                {currentUserId && replyToCommentId === r.id && (
                                   <div className="ml-0">
-{replyToCommentId === r.id ? (
                                       <div className="space-y-2">
                                         <div className="flex gap-2 items-end">
                                           <textarea
@@ -1599,16 +1733,6 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                                           </div>
                                         )}
                                       </div>
-                                    ) : (
-                                      <button
-                                        type="button"
-                                        onClick={() => setReplyToCommentId(r.id)}
-                                        className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground hover:text-primary"
-                                      >
-                                        <MessageCircle className="size-3.5" />
-                                        답글
-                                      </button>
-                                    )}
                                   </div>
                                 )}
                                 {reportCommentId === r.id && (

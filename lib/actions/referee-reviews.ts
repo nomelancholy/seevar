@@ -2,6 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
+import { getAdminUserIds } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { type ContentStatus, Prisma } from "@prisma/client"
@@ -16,6 +17,7 @@ import {
   XP_REVIEW_REPLY_CREATE,
   XP_CONTINUITY_BONUS,
 } from "@/lib/utils/xp"
+import { getMatchDetailPath } from "@/lib/match-url"
 import { REFEREE_REVIEW_COMMENT_MAX_LENGTH } from "@/lib/constants"
 
 export type CreateRefereeReviewResult =
@@ -220,7 +222,7 @@ export async function reportRefereeReview(
 
   const review = await prisma.refereeReview.findUnique({
     where: { id: parsed.data.reviewId },
-    select: { id: true, comment: true, status: true },
+    select: { id: true, comment: true, status: true, matchId: true },
   })
   if (!review) return { ok: false, error: "평가를 찾을 수 없습니다." }
 
@@ -230,7 +232,7 @@ export async function reportRefereeReview(
   if (already) return { ok: false, error: "이미 신고한 평가입니다." }
 
   try {
-    await prisma.report.create({
+    const report = await prisma.report.create({
       data: {
         reporterId: user.id,
         reason: parsed.data.reason,
@@ -252,8 +254,38 @@ export async function reportRefereeReview(
           : {}),
       },
     })
+
+    // 관리자에게 심판 평가 신고 알림 발송
+    const adminIds = await getAdminUserIds()
+    if (adminIds.length > 0) {
+      const preview = (review.comment || "").slice(0, 80)
+      const reasonLabelMap: Record<string, string> = {
+        ABUSE: "욕설/비하",
+        SPAM: "스팸/홍보",
+        INAPPROPRIATE: "부적절한 내용",
+        FALSE_INFO: "허위 정보",
+      }
+      const reasonLabel = reasonLabelMap[parsed.data.reason] ?? parsed.data.reason
+
+      const link =
+        review.matchId != null
+          ? `/admin/reports?reviewId=${encodeURIComponent(parsed.data.reviewId)}`
+          : "/admin/reports"
+
+      await prisma.notification.createMany({
+        data: adminIds.map((adminId) => ({
+          userId: adminId,
+          type: "SYSTEM" as const,
+          content: `심판 평가 신고가 접수되었습니다. (사유: ${reasonLabel}, 내용: ${preview})`,
+          link,
+        })),
+      })
+    }
+
     revalidatePath("/matches")
     revalidatePath("/referees")
+    revalidatePath("/admin")
+    revalidatePath("/admin/reports")
     return { ok: true }
   } catch (e) {
     console.error("reportRefereeReview:", e)
@@ -301,7 +333,28 @@ export async function createRefereeReviewReply(
 
   const review = await prisma.refereeReview.findUnique({
     where: { id: reviewId },
-    select: { id: true, status: true, matchId: true },
+    select: {
+      id: true,
+      status: true,
+      matchId: true,
+      userId: true,
+      match: {
+        select: {
+          roundOrder: true,
+          round: {
+            select: {
+              slug: true,
+              league: {
+                select: {
+                  slug: true,
+                  season: { select: { year: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   if (!review) return { ok: false, error: "평가를 찾을 수 없습니다." }
   if (review.status !== "VISIBLE") return { ok: false, error: "해당 평가에는 답글을 달 수 없습니다." }
@@ -332,8 +385,37 @@ export async function createRefereeReviewReply(
       where: { id: user.id },
       data: { xp: { increment: XP_REVIEW_REPLY_CREATE } },
     })
+
+    // 원 작성자에게 답글 알림 전송
+    if (review.userId && review.userId !== user.id) {
+      const authorName = user.name?.trim() || "누군가"
+      const replyPreview = contentToSave.slice(0, 300)
+      let link: string | null = null
+      if (review.match) {
+        const basePath = getMatchDetailPath({
+          roundOrder: review.match.roundOrder,
+          round: review.match.round as {
+            slug: string
+            league: { slug: string; season: { year: number } }
+          },
+        })
+        link = `${basePath}${basePath.includes("?") ? "&" : "?"}scroll=referee-rating`
+      }
+      await prisma.notification.create({
+        data: {
+          userId: review.userId,
+          type: "REPLY",
+          content: `${authorName}님이 회원님의 심판 한줄평에 답글을 남겼습니다.`,
+          link: link ?? undefined,
+          replyContent: replyPreview || undefined,
+        },
+      })
+    }
+
+    revalidatePath("/")
     revalidatePath("/matches")
     revalidatePath("/referees")
+    revalidatePath("/my/notifications")
     revalidateTag(`match-reviews-${review.matchId}`)
     revalidateTag("archive-rounds")
     return { ok: true, replyId: reply.id }

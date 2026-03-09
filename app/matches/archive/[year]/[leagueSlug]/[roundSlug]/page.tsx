@@ -132,16 +132,25 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     role: string
     avg: number
     voteCount: number
-    matchForDisplay?: { homeName: string; awayName: string; matchPath: string; homeEmblemPath?: string | null; awayEmblemPath?: string | null }
+    matchForDisplay?: {
+      homeName: string
+      awayName: string
+      matchPath: string
+      homeEmblemPath?: string | null
+      awayEmblemPath?: string | null
+    }
     reviews: {
       id: string
       userName: string
+      userHandle?: string | null
+      userImage?: string | null
       teamName: string | null
       teamSlug: string | null
       teamEmblem: string | null
       likeCount: number
       comment: string
       matchLabel: string
+      rating: number
     }[]
   }
   let bestByRole: Partial<Record<string, RefereeCardPayload>> = {}
@@ -350,6 +359,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
             likeCount,
             comment: r.comment,
             matchLabel,
+            rating: r.rating,
           }
           if (cur) {
             cur.reviews.push(summary)
@@ -450,7 +460,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               avg: best.avg,
               voteCount: best.voteCount,
               matchForDisplay: best.matchForDisplay,
-              reviews: best.reviews,
+              reviews: best.reviews as RefereeCardPayload["reviews"],
             }
           }
           if (worst) {
@@ -462,7 +472,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               avg: worst.avg,
               voteCount: worst.voteCount,
               matchForDisplay: worst.matchForDisplay,
-              reviews: worst.reviews,
+              reviews: worst.reviews as RefereeCardPayload["reviews"],
             }
           }
         }
