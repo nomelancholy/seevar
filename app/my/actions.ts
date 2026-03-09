@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
 import { uploadToSpaces } from "@/lib/spaces"
@@ -33,8 +33,39 @@ export async function updateNickname(
     where: { id: user.id },
     data: { name: trimmed },
   })
+
+  // 닉네임 변경이 반영되어야 하는 캐시들 무효화
+  // 1) 내 정보 / 메인
   revalidatePath("/my")
   revalidatePath("/")
+
+  // 2) 이 사용자가 참여한 한줄평/답글이 포함된 경기별 리뷰 캐시
+  const [reviews, replies] = await Promise.all([
+    prisma.refereeReview.findMany({
+      where: { userId: user.id },
+      select: { matchId: true },
+    }),
+    prisma.refereeReviewReply.findMany({
+      where: { userId: user.id },
+      select: { review: { select: { matchId: true } } },
+    }),
+  ])
+
+  const matchIds = new Set<string>()
+  for (const r of reviews) {
+    if (r.matchId) matchIds.add(r.matchId)
+  }
+  for (const rr of replies) {
+    const id = rr.review?.matchId
+    if (id) matchIds.add(id)
+  }
+  for (const matchId of matchIds) {
+    revalidateTag(`match-reviews-${matchId}`)
+  }
+
+  // 3) 경기 기록 아카이브의 라운드 베스트/워스트 캐시
+  revalidateTag("archive-rounds")
+
   return { ok: true }
 }
 

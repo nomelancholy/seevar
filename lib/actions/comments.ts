@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
@@ -27,6 +27,10 @@ export async function createComment(
     parentId?: string | null
     mediaUrl?: string | null
     forceSubmitAfterModeration?: boolean
+    poll?: {
+      title: string
+      options: string[]
+    } | null
   }
 ): Promise<CreateCommentResult> {
   const user = await getCurrentUser()
@@ -48,6 +52,22 @@ export async function createComment(
   const forceSubmit = Boolean(input.forceSubmitAfterModeration)
   let content: string
   let moderation: { flagged: boolean; category_scores: Record<string, number> | null } | undefined
+
+  // 투표 생성용 데이터 (유효한 경우에만 사용)
+  const rawPoll = input.poll
+  const pollToCreate =
+    rawPoll && !input.parentId
+      ? (() => {
+          const title = rawPoll.title?.trim() ?? ""
+          const options = (rawPoll.options ?? [])
+            .map((o) => o.trim())
+            .filter((o) => o.length > 0)
+          if (!title || options.length < 2) return null
+          // 옵션 개수 제한 (최대 6개)
+          const limited = options.slice(0, 6)
+          return { title, options: limited }
+        })()
+      : null
 
   if (forceSubmit) {
     content = rawContent
@@ -83,6 +103,20 @@ export async function createComment(
         }),
       } as Parameters<typeof prisma.comment.create>[0]["data"],
     })
+    if (pollToCreate) {
+      await prisma.poll.create({
+        data: {
+          commentId: comment.id,
+          title: pollToCreate.title,
+          options: {
+            create: pollToCreate.options.map((label, idx) => ({
+              label,
+              order: idx,
+            })),
+          },
+        },
+      })
+    }
     await prisma.moment.update({
       where: { id: momentId },
       data: { commentCount: { increment: 1 } },
@@ -143,6 +177,8 @@ export async function createComment(
 
     revalidatePath("/")
     revalidatePath("/matches")
+    revalidateTag("match-details")
+    revalidateTag("archive-rounds")
     return { ok: true, commentId: comment.id }
   } catch (e) {
     console.error("createComment:", e)
@@ -184,6 +220,8 @@ export async function updateComment(commentId: string, content: string): Promise
     revalidatePath("/")
     revalidatePath("/matches")
     revalidatePath("/admin/reports")
+    revalidateTag("match-details")
+    revalidateTag("archive-rounds")
     return { ok: true }
   } catch (e) {
     console.error("updateComment:", e)
@@ -234,6 +272,8 @@ export async function deleteComment(commentId: string): Promise<DeleteCommentRes
     })
     revalidatePath("/")
     revalidatePath("/matches")
+    revalidateTag("match-details")
+    revalidateTag("archive-rounds")
     return { ok: true }
   } catch (e) {
     console.error("deleteComment:", e)

@@ -27,6 +27,10 @@ type MomentInput = {
   startMinuteInPeriod?: number | null
   endMinute?: number | null
   mediaUrl?: string | null
+  poll?: {
+    title: string
+    options: string[]
+  } | null
 }
 
 export async function createMoment(
@@ -60,6 +64,20 @@ export async function createMoment(
   const duration =
     start != null && end != null && end >= start ? end - start : 0
 
+  const rawPoll = input.poll
+  const pollToCreate =
+    rawPoll
+      ? (() => {
+          const title = rawPoll.title?.trim() ?? ""
+          const options = (rawPoll.options ?? [])
+            .map((o) => o.trim())
+            .filter((o) => o.length > 0)
+          if (!title || options.length < 2) return null
+          const limited = options.slice(0, 6)
+          return { title, options: limited }
+        })()
+      : null
+
   try {
     const titleRaw = input.title?.trim() || null
     const descriptionRaw = input.description?.trim() || null
@@ -83,19 +101,33 @@ export async function createMoment(
     })
     // 생성 시 작성한 내용·첨부 미디어를 첫 댓글로 등록 (필터 적용된 설명 사용)
     const mediaUrlTrimmed = input.mediaUrl?.trim() || null
-    const hasFirstComment = (descriptionCleaned ?? "") !== "" || mediaUrlTrimmed
+    const hasFirstComment =
+      (descriptionCleaned ?? "") !== "" || mediaUrlTrimmed || pollToCreate
     if (hasFirstComment) {
-      await prisma.comment.create({
+      const comment = await prisma.comment.create({
         data: {
           momentId: moment.id,
           userId: user.id,
           content: descriptionCleaned ?? "",
-          // Comment.mediaUrl 추가 후 prisma generate 하면 타입에 반영됨
           mediaUrl: mediaUrlTrimmed,
           parentId: null,
           status: "VISIBLE",
         } as { momentId: string; userId: string; content: string; mediaUrl?: string | null; parentId: null; status: "VISIBLE" },
       })
+      if (pollToCreate) {
+        await prisma.poll.create({
+          data: {
+            commentId: comment.id,
+            title: pollToCreate.title,
+            options: {
+              create: pollToCreate.options.map((label, idx) => ({
+                label,
+                order: idx,
+              })),
+            },
+          },
+        })
+      }
     }
     // duration(정렬용) 및 첫 댓글 시 commentCount 한 번에 반영
     const updateData: { duration?: number; commentCount?: number } = {}
@@ -112,6 +144,7 @@ export async function createMoment(
       data: { xp: { increment: XP_MOMENT_CREATE } },
     })
     revalidateTag("match-details")
+    revalidateTag("archive-rounds")
     revalidatePath("/matches")
     revalidatePath("/")
     // 경기 기록 페이지에서 쟁점 카드가 바로 보이도록 해당 경기 상세 경로 명시적 무효화
@@ -212,6 +245,8 @@ export async function toggleMomentSeeVar(momentId: string): Promise<ToggleMoment
         ]
       : []),
   ])
+  revalidateTag("match-details")
+  revalidateTag("archive-rounds")
   revalidatePath("/")
   revalidatePath("/matches")
   return { ok: true, seeVarCount: moment.seeVarCount + 1, alreadyClicked: false }

@@ -2,10 +2,11 @@
 
 import { useRef, useState, useEffect, startTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, X, ImageIcon, Video, ChevronDown } from "lucide-react"
+import { Loader2, X, ImageIcon, Video, ChevronDown, BarChart3 } from "lucide-react"
 import { createMoment } from "@/lib/actions/moments"
 import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/constants/upload"
+import { PollEditorDialog } from "@/components/poll/PollEditorDialog"
 
 type Props = {
   open: boolean
@@ -89,6 +90,9 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
   const [pending, setPending] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
+  const [pollTitle, setPollTitle] = useState("")
+  const [pollOptions, setPollOptions] = useState<string[]>([])
+  const [pollOpen, setPollOpen] = useState(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
   const periodDropdownRef = useRef<HTMLDivElement>(null)
@@ -218,6 +222,8 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
         }
         mediaUrl = uploadResult.url
       }
+      const hasPollData =
+        pollTitle.trim().length > 0 || pollOptions.some((o) => o.trim().length > 0)
       const result = await createMoment(matchId, {
         description: description.trim() || null,
         startMinute: startValue ?? null,
@@ -225,12 +231,21 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
         startMinuteInPeriod: startMinuteNum ?? null,
         endMinute: null,
         mediaUrl,
+        poll: hasPollData
+          ? {
+              title: pollTitle,
+              options: pollOptions,
+            }
+          : undefined,
       })
       if (result.ok) {
         setStartMinute("")
         setStartPeriod("first")
         setDescription("")
         clearAttachment()
+        setPollTitle("")
+        setPollOptions([])
+        setPollOpen(false)
         setTimeError(null)
         onClose()
         // 서버 revalidate 반영 후 경기 기록 페이지 RSC 갱신
@@ -442,6 +457,34 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
                 </div>
               </div>
             )}
+            {pollTitle && pollOptions.length > 0 ? (
+              <div className="mt-3 border border-border rounded bg-muted/40 flex items-center gap-3 px-3 py-2">
+                <div className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center">
+                  <BarChart3 className="size-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-mono text-muted-foreground uppercase">
+                    투표
+                  </p>
+                  <p className="text-sm font-mono text-foreground truncate">{pollTitle}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPollOpen(true)}
+                  className="text-xs font-mono text-muted-foreground hover:text-primary"
+                >
+                  수정
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPollOpen(true)}
+                className="mt-2 text-xs font-mono text-muted-foreground hover:text-primary"
+              >
+                + 투표 만들기
+              </button>
+            )}
             {fileSizeError && (
               <p className="mt-2 text-[10px] font-mono text-destructive" role="alert">
                 {fileSizeError}
@@ -470,6 +513,16 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
           </div>
         </form>
       </div>
+      <PollEditorDialog
+        open={pollOpen}
+        onOpenChange={setPollOpen}
+        title={pollTitle}
+        options={pollOptions}
+        onSave={(t, opts) => {
+          setPollTitle(t)
+          setPollOptions(opts)
+        }}
+      />
     </div>
   )
 }

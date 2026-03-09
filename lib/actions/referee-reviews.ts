@@ -142,6 +142,7 @@ export async function createRefereeReview(
     revalidatePath("/referees")
     revalidatePath("/teams")
     revalidateTag(`match-reviews-${matchId}`)
+    revalidateTag("archive-rounds")
     return { ok: true, reviewId: review.id }
   } catch (e) {
     console.error("createRefereeReview:", e)
@@ -334,6 +335,7 @@ export async function createRefereeReviewReply(
     revalidatePath("/matches")
     revalidatePath("/referees")
     revalidateTag(`match-reviews-${review.matchId}`)
+    revalidateTag("archive-rounds")
     return { ok: true, replyId: reply.id }
   } catch (e) {
     console.error("createRefereeReviewReply:", e)

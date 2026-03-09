@@ -32,6 +32,28 @@ export async function GET(_request: Request, { params }: { params: Params }) {
           status: { in: ["VISIBLE", "HIDDEN", "PENDING_REAPPROVAL"] },
         },
         include: {
+          poll: {
+            include: {
+              options: {
+                include: {
+                  votes: {
+                    select: {
+                      userId: true,
+                      user: {
+                        select: {
+                          supportingTeamId: true,
+                          supportingTeam: {
+                            select: { id: true, name: true, emblemPath: true },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+                orderBy: { order: "asc" },
+              },
+            },
+          },
           author: {
             select: {
               id: true,

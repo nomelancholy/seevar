@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ImagePlus, Heart, Loader2, MessageCircle, Pencil, Flag, Trash2, X, Share2 } from "lucide-react"
+import { ImagePlus, Heart, Loader2, MessageCircle, Pencil, Flag, Trash2, X, Share2, BarChart3 } from "lucide-react"
 import {
   createComment,
   updateComment,
@@ -34,6 +34,8 @@ import { CSS } from "@dnd-kit/utilities"
 import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { ModerationConfirmDialog } from "@/components/moderation/ModerationConfirmDialog"
+import { votePoll } from "@/lib/actions/polls"
+import { PollEditorDialog } from "@/components/poll/PollEditorDialog"
 import { UserProfileLink } from "@/components/user/UserProfileLink"
 
 type HotMomentItem = {
@@ -70,6 +72,22 @@ type CommentRow = {
   status?: string
   filterReason?: string | null
   reportCount?: number
+  poll?: {
+    id: string
+    title: string
+    options: {
+      id: string
+      label: string
+      order: number
+      votes: {
+        userId: string
+        user?: {
+          supportingTeamId?: string | null
+          supportingTeam?: { id: string; name: string; emblemPath: string | null } | null
+        } | null
+      }[]
+    }[]
+  } | null
 }
 
 /** 숨김 처리된 글 표시 문구 */
@@ -203,6 +221,9 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
   const [commentText, setCommentText] = useState("")
   const [attachments, setAttachments] = useState<AttachedItem[]>([])
   const [isDraggingOver, setIsDraggingOver] = useState(false)
+  const [pollTitle, setPollTitle] = useState("")
+  const [pollOptions, setPollOptions] = useState<string[]>([])
+  const [pollOpen, setPollOpen] = useState(false)
   const [submitPending, setSubmitPending] = useState(false)
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
   const [editingContent, setEditingContent] = useState("")
@@ -212,6 +233,8 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
   const [replyPreviewUrl, setReplyPreviewUrl] = useState<string | null>(null)
   const [replyPending, setReplyPending] = useState(false)
   const [seeVarPending, setSeeVarPending] = useState(false)
+  const [votingPollId, setVotingPollId] = useState<string | null>(null)
+  const [revotePollId, setRevotePollId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [reportCommentId, setReportCommentId] = useState<string | null>(null)
   const [reportReason, setReportReason] = useState("ABUSE")
@@ -344,9 +367,20 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
     const textToSend = commentText.trim()
     setCommentText("")
     try {
-      const result = await createComment(detail.id, { content: textToSend })
+      const hasPollData =
+        pollTitle.trim().length > 0 || pollOptions.some((o) => o.trim().length > 0)
+      const poll = hasPollData
+        ? {
+            title: pollTitle,
+            options: pollOptions,
+          }
+        : null
+      const result = await createComment(detail.id, { content: textToSend, poll })
       if (result.ok) {
         refetchDetail(detail.id, setDetail)
+        setPollTitle("")
+        setPollOptions([])
+        setPollOpen(false)
       } else if ("code" in result && result.code === "MODERATION_WARNING") {
         setCommentModerationScores(result.scores)
         setCommentModerationFlagged(result.flagged)
@@ -361,7 +395,7 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
       setSubmitPending(false)
       submitLockRef.current = false
     }
-  }, [detail?.id, detail?.currentUserId, commentText])
+  }, [detail?.id, detail?.currentUserId, commentText, pollOpen, pollTitle, pollOptions])
 
   const handleCommentModerationForceSubmit = useCallback(async () => {
     if (!commentModerationPayload) return
@@ -1015,6 +1049,190 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                           )}
                         </div>
                       )}
+                      {c.poll && (
+                        <div className="mt-3 border border-border bg-black/30 rounded p-3">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <p className="text-xs md:text-sm font-mono text-muted-foreground uppercase tracking-widest">
+                              투표 · {c.poll.title}
+                            </p>
+                            <span className="text-xs md:text-sm font-mono text-muted-foreground">
+                              총{" "}
+                              {c.poll.options.reduce(
+                                (sum, opt) => sum + (opt.votes?.length ?? 0),
+                                0
+                              )}{" "}
+                              표
+                            </span>
+                          </div>
+                          {detail?.currentUserId ? (
+                            (() => {
+                              const totalVotes = c.poll!.options.reduce(
+                                (sum, opt) => sum + (opt.votes?.length ?? 0),
+                                0
+                              )
+                              const myOptionId =
+                                c.poll!.options.find((opt) =>
+                                  opt.votes?.some(
+                                    (v) => v.userId === detail.currentUserId
+                                  )
+                                )?.id ?? null
+                              const hasVoted = Boolean(myOptionId)
+                              return (
+                                <div className="space-y-2">
+                                  {c.poll!.options.map((opt) => {
+                                    const count = opt.votes?.length ?? 0
+                                    const percent =
+                                      totalVotes > 0
+                                        ? Math.round((count / totalVotes) * 100)
+                                        : 0
+                                    const teamMap = new Map<
+                                      string,
+                                      {
+                                        teamId: string | null
+                                        name: string
+                                        emblemPath: string | null
+                                        count: number
+                                      }
+                                    >()
+                                    for (const v of opt.votes ?? []) {
+                                      const team = v.user?.supportingTeam
+                                      const key = team?.id ?? "none"
+                                      const entry = teamMap.get(key)
+                                      if (entry) entry.count += 1
+                                      else {
+                                        teamMap.set(key, {
+                                          teamId: team?.id ?? null,
+                                          name: team?.name ?? "기타/무소속",
+                                          emblemPath: team?.emblemPath ?? null,
+                                          count: 1,
+                                        })
+                                      }
+                                    }
+                                    const teams = Array.from(teamMap.values()).sort(
+                                      (a, b) => b.count - a.count
+                                    )
+                                    const canRevote = hasVoted && revotePollId === c.poll!.id
+                                    const canClick = !hasVoted || canRevote
+                                    return (
+                                      <div
+                                        key={opt.id}
+                                        className="border border-border/60 rounded px-2 py-1.5 space-y-1"
+                                      >
+                                        <p className="text-xs md:text-sm font-mono text-foreground">
+                                          {opt.label}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <button
+                                            type="button"
+                                            onClick={async () => {
+                                              if (!detail?.id) return
+                                              if (!canClick) return
+                                              // 최초 투표 또는 재투표 모드에서의 즉시 반영
+                                              setActionError(null)
+                                              setVotingPollId(c.poll!.id)
+                                              const result = await votePoll(
+                                                c.poll!.id,
+                                                opt.id
+                                              )
+                                              setVotingPollId(null)
+                                              if (!result.ok) {
+                                                setActionError(result.error)
+                                              } else {
+                                                setRevotePollId(null)
+                                                refetchDetail(detail.id, setDetail)
+                                              }
+                                            }}
+                                            disabled={
+                                              votingPollId === c.poll!.id || !canClick
+                                            }
+                                            className={`flex-1 text-left rounded border px-2 py-1 text-xs md:text-sm font-mono disabled:opacity-50 ${
+                                              hasVoted
+                                                ? opt.id === myOptionId
+                                                  ? "border-primary text-primary bg-primary/10"
+                                                  : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
+                                                : "border-border hover:border-primary hover:text-primary"
+                                            }`}
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <div className="flex-1 h-2 bg-zinc-900 rounded overflow-hidden">
+                                                <div
+                                                  className={`h-2 ${
+                                                    opt.id === myOptionId
+                                                      ? "bg-primary"
+                                                      : "bg-muted-foreground/40"
+                                                  }`}
+                                                  style={{
+                                                    width:
+                                                      totalVotes > 0
+                                                        ? `${percent}%`
+                                                        : "0%",
+                                                  }}
+                                                />
+                                              </div>
+                                              <span className="text-xs font-mono text-muted-foreground">
+                                                {percent}% ({count})
+                                              </span>
+                                            </div>
+                                          </button>
+                                        </div>
+                                        {hasVoted && teams.length > 0 && (
+                                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                                            <span className="text-[9px] md:text-[10px] font-mono text-muted-foreground">
+                                              응원팀별
+                                            </span>
+                                            {teams.map((t) => (
+                                              <span
+                                                key={t.teamId ?? t.name}
+                                                className="inline-flex items-center gap-1 text-[9px] md:text-[10px] font-mono text-muted-foreground"
+                                              >
+                                                {t.emblemPath ? (
+                                                  <EmblemImage
+                                                    src={t.emblemPath}
+                                                    alt={t.name}
+                                                    width={16}
+                                                    height={16}
+                                                    className="w-4 h-4 rounded-full border border-border object-contain bg-black"
+                                                  />
+                                                ) : (
+                                                  <span className="w-4 h-4 rounded-full border border-border bg-muted-foreground/30" />
+                                                )}
+                                                <span>{t.count}</span>
+                                              </span>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  })}
+                                  {hasVoted && (
+                                    <div className="pt-2 flex items-center justify-end gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setRevotePollId(
+                                            revotePollId === c.poll!.id ? null : c.poll!.id
+                                          )
+                                        }
+                                        className={`px-2 py-1 rounded text-[10px] md:text-xs font-mono border ${
+                                          revotePollId === c.poll!.id
+                                            ? "border-primary text-primary bg-primary/10"
+                                            : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                                        }`}
+                                      >
+                                        {revotePollId === c.poll!.id ? "투표 취소" : "다시 투표하기"}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })()
+                          ) : (
+                            <p className="text-[10px] font-mono text-muted-foreground">
+                              로그인 후 투표에 참여할 수 있습니다.
+                            </p>
+                          )}
+                        </div>
+                      )}
                       {currentUserId && !isModerated && (
                         <div className="mt-2">
                           {replyToCommentId === c.id ? (
@@ -1560,8 +1778,44 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
               </DndContext>
             )}
           </div>
+          {pollTitle && pollOptions.length > 0 ? (
+            <div className="mt-3 border border-border rounded bg-muted/40 flex items-center gap-3 px-3 py-2">
+              <div className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center">
+                <BarChart3 className="size-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-mono text-muted-foreground uppercase">투표</p>
+                <p className="text-sm font-mono text-foreground truncate">{pollTitle}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPollOpen(true)}
+                className="text-xs font-mono text-muted-foreground hover:text-primary"
+              >
+                수정
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setPollOpen(true)}
+              className="mt-2 text-xs font-mono text-muted-foreground hover:text-primary"
+            >
+              + 투표 만들기
+            </button>
+          )}
         </div>
       </div>
+      <PollEditorDialog
+        open={pollOpen}
+        onOpenChange={setPollOpen}
+        title={pollTitle}
+        options={pollOptions}
+        onSave={(t, opts) => {
+          setPollTitle(t)
+          setPollOptions(opts)
+        }}
+      />
       <ModerationConfirmDialog
         open={commentModerationOpen}
         onOpenChange={setCommentModerationOpen}
