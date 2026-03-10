@@ -908,7 +908,7 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                         )}
                       </div>
                       {c.author?.supportingTeam?.emblemPath && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                        <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
                           <Image
                             src={c.author.supportingTeam.emblemPath}
                             alt=""
@@ -1479,7 +1479,7 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                                       )}
                                     </div>
                                     {r.author?.supportingTeam?.emblemPath && (
-                                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                                      <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
                                         <Image
                                           src={r.author.supportingTeam.emblemPath}
                                           alt=""
