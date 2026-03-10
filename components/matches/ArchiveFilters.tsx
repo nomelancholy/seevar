@@ -52,8 +52,13 @@ export function ArchiveFilters({
     router.push(`/matches/archive/${currentYear}/${currentLeagueSlug}/${roundSlug}`)
   }
 
-  const leagueValue = leagues.length ? currentLeagueSlug : ""
-  const roundValue = rounds.length ? currentRoundSlug : ""
+  // URL slug가 옵션과 대소문자 등으로 다를 수 있으므로, 옵션 목록에서 매칭되는 값 사용
+  const leagueValue = leagues.length
+    ? (leagues.find((l) => l.slug.toLowerCase() === currentLeagueSlug.toLowerCase())?.slug ?? currentLeagueSlug)
+    : ""
+  const roundValue = rounds.length
+    ? (rounds.find((r) => r.slug === currentRoundSlug)?.slug ?? currentRoundSlug)
+    : ""
 
   return (
     <div className="w-full max-w-xl">
