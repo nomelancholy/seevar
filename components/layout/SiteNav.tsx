@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { User, Menu, Youtube, Instagram } from "lucide-react";
+import { User, Menu, Youtube, Instagram, BookOpen } from "lucide-react";
 import { getLevelFromXp, getXpProgressPercent } from "@/lib/utils/xp";
 import {
   Sheet,
@@ -29,6 +29,7 @@ export type NavUser = {
 
 const SEEVAR_YOUTUBE_URL = "https://www.youtube.com/@seevar.online"
 const SEEVAR_INSTAGRAM_URL = "https://www.instagram.com/seevar.online"
+const IFAB_LAWS_URL = "https://www.theifab.com/"
 
 type SiteNavProps = { user: NavUser | null; unreadNotificationCount?: number };
 
@@ -95,6 +96,15 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
                 aria-label="SEE VAR Instagram"
               >
                 <Instagram className="size-5" />
+              </a>
+              <a
+                href={IFAB_LAWS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/50 transition-colors"
+                aria-label="IFAB Laws of the Game"
+              >
+                <BookOpen className="size-5" />
               </a>
             </div>
           </SheetContent>
@@ -181,7 +191,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
         ))}
       </div>
 
-      {/* 데스크톱: 유튜브·인스타 아이콘 + 알림 + 로그인 시 Supporting / 비로그인 시 LOG IN */}
+      {/* 데스크톱: 유튜브·인스타·IFAB 아이콘 + 알림 + 로그인 시 Supporting / 비로그인 시 LOG IN */}
       <div className="hidden md:flex items-center shrink-0 md:ml-6 lg:ml-8 gap-1">
         <a
           href={SEEVAR_YOUTUBE_URL}
@@ -200,6 +210,15 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
           aria-label="SEE VAR Instagram"
         >
           <Instagram className="size-5" />
+        </a>
+        <a
+          href={IFAB_LAWS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={socialIconClass}
+          aria-label="IFAB Laws of the Game"
+        >
+          <BookOpen className="size-5" />
         </a>
         {user ? (
           <>
