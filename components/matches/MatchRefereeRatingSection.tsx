@@ -1075,7 +1075,7 @@ export function MatchRefereeRatingSection({
                                 )}
                               </div>
                               {rev.fanTeam?.emblemPath && (
-                                <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow z-10 overflow-hidden">
+                                <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-white rounded-full border border-zinc-200 flex items-center justify-center p-0.5 shadow z-10 overflow-hidden">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
                                     src={rev.fanTeam.emblemPath}
@@ -1181,7 +1181,7 @@ export function MatchRefereeRatingSection({
                                         )}
                                       </div>
                                       {rp.user.supportingTeam?.emblemPath && (
-                                        <div className="absolute -bottom-0.5 -right-2 w-4 h-4 bg-background rounded-full border border-border flex items-center justify-center p-px shadow z-10 overflow-hidden">
+                                        <div className="absolute -bottom-0.5 -right-2 w-4 h-4 bg-white rounded-full border border-zinc-200 flex items-center justify-center p-px shadow z-10 overflow-hidden">
                                           {/* eslint-disable-next-line @next/next/no-img-element */}
                                           <img
                                             src={rp.user.supportingTeam.emblemPath}

@@ -159,7 +159,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
                 )}
               </div>
               {user?.supportingTeam?.emblemPath && (
-                <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-white rounded-full border border-zinc-200 flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
                   <Image
                     src={user.supportingTeam.emblemPath}
                     alt=""
@@ -263,7 +263,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
                       )}
                     </div>
                     {user.supportingTeam?.emblemPath && (
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full border border-border flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full border border-zinc-200 flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
                         <Image
                           src={user.supportingTeam.emblemPath}
                           alt=""

@@ -162,7 +162,7 @@ export function RoundRefereeBestWorstSection({
                         )}
                       </div>
                       {fb.teamEmblem && (
-                        <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-white rounded-full border border-zinc-900 flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                        <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-white rounded-full border border-zinc-200 flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={fb.teamEmblem} alt={fb.teamName ?? ""} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
                         </div>
