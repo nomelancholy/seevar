@@ -132,6 +132,8 @@ export default async function MatchesArchivePage({ params }: { params: Params })
     role: string
     avg: number
     voteCount: number
+    /** 같은 경기·같은 역할·동일 평점인 다른 심판 (이름, 슬러그) */
+    peerRefs?: { name: string; slug: string }[]
     matchForDisplay?: {
       homeName: string
       awayName: string
@@ -306,6 +308,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           refereeSlug: string
           name: string
           role: string
+          matchId: string
           sum: number
           count: number
           homeSum: number
@@ -379,6 +382,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               refereeSlug: (r.referee as { slug: string }).slug ?? r.refereeId,
               name: r.referee.name,
               role: r.role,
+              matchId: r.matchId,
               sum: r.rating,
               count: 1,
               homeSum: isHomeFan ? r.rating : 0,
@@ -408,6 +412,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               refereeSlug: (r.referee as { slug: string }).slug ?? r.refereeId,
               name: r.referee.name,
               role: r.role,
+              matchId: r.matchId,
               sum: r.rating,
               count: 1,
               homeSum: isHomeFan ? r.rating : 0,
@@ -425,6 +430,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         refereeSlug: v.refereeSlug,
         name: v.name,
         role: v.role,
+        matchId: v.matchId,
         avg: v.count > 0 ? v.sum / v.count : 0,
         voteCount: v.count,
         matchForDisplay: v.matchForDisplay,
@@ -467,6 +473,12 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           const best = byBest[0]
           const worst = byWorst[0]
           if (best) {
+            const bestPeers = byRole.filter(
+              (s) =>
+                s.refereeId !== best.refereeId &&
+                s.matchId === best.matchId &&
+                Math.abs(s.avg - best.avg) < 1e-6,
+            )
             bestByRole[role] = {
               refereeId: best.refereeId,
               slug: best.refereeSlug,
@@ -474,11 +486,21 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               role: best.role,
               avg: best.avg,
               voteCount: best.voteCount,
+              peerRefs:
+                bestPeers.length > 0
+                  ? bestPeers.map((p) => ({ name: p.name, slug: p.refereeSlug }))
+                  : undefined,
               matchForDisplay: best.matchForDisplay,
               reviews: best.reviews as RefereeCardPayload["reviews"],
             }
           }
           if (worst) {
+            const worstPeers = byRole.filter(
+              (s) =>
+                s.refereeId !== worst.refereeId &&
+                s.matchId === worst.matchId &&
+                Math.abs(s.avg - worst.avg) < 1e-6,
+            )
             worstByRole[role] = {
               refereeId: worst.refereeId,
               slug: worst.refereeSlug,
@@ -486,6 +508,10 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               role: worst.role,
               avg: worst.avg,
               voteCount: worst.voteCount,
+              peerRefs:
+                worstPeers.length > 0
+                  ? worstPeers.map((p) => ({ name: p.name, slug: p.refereeSlug }))
+                  : undefined,
               matchForDisplay: worst.matchForDisplay,
               reviews: worst.reviews as RefereeCardPayload["reviews"],
             }

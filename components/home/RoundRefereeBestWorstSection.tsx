@@ -42,6 +42,8 @@ export type RefereeCardData = {
   role: string;
   avg: number;
   voteCount: number;
+  /** 같은 경기·같은 역할·동일 평점인 다른 심판 (이름, 슬러그) */
+  peerRefs?: { name: string; slug: string }[];
   matchForDisplay?: {
     homeName: string;
     awayName: string;
@@ -103,16 +105,27 @@ export function RoundRefereeBestWorstSection({
       ? "bg-[#00ff41] text-black"
       : "bg-red-600 text-white";
     const hoverAccent = isBest ? "hover:text-[#00ff41]" : "hover:text-red-500";
+    const allRefs = [
+      { name: data.name, slug: data.slug || data.refereeId },
+      ...(data.peerRefs ?? []),
+    ].sort((a, b) => a.name.localeCompare(b.name, "ko"));
     return (
       <div className="ledger-surface p-4 md:p-6 border border-border min-w-0">
         <div className="flex justify-between items-start mb-6">
           <div className="min-w-0 flex-1">
-            <Link
-              href={`/referees/${data.slug || data.refereeId}`}
-              className={`text-xl md:text-2xl font-black uppercase leading-none ${hoverAccent} transition-colors not-italic`}
-            >
-              {data.name}
-            </Link>
+            <span className="text-xl md:text-2xl font-black uppercase leading-none not-italic">
+              {allRefs.map((ref, i) => (
+                <span key={ref.slug}>
+                  {i > 0 && ", "}
+                  <Link
+                    href={`/referees/${ref.slug}`}
+                    className={`${hoverAccent} transition-colors`}
+                  >
+                    {ref.name}
+                  </Link>
+                </span>
+              ))}
+            </span>
             <div className="mt-3 flex items-center gap-2">
               <span className="bg-zinc-800 text-white px-2 py-0.5 text-[10px] md:text-xs font-bold font-mono">
                 {ROLE_LABEL[data.role] ?? data.role}

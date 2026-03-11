@@ -6,6 +6,7 @@ import { getMatchDetailPathWithBack } from "@/lib/match-url"
 import { RefereeRatingSection } from "@/components/referees/RefereeRatingSection"
 import { RefereeMatchRow } from "@/components/referees/RefereeMatchRow"
 import { RefereeSectionWithTeamExpand } from "@/components/referees/RefereeSectionWithTeamExpand"
+import { RefereeDetailBackLink } from "@/components/referees/RefereeDetailBackLink"
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -338,15 +339,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
   return (
     <main className="py-8 md:py-12 max-w-4xl mx-auto">
       <div className="mb-6">
-        <Link
-          href={backHref}
-          className="flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          뒤로 가기
-        </Link>
+        <RefereeDetailBackLink fallbackHref={backHref} />
       </div>
 
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">

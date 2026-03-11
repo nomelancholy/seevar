@@ -70,6 +70,8 @@ type RefereeCardPayload = {
   role: string
   avg: number
   voteCount: number
+  /** 같은 경기·같은 역할·동일 평점인 다른 심판 (이름, 슬러그) */
+  peerRefs?: { name: string; slug: string }[]
   matchForDisplay?: {
     homeName: string
     awayName: string
@@ -262,6 +264,7 @@ export default async function HomePage() {
           slug: string
           name: string
           role: string
+          matchId: string
           sum: number
           count: number
           homeSum: number
@@ -329,6 +332,7 @@ export default async function HomePage() {
             slug: (r.referee as { slug: string }).slug,
             name: r.referee.name,
             role: r.role,
+            matchId: r.matchId,
             sum: r.rating,
             count: 1,
             homeSum: isHomeFan ? r.rating : 0,
@@ -346,6 +350,7 @@ export default async function HomePage() {
         slug: v.slug,
         name: v.name,
         role: v.role,
+        matchId: v.matchId,
         avg: v.count > 0 ? v.sum / v.count : 0,
         voteCount: v.count,
         matchForDisplay: v.matchForDisplay,
@@ -394,6 +399,12 @@ export default async function HomePage() {
               rating: fb.rating,
             }))
           if (best) {
+            const bestPeers = byRole.filter(
+              (s) =>
+                s.id !== best.id &&
+                s.matchId === best.matchId &&
+                Math.abs(s.avg - best.avg) < 1e-6,
+            )
             bestByRole[role] = {
               refereeId: best.id,
               slug: best.slug,
@@ -401,11 +412,21 @@ export default async function HomePage() {
               role: best.role,
               avg: best.avg,
               voteCount: best.voteCount,
+              peerRefs:
+                bestPeers.length > 0
+                  ? bestPeers.map((p) => ({ name: p.name, slug: p.slug }))
+                  : undefined,
               matchForDisplay: best.matchForDisplay,
               reviews: toReviews(best.feedbacks),
             }
           }
           if (worst) {
+            const worstPeers = byRole.filter(
+              (s) =>
+                s.id !== worst.id &&
+                s.matchId === worst.matchId &&
+                Math.abs(s.avg - worst.avg) < 1e-6,
+            )
             worstByRole[role] = {
               refereeId: worst.id,
               slug: worst.slug,
@@ -413,6 +434,10 @@ export default async function HomePage() {
               role: worst.role,
               avg: worst.avg,
               voteCount: worst.voteCount,
+              peerRefs:
+                worstPeers.length > 0
+                  ? worstPeers.map((p) => ({ name: p.name, slug: p.slug }))
+                  : undefined,
               matchForDisplay: worst.matchForDisplay,
               reviews: toReviews(worst.feedbacks),
             }
