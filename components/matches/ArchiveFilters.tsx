@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ChevronDown } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { ChevronDown, Loader2 } from "lucide-react"
 
 type Season = { year: number; name: string }
 type League = { slug: string; name: string }
@@ -32,24 +32,39 @@ export function ArchiveFilters({
   currentRoundSlug,
 }: Props) {
   const router = useRouter()
+  const pathname = usePathname()
   const [open, setOpen] = useState<"season" | "league" | "round" | null>(null)
+  const [isNavigating, setIsNavigating] = useState(false)
+  const pathWhenStartedRef = useRef(pathname)
+
+  useEffect(() => {
+    if (isNavigating && pathname !== pathWhenStartedRef.current) {
+      pathWhenStartedRef.current = pathname
+      setIsNavigating(false)
+    }
+  }, [pathname, isNavigating])
 
   function updateSeason(year: number) {
     const y = String(year)
-    // 시즌 변경 시에는 현재 리그/라운드를 유지하고,
-    // 존재하지 않을 경우 서버 쪽 redirect 로직이 유효한 리그/라운드로 보내도록 맡긴다.
+    pathWhenStartedRef.current = pathname
+    setIsNavigating(true)
+    setOpen(null)
     router.push(`/matches/archive/${y}/${currentLeagueSlug}/${currentRoundSlug}`)
   }
 
   function updateLeague(leagueSlug: string) {
     if (!leagueSlug) return
-    // 리그 변경 시에는 현재 라운드를 유지하고,
-    // 해당 리그에 라운드가 없거나 roundSlug 가 없으면 서버가 첫 라운드로 redirect 한다.
+    pathWhenStartedRef.current = pathname
+    setIsNavigating(true)
+    setOpen(null)
     router.push(`/matches/archive/${currentYear}/${leagueSlug}/${currentRoundSlug}`)
   }
 
   function updateRound(roundSlug: string) {
     if (!roundSlug) return
+    pathWhenStartedRef.current = pathname
+    setIsNavigating(true)
+    setOpen(null)
     router.push(`/matches/archive/${currentYear}/${currentLeagueSlug}/${roundSlug}`)
   }
 
@@ -62,7 +77,21 @@ export function ArchiveFilters({
     : ""
 
   return (
-    <div className="w-full max-w-xl">
+    <>
+      {isNavigating && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          aria-live="polite"
+          aria-busy="true"
+          role="status"
+        >
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card px-6 py-5 shadow-xl">
+            <Loader2 className="size-8 animate-spin shrink-0 text-primary" aria-hidden />
+            <span className="font-mono text-sm text-foreground">경기 기록 불러오는 중...</span>
+          </div>
+        </div>
+      )}
+      <div className="w-full max-w-xl">
       <div className="flex flex-wrap gap-4 md:gap-6">
         {/* 시즌 */}
         <div className="flex flex-col gap-1.5 flex-1 min-w-[100px] md:min-w-[120px]">
@@ -73,6 +102,7 @@ export function ArchiveFilters({
             <button
               type="button"
               className={selectBase}
+              disabled={isNavigating}
               onClick={() => setOpen(open === "season" ? null : "season")}
             >
               <span>{currentYear} 시즌</span>
@@ -113,7 +143,7 @@ export function ArchiveFilters({
               type="button"
               className={selectBase}
               onClick={() => setOpen(open === "league" ? null : "league")}
-              disabled={leagues.length === 0}
+              disabled={leagues.length === 0 || isNavigating}
             >
               <span>
                 {leagues.length === 0
@@ -157,7 +187,7 @@ export function ArchiveFilters({
               type="button"
               className={selectBase}
               onClick={() => setOpen(open === "round" ? null : "round")}
-              disabled={rounds.length === 0}
+              disabled={rounds.length === 0 || isNavigating}
             >
               <span>
                 {rounds.length === 0
@@ -191,6 +221,7 @@ export function ArchiveFilters({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
