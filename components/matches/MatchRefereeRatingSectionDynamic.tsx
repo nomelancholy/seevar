@@ -31,6 +31,8 @@ type Props = {
     comment: string | null
     status?: string
     filterReason?: string | null
+    createdAt: Date | string
+    updatedAt?: Date | string
     user: { id?: string; name: string | null; image: string | null; handle?: string | null }
     fanTeamId: string | null
     fanTeam: { name: string; emblemPath: string | null } | null

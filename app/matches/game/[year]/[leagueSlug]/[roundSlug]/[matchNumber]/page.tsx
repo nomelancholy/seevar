@@ -35,6 +35,8 @@ type MatchReviewWithRelations = {
   user: { id: string; name: string | null; image: string | null; handle: string | null }
   fanTeam: { name: string; emblemPath: string | null } | null
   reactions: { userId: string }[]
+  createdAt: Date
+  updatedAt: Date
   replies: Array<{
     id: string
     userId: string
@@ -567,6 +569,8 @@ export default async function MatchDetailBySlugPage({
               ? { name: r.fanTeam.name, emblemPath: r.fanTeam.emblemPath }
               : null,
             reactions: r.reactions ?? [],
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
             replies:
               r.replies?.map((rp: MatchReviewWithRelations["replies"][number]) => ({
                 id: rp.id,

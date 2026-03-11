@@ -1,20 +1,31 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { ImagePlus, Heart, Loader2, MessageCircle, Pencil, Flag, Trash2, X, Share2, BarChart3 } from "lucide-react"
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  ImagePlus,
+  Heart,
+  Loader2,
+  MessageCircle,
+  Pencil,
+  Flag,
+  Trash2,
+  X,
+  Share2,
+  BarChart3,
+} from "lucide-react";
 import {
   createComment,
   updateComment,
   deleteComment,
   toggleCommentLike,
   reportComment,
-} from "@/lib/actions/comments"
-import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
-import { toggleMomentSeeVar } from "@/lib/actions/moments"
-import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
-import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/constants/upload"
+} from "@/lib/actions/comments";
+import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview";
+import { toggleMomentSeeVar } from "@/lib/actions/moments";
+import { uploadMomentMedia } from "@/lib/actions/upload-moment-media";
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/constants/upload";
 import {
   DndContext,
   closestCenter,
@@ -23,147 +34,171 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from "@dnd-kit/core"
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog"
-import { EmblemImage } from "@/components/ui/EmblemImage"
-import { ModerationConfirmDialog } from "@/components/moderation/ModerationConfirmDialog"
-import { votePoll } from "@/lib/actions/polls"
-import { PollEditorDialog } from "@/components/poll/PollEditorDialog"
-import { UserProfileLink } from "@/components/user/UserProfileLink"
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { LoginRequiredDialog } from "@/components/auth/LoginRequiredDialog";
+import { EmblemImage } from "@/components/ui/EmblemImage";
+import { ModerationConfirmDialog } from "@/components/moderation/ModerationConfirmDialog";
+import { votePoll } from "@/lib/actions/polls";
+import { PollEditorDialog } from "@/components/poll/PollEditorDialog";
+import { UserProfileLink } from "@/components/user/UserProfileLink";
 
 type HotMomentItem = {
-  momentId?: string
-  matchId: string
-  league: string
-  homeName: string
-  awayName: string
-  homeEmblem: string
-  awayEmblem: string
-  time: string
-  varCount: number
-  commentCount: number
-}
+  momentId?: string;
+  matchId: string;
+  league: string;
+  homeName: string;
+  awayName: string;
+  homeEmblem: string;
+  awayEmblem: string;
+  time: string;
+  varCount: number;
+  commentCount: number;
+};
 
 type CommentAuthor = {
-  id: string
-  name: string | null
-  image?: string | null
-  handle?: string | null
-  supportingTeam?: { emblemPath: string | null } | null
-}
-type CommentReaction = { type: string; userId: string }
-type CommentParent = { id: string; author?: { name: string | null } | null }
+  id: string;
+  name: string | null;
+  image?: string | null;
+  handle?: string | null;
+  supportingTeam?: { emblemPath: string | null } | null;
+};
+type CommentReaction = { type: string; userId: string };
+type CommentParent = { id: string; author?: { name: string | null } | null };
 type CommentRow = {
-  id: string
-  content: string
-  mediaUrl?: string | null
-  createdAt: string
-  author: CommentAuthor
-  parent?: CommentParent | null
-  reactions?: CommentReaction[]
-  replies?: CommentRow[]
-  status?: string
-  filterReason?: string | null
-  reportCount?: number
+  id: string;
+  content: string;
+  mediaUrl?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  author: CommentAuthor;
+  parent?: CommentParent | null;
+  reactions?: CommentReaction[];
+  replies?: CommentRow[];
+  status?: string;
+  filterReason?: string | null;
+  reportCount?: number;
   poll?: {
-    id: string
-    title: string
+    id: string;
+    title: string;
     options: {
-      id: string
-      label: string
-      order: number
+      id: string;
+      label: string;
+      order: number;
       votes: {
-        userId: string
+        userId: string;
         user?: {
-          supportingTeamId?: string | null
-          supportingTeam?: { id: string; name: string; emblemPath: string | null } | null
-        } | null
-      }[]
-    }[]
-  } | null
-}
+          supportingTeamId?: string | null;
+          supportingTeam?: {
+            id: string;
+            name: string;
+            emblemPath: string | null;
+          } | null;
+        } | null;
+      }[];
+    }[];
+  } | null;
+};
 
 /** 숨김 처리된 글 표시 문구 */
 function hiddenMessage(status?: string): string {
   if (status === "PENDING_REAPPROVAL") {
-    return "이 글은 수정되어 재심 요청 중입니다. 운영진 검토 후 노출 여부가 결정됩니다."
+    return "이 글은 수정되어 재심 요청 중입니다. 운영진 검토 후 노출 여부가 결정됩니다.";
   }
-  return "이 글은 커뮤니티 가이드라인 위반 (욕설 및 비하 금지) 으로 숨김 처리된 글입니다."
+  return "이 글은 커뮤니티 가이드라인 위반 (욕설 및 비하 금지) 으로 숨김 처리된 글입니다.";
 }
 
 /** 대댓글을 깊이 무관하게 평탄화(생성일 순). 들여쓰기는 모두 동일하게 유지. */
 function flattenReplies(replies: CommentRow[] | undefined): CommentRow[] {
-  if (!replies?.length) return []
-  const out: CommentRow[] = []
+  if (!replies?.length) return [];
+  const out: CommentRow[] = [];
   function walk(list: CommentRow[]) {
     const sorted = [...list].sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    )
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
     for (const r of sorted) {
-      out.push(r)
-      if (r.replies?.length) walk(r.replies)
+      out.push(r);
+      if (r.replies?.length) walk(r.replies);
     }
   }
-  walk(replies)
-  return out
+  walk(replies);
+  return out;
 }
 
 type MomentDetail = {
-  id: string
-  title: string | null
-  description: string | null
-  startMinute: number | null
-  endMinute: number | null
-  seeVarCount: number
-  commentCount: number
-  currentUserId?: string | null
-  author?: { id: string; name: string | null }
-  hasSeeVarByMe?: boolean
+  id: string;
+  title: string | null;
+  description: string | null;
+  startMinute: number | null;
+  endMinute: number | null;
+  seeVarCount: number;
+  commentCount: number;
+  currentUserId?: string | null;
+  author?: { id: string; name: string | null };
+  hasSeeVarByMe?: boolean;
   /** 이의 제기한 사람을 팀별 인원 (홈/원정/기타) */
-  seeVarByTeam?: { home: number; away: number; other: number }
+  seeVarByTeam?: { home: number; away: number; other: number };
   /** 기타 팀(홈/원정 제외)별 이의 제기 인원·엠블럼 표시용 */
-  seeVarByTeamOtherTeams?: { teamId: string; name: string; emblemPath: string | null; count: number }[]
+  seeVarByTeamOtherTeams?: {
+    teamId: string;
+    name: string;
+    emblemPath: string | null;
+    count: number;
+  }[];
   match: {
-    homeTeam: { name: string; emblemPath: string | null }
-    awayTeam: { name: string; emblemPath: string | null }
-    round: { league: { name: string }; number: number }
-  }
-  comments: CommentRow[]
-}
+    homeTeam: { name: string; emblemPath: string | null };
+    awayTeam: { name: string; emblemPath: string | null };
+    round: { league: { name: string }; number: number };
+  };
+  comments: CommentRow[];
+};
 
 type Props = {
-  open: boolean
-  onClose: () => void
-  moment: HotMomentItem | null
+  open: boolean;
+  onClose: () => void;
+  moment: HotMomentItem | null;
   /** 경기 상세 경로. 있으면 공유하기 버튼 노출, 링크는 이 경로 + ?openMoment= 모멘트로 진입 */
-  matchDetailPath?: string
-}
+  matchDetailPath?: string;
+};
 
-type AttachedItem = { id: string; file: File }
+type AttachedItem = { id: string; file: File };
 
-function SortableAttachedItem({ item, onRemove }: { item: AttachedItem; onRemove: () => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+function SortableAttachedItem({
+  item,
+  onRemove,
+}: {
+  item: AttachedItem;
+  onRemove: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: item.id,
-  })
-  const style = { transform: CSS.Transform.toString(transform), transition }
-  const isImage = item.file.type.startsWith("image/")
-  const isVideo = item.file.type.startsWith("video/")
-  const [preview, setPreview] = useState<string | null>(null)
+  });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+  const isImage = item.file.type.startsWith("image/");
+  const isVideo = item.file.type.startsWith("video/");
+  const [preview, setPreview] = useState<string | null>(null);
   useEffect(() => {
     if (isImage) {
-      const url = URL.createObjectURL(item.file)
-      setPreview(url)
-      return () => URL.revokeObjectURL(url)
+      const url = URL.createObjectURL(item.file);
+      setPreview(url);
+      return () => URL.revokeObjectURL(url);
     }
-    setPreview(null)
-  }, [item.file, isImage])
+    setPreview(null);
+  }, [item.file, isImage]);
 
   return (
     <div
@@ -188,7 +223,11 @@ function SortableAttachedItem({ item, onRemove }: { item: AttachedItem; onRemove
         </svg>
       </button>
       {preview ? (
-        <img src={preview} alt="" className="w-10 h-10 object-cover rounded shrink-0" />
+        <img
+          src={preview}
+          alt=""
+          className="w-10 h-10 object-cover rounded shrink-0"
+        />
       ) : (
         <div className="w-10 h-10 rounded bg-muted flex items-center justify-center shrink-0 text-[10px] font-mono">
           {isVideo ? "VID" : "FILE"}
@@ -206,476 +245,546 @@ function SortableAttachedItem({ item, onRemove }: { item: AttachedItem; onRemove
         <X className="size-4" />
       </button>
     </div>
-  )
+  );
 }
 
-const refetchDetail = (momentId: string, setDetail: (d: MomentDetail | null) => void) => {
+const refetchDetail = (
+  momentId: string,
+  setDetail: (d: MomentDetail | null) => void,
+) => {
   fetch(`/api/moments/${momentId}`, { cache: "no-store" })
     .then((res) => (res.ok ? res.json() : null))
-    .then((data) => setDetail(data))
-}
+    .then((data) => setDetail(data));
+};
 
-export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: Props) {
-  const [detail, setDetail] = useState<MomentDetail | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [commentText, setCommentText] = useState("")
-  const [attachments, setAttachments] = useState<AttachedItem[]>([])
-  const [isDraggingOver, setIsDraggingOver] = useState(false)
-  const [pollTitle, setPollTitle] = useState("")
-  const [pollOptions, setPollOptions] = useState<string[]>([])
-  const [pollOpen, setPollOpen] = useState(false)
-  const [submitPending, setSubmitPending] = useState(false)
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
-  const [editingContent, setEditingContent] = useState("")
-  const [replyToCommentId, setReplyToCommentId] = useState<string | null>(null)
-  const [replyText, setReplyText] = useState("")
-  const [replyAttachment, setReplyAttachment] = useState<File | null>(null)
-  const [replyPreviewUrl, setReplyPreviewUrl] = useState<string | null>(null)
-  const [replyPending, setReplyPending] = useState(false)
-  const [seeVarPending, setSeeVarPending] = useState(false)
-  const [votingPollId, setVotingPollId] = useState<string | null>(null)
-  const [revotePollId, setRevotePollId] = useState<string | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
-  const [reportCommentId, setReportCommentId] = useState<string | null>(null)
-  const [reportReason, setReportReason] = useState("ABUSE")
-  const [reportDescription, setReportDescription] = useState("")
-  const [reportPending, setReportPending] = useState(false)
-  const [reportError, setReportError] = useState<string | null>(null)
-  const [loginRequiredOpen, setLoginRequiredOpen] = useState(false)
-  const [loginRequiredMessage, setLoginRequiredMessage] = useState("이 순간에 코멘트를 남기려면 먼저 로그인해주세요.")
-  const [shareCopied, setShareCopied] = useState(false)
-  const [commentModerationOpen, setCommentModerationOpen] = useState(false)
-  const [commentModerationScores, setCommentModerationScores] = useState<Record<string, number>>({})
-  const [commentModerationFlagged, setCommentModerationFlagged] = useState(false)
+export function MomentCommentModal({
+  open,
+  onClose,
+  moment,
+  matchDetailPath,
+}: Props) {
+  const [detail, setDetail] = useState<MomentDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [attachments, setAttachments] = useState<AttachedItem[]>([]);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [pollTitle, setPollTitle] = useState("");
+  const [pollOptions, setPollOptions] = useState<string[]>([]);
+  const [pollOpen, setPollOpen] = useState(false);
+  const [submitPending, setSubmitPending] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState("");
+  const [replyToCommentId, setReplyToCommentId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [replyAttachment, setReplyAttachment] = useState<File | null>(null);
+  const [replyPreviewUrl, setReplyPreviewUrl] = useState<string | null>(null);
+  const [replyPending, setReplyPending] = useState(false);
+  const [seeVarPending, setSeeVarPending] = useState(false);
+  const [votingPollId, setVotingPollId] = useState<string | null>(null);
+  const [revotePollId, setRevotePollId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [reportCommentId, setReportCommentId] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState("ABUSE");
+  const [reportDescription, setReportDescription] = useState("");
+  const [reportPending, setReportPending] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [loginRequiredOpen, setLoginRequiredOpen] = useState(false);
+  const [loginRequiredMessage, setLoginRequiredMessage] = useState(
+    "이 순간에 코멘트를 남기려면 먼저 로그인해주세요.",
+  );
+  const [shareCopied, setShareCopied] = useState(false);
+  const [commentModerationOpen, setCommentModerationOpen] = useState(false);
+  const [commentModerationScores, setCommentModerationScores] = useState<
+    Record<string, number>
+  >({});
+  const [commentModerationFlagged, setCommentModerationFlagged] =
+    useState(false);
   const [commentModerationPayload, setCommentModerationPayload] = useState<{
-    momentId: string
-    content: string
-  } | null>(null)
-  const [commentModerationForcePending, setCommentModerationForcePending] = useState(false)
-  const [replyModerationOpen, setReplyModerationOpen] = useState(false)
-  const [replyModerationScores, setReplyModerationScores] = useState<Record<string, number>>({})
-  const [replyModerationFlagged, setReplyModerationFlagged] = useState(false)
+    momentId: string;
+    content: string;
+  } | null>(null);
+  const [commentModerationForcePending, setCommentModerationForcePending] =
+    useState(false);
+  const [replyModerationOpen, setReplyModerationOpen] = useState(false);
+  const [replyModerationScores, setReplyModerationScores] = useState<
+    Record<string, number>
+  >({});
+  const [replyModerationFlagged, setReplyModerationFlagged] = useState(false);
   const [replyModerationPayload, setReplyModerationPayload] = useState<{
-    momentId: string
-    content: string
-    parentId: string
-    mediaUrl: string | null
-  } | null>(null)
-  const [replyModerationForcePending, setReplyModerationForcePending] = useState(false)
-  const submitLockRef = useRef(false)
-  const replyLockRef = useRef(false)
-  const replyPreviewUrlRef = useRef<string | null>(null)
-  const fileInputId = useId()
-  const replyFileInputId = useId()
+    momentId: string;
+    content: string;
+    parentId: string;
+    mediaUrl: string | null;
+  } | null>(null);
+  const [replyModerationForcePending, setReplyModerationForcePending] =
+    useState(false);
+  const submitLockRef = useRef(false);
+  const replyLockRef = useRef(false);
+  const replyPreviewUrlRef = useRef<string | null>(null);
+  const fileInputId = useId();
+  const replyFileInputId = useId();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  )
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event
+    const { active, over } = event;
     if (over && active.id !== over.id) {
       setAttachments((prev) => {
-        const idx = prev.findIndex((a) => a.id === active.id)
-        const overIdx = prev.findIndex((a) => a.id === over.id)
-        if (idx === -1 || overIdx === -1) return prev
-        return arrayMove(prev, idx, overIdx)
-      })
+        const idx = prev.findIndex((a) => a.id === active.id);
+        const overIdx = prev.findIndex((a) => a.id === over.id);
+        if (idx === -1 || overIdx === -1) return prev;
+        return arrayMove(prev, idx, overIdx);
+      });
     }
-  }, [])
+  }, []);
 
   const addFiles = useCallback((files: FileList | null) => {
-    if (!files?.length) return
+    if (!files?.length) return;
     const next = Array.from(files).filter(
-      (f) => f.type.startsWith("image/") || f.type.startsWith("video/")
-    )
+      (f) => f.type.startsWith("image/") || f.type.startsWith("video/"),
+    );
     setAttachments((prev) => [
       ...prev,
-      ...next.map((file) => ({ id: `f-${Date.now()}-${Math.random().toString(36).slice(2)}`, file })),
-    ])
-  }, [])
+      ...next.map((file) => ({
+        id: `f-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        file,
+      })),
+    ]);
+  }, []);
 
   const removeAttachment = useCallback((id: string) => {
-    setAttachments((prev) => prev.filter((a) => a.id !== id))
-  }, [])
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  }, []);
 
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden"
-    else document.body.style.overflow = ""
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
     return () => {
-      document.body.style.overflow = ""
-    }
-  }, [open])
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
-      setCommentText("")
-      setAttachments([])
-      setEditingCommentId(null)
-      setEditingContent("")
-      setReplyToCommentId(null)
-      setReplyText("")
-      setReplyAttachment(null)
+      setCommentText("");
+      setAttachments([]);
+      setEditingCommentId(null);
+      setEditingContent("");
+      setReplyToCommentId(null);
+      setReplyText("");
+      setReplyAttachment(null);
       if (replyPreviewUrlRef.current) {
-        URL.revokeObjectURL(replyPreviewUrlRef.current)
-        replyPreviewUrlRef.current = null
+        URL.revokeObjectURL(replyPreviewUrlRef.current);
+        replyPreviewUrlRef.current = null;
       }
-      setReplyPreviewUrl(null)
-      setActionError(null)
+      setReplyPreviewUrl(null);
+      setActionError(null);
     }
-  }, [open])
+  }, [open]);
 
   // 다른 유저의 좋아요/답글도 일정 주기로 동기화
   useEffect(() => {
-    if (!open || !detail?.id) return
-    const id = detail.id
+    if (!open || !detail?.id) return;
+    const id = detail.id;
     const interval = window.setInterval(() => {
-      refetchDetail(id, setDetail)
-    }, 5000)
-    return () => window.clearInterval(interval)
-  }, [open, detail?.id])
+      refetchDetail(id, setDetail);
+    }, 5000);
+    return () => window.clearInterval(interval);
+  }, [open, detail?.id]);
 
   const fetchDetail = useCallback(() => {
-    if (!moment?.momentId) return
-    setLoading(true)
+    if (!moment?.momentId) return;
+    setLoading(true);
     fetch(`/api/moments/${moment.momentId}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setDetail(data))
-      .finally(() => setLoading(false))
-  }, [moment?.momentId])
+      .finally(() => setLoading(false));
+  }, [moment?.momentId]);
 
   useEffect(() => {
     if (!open || !moment?.momentId) {
-      setDetail(null)
-      return
+      setDetail(null);
+      return;
     }
-    fetchDetail()
-  }, [open, moment?.momentId, fetchDetail])
+    fetchDetail();
+  }, [open, moment?.momentId, fetchDetail]);
 
   const handleSubmitComment = useCallback(async () => {
     if (!detail?.currentUserId) {
-      setLoginRequiredMessage("이 순간에 코멘트를 남기려면 먼저 로그인해주세요.")
-      setLoginRequiredOpen(true)
-      return
+      setLoginRequiredMessage(
+        "이 순간에 코멘트를 남기려면 먼저 로그인해주세요.",
+      );
+      setLoginRequiredOpen(true);
+      return;
     }
-    if (!detail?.id || !commentText.trim()) return
-    if (submitLockRef.current) return
-    submitLockRef.current = true
-    setActionError(null)
-    setSubmitPending(true)
-    const textToSend = commentText.trim()
-    setCommentText("")
+    if (!detail?.id || !commentText.trim()) return;
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+    setActionError(null);
+    setSubmitPending(true);
+    const textToSend = commentText.trim();
+    setCommentText("");
     try {
       const hasPollData =
-        pollTitle.trim().length > 0 || pollOptions.some((o) => o.trim().length > 0)
+        pollTitle.trim().length > 0 ||
+        pollOptions.some((o) => o.trim().length > 0);
       const poll = hasPollData
         ? {
             title: pollTitle,
             options: pollOptions,
           }
-        : null
-      const result = await createComment(detail.id, { content: textToSend, poll })
+        : null;
+      const result = await createComment(detail.id, {
+        content: textToSend,
+        poll,
+      });
       if (result.ok) {
-        refetchDetail(detail.id, setDetail)
-        setPollTitle("")
-        setPollOptions([])
-        setPollOpen(false)
+        refetchDetail(detail.id, setDetail);
+        setPollTitle("");
+        setPollOptions([]);
+        setPollOpen(false);
       } else if ("code" in result && result.code === "MODERATION_WARNING") {
-        setCommentModerationScores(result.scores)
-        setCommentModerationFlagged(result.flagged)
-        setCommentModerationPayload({ momentId: detail.id, content: textToSend })
-        setCommentModerationOpen(true)
-        setCommentText(textToSend)
+        setCommentModerationScores(result.scores);
+        setCommentModerationFlagged(result.flagged);
+        setCommentModerationPayload({
+          momentId: detail.id,
+          content: textToSend,
+        });
+        setCommentModerationOpen(true);
+        setCommentText(textToSend);
       } else {
-        setActionError(result.error)
-        setCommentText(textToSend)
+        setActionError(result.error);
+        setCommentText(textToSend);
       }
     } finally {
-      setSubmitPending(false)
-      submitLockRef.current = false
+      setSubmitPending(false);
+      submitLockRef.current = false;
     }
-  }, [detail?.id, detail?.currentUserId, commentText, pollOpen, pollTitle, pollOptions])
+  }, [
+    detail?.id,
+    detail?.currentUserId,
+    commentText,
+    pollOpen,
+    pollTitle,
+    pollOptions,
+  ]);
 
   const handleCommentModerationForceSubmit = useCallback(async () => {
-    if (!commentModerationPayload) return
-    setCommentModerationForcePending(true)
+    if (!commentModerationPayload) return;
+    setCommentModerationForcePending(true);
     const result = await createComment(commentModerationPayload.momentId, {
       content: commentModerationPayload.content,
       forceSubmitAfterModeration: true,
-    })
-    setCommentModerationForcePending(false)
+    });
+    setCommentModerationForcePending(false);
     if (result.ok) {
-      setCommentModerationOpen(false)
-      setCommentModerationPayload(null)
-      setCommentText("")
-      refetchDetail(commentModerationPayload.momentId, setDetail)
+      setCommentModerationOpen(false);
+      setCommentModerationPayload(null);
+      setCommentText("");
+      refetchDetail(commentModerationPayload.momentId, setDetail);
     } else if (!("code" in result && result.code === "MODERATION_WARNING")) {
-      setActionError(result.error)
+      setActionError(result.error);
     }
-  }, [commentModerationPayload])
+  }, [commentModerationPayload]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       // IME(한글) 입력 중 Enter는 전송으로 처리하지 않음
-      if ((e as any).nativeEvent?.isComposing) return
+      if ((e as any).nativeEvent?.isComposing) return;
       if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault()
-        if (e.repeat) return
-        handleSubmitComment()
+        e.preventDefault();
+        if (e.repeat) return;
+        handleSubmitComment();
       }
     },
-    [handleSubmitComment]
-  )
+    [handleSubmitComment],
+  );
 
   const handleSaveEdit = useCallback(
     async (commentId: string) => {
-      const content = editingContent.trim()
-      if (!content) return
-      setActionError(null)
-      const result = await updateComment(commentId, content)
+      const content = editingContent.trim();
+      if (!content) return;
+      setActionError(null);
+      const result = await updateComment(commentId, content);
       if (result.ok) {
-        setEditingCommentId(null)
-        setEditingContent("")
-        if (detail?.id) refetchDetail(detail.id, setDetail)
+        setEditingCommentId(null);
+        setEditingContent("");
+        if (detail?.id) refetchDetail(detail.id, setDetail);
       } else {
-        setActionError(result.error)
+        setActionError(result.error);
       }
     },
-    [editingContent, detail?.id]
-  )
+    [editingContent, detail?.id],
+  );
 
   const handleDelete = useCallback(
     async (commentId: string) => {
-      if (!confirm("이 댓글을 삭제할까요?")) return
-      setActionError(null)
-      const result = await deleteComment(commentId)
-      if (result.ok && detail?.id) refetchDetail(detail.id, setDetail)
-      else if (!result.ok) setActionError(result.error)
+      if (!confirm("이 댓글을 삭제할까요?")) return;
+      setActionError(null);
+      const result = await deleteComment(commentId);
+      if (result.ok && detail?.id) refetchDetail(detail.id, setDetail);
+      else if (!result.ok) setActionError(result.error);
     },
-    [detail?.id]
-  )
+    [detail?.id],
+  );
 
   const handleToggleLike = useCallback(
     async (commentId: string) => {
-      if (!detail?.currentUserId) return
-      setActionError(null)
-      const result = await toggleCommentLike(commentId)
-      if (result.ok && detail?.id) refetchDetail(detail.id, setDetail)
-      else if (!result.ok) setActionError(result.error)
+      if (!detail?.currentUserId) return;
+      setActionError(null);
+      const result = await toggleCommentLike(commentId);
+      if (result.ok && detail?.id) refetchDetail(detail.id, setDetail);
+      else if (!result.ok) setActionError(result.error);
     },
-    [detail?.id, detail?.currentUserId]
-  )
+    [detail?.id, detail?.currentUserId],
+  );
 
-  const openReportForm = useCallback((commentId: string) => {
-    if (!detail?.currentUserId) return
-    setReportCommentId(commentId)
-    setReportReason("ABUSE")
-    setReportDescription("")
-    setReportError(null)
-  }, [detail?.currentUserId])
+  const openReportForm = useCallback(
+    (commentId: string) => {
+      if (!detail?.currentUserId) return;
+      setReportCommentId(commentId);
+      setReportReason("ABUSE");
+      setReportDescription("");
+      setReportError(null);
+    },
+    [detail?.currentUserId],
+  );
 
   const closeReportForm = useCallback(() => {
-    setReportCommentId(null)
-    setReportError(null)
-  }, [])
+    setReportCommentId(null);
+    setReportError(null);
+  }, []);
 
   const handleSubmitReport = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      if (!reportCommentId || !detail?.id) return
-      setReportError(null)
-      setReportPending(true)
+      e.preventDefault();
+      if (!reportCommentId || !detail?.id) return;
+      setReportError(null);
+      setReportPending(true);
       const result = await reportComment(
         reportCommentId,
         reportReason,
-        reportDescription.trim() || null
-      )
-      setReportPending(false)
+        reportDescription.trim() || null,
+      );
+      setReportPending(false);
       if (result.ok) {
-        setReportCommentId(null)
-        refetchDetail(detail.id, setDetail)
+        setReportCommentId(null);
+        refetchDetail(detail.id, setDetail);
       } else {
-        setReportError(result.error)
+        setReportError(result.error);
       }
     },
-    [reportCommentId, reportReason, reportDescription, detail?.id]
-  )
+    [reportCommentId, reportReason, reportDescription, detail?.id],
+  );
 
-  const handleReplyFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ""
-    if (!file || (!file.type.startsWith("image/") && !file.type.startsWith("video/"))) return
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      setActionError(`사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다. (현재 ${(file.size / (1024 * 1024)).toFixed(1)}MB)`)
-      return
-    }
-    setActionError(null)
-    if (replyPreviewUrlRef.current) {
-      URL.revokeObjectURL(replyPreviewUrlRef.current)
-      replyPreviewUrlRef.current = null
-    }
-    const url = URL.createObjectURL(file)
-    replyPreviewUrlRef.current = url
-    setReplyPreviewUrl(url)
-    setReplyAttachment(file)
-  }, [])
+  const handleReplyFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (
+        !file ||
+        (!file.type.startsWith("image/") && !file.type.startsWith("video/"))
+      )
+        return;
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        setActionError(
+          `사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다. (현재 ${(file.size / (1024 * 1024)).toFixed(1)}MB)`,
+        );
+        return;
+      }
+      setActionError(null);
+      if (replyPreviewUrlRef.current) {
+        URL.revokeObjectURL(replyPreviewUrlRef.current);
+        replyPreviewUrlRef.current = null;
+      }
+      const url = URL.createObjectURL(file);
+      replyPreviewUrlRef.current = url;
+      setReplyPreviewUrl(url);
+      setReplyAttachment(file);
+    },
+    [],
+  );
 
   const clearReplyAttachment = useCallback(() => {
-    setReplyAttachment(null)
-    setReplyPreviewUrl(null)
+    setReplyAttachment(null);
+    setReplyPreviewUrl(null);
     if (replyPreviewUrlRef.current) {
-      URL.revokeObjectURL(replyPreviewUrlRef.current)
-      replyPreviewUrlRef.current = null
+      URL.revokeObjectURL(replyPreviewUrlRef.current);
+      replyPreviewUrlRef.current = null;
     }
-  }, [])
+  }, []);
 
   const handleSubmitReply = useCallback(
     async (parentId: string) => {
-      const content = replyText.trim()
-      const hasContent = !!content
-      const hasMedia = !!replyAttachment
-      if ((!hasContent && !hasMedia) || !detail?.id) return
-      if (replyLockRef.current) return
-      replyLockRef.current = true
-      setActionError(null)
-      setReplyPending(true)
-      const textToSend = content || " "
-      setReplyText("")
-      const fileToUpload = replyAttachment
-      setReplyAttachment(null)
+      const content = replyText.trim();
+      const hasContent = !!content;
+      const hasMedia = !!replyAttachment;
+      if ((!hasContent && !hasMedia) || !detail?.id) return;
+      if (replyLockRef.current) return;
+      replyLockRef.current = true;
+      setActionError(null);
+      setReplyPending(true);
+      const textToSend = content || " ";
+      setReplyText("");
+      const fileToUpload = replyAttachment;
+      setReplyAttachment(null);
       if (replyPreviewUrlRef.current) {
-        URL.revokeObjectURL(replyPreviewUrlRef.current)
-        replyPreviewUrlRef.current = null
+        URL.revokeObjectURL(replyPreviewUrlRef.current);
+        replyPreviewUrlRef.current = null;
       }
-      setReplyPreviewUrl(null)
+      setReplyPreviewUrl(null);
       try {
-        let mediaUrl: string | null = null
+        let mediaUrl: string | null = null;
         if (fileToUpload) {
           if (fileToUpload.size > MAX_FILE_SIZE_BYTES) {
-            setActionError(`사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다.`)
-            setReplyText(textToSend !== " " ? textToSend : "")
-            setReplyAttachment(fileToUpload)
+            setActionError(
+              `사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하여야 합니다.`,
+            );
+            setReplyText(textToSend !== " " ? textToSend : "");
+            setReplyAttachment(fileToUpload);
             if (fileToUpload) {
-              const url = URL.createObjectURL(fileToUpload)
-              replyPreviewUrlRef.current = url
-              setReplyPreviewUrl(url)
+              const url = URL.createObjectURL(fileToUpload);
+              replyPreviewUrlRef.current = url;
+              setReplyPreviewUrl(url);
             }
-            return
+            return;
           }
-          const fd = new FormData()
-          fd.append("file", fileToUpload)
-          const upload = await uploadMomentMedia(fd)
+          const fd = new FormData();
+          fd.append("file", fileToUpload);
+          const upload = await uploadMomentMedia(fd);
           if (!upload.ok) {
-            setActionError(upload.error)
-            setReplyText(content || "")
-            setReplyAttachment(fileToUpload)
+            setActionError(upload.error);
+            setReplyText(content || "");
+            setReplyAttachment(fileToUpload);
             if (fileToUpload) {
-              const url = URL.createObjectURL(fileToUpload)
-              replyPreviewUrlRef.current = url
-              setReplyPreviewUrl(url)
+              const url = URL.createObjectURL(fileToUpload);
+              replyPreviewUrlRef.current = url;
+              setReplyPreviewUrl(url);
             }
-            return
+            return;
           }
-          mediaUrl = upload.url
+          mediaUrl = upload.url;
         }
-        const result = await createComment(detail.id, { content: textToSend, parentId, mediaUrl })
+        const result = await createComment(detail.id, {
+          content: textToSend,
+          parentId,
+          mediaUrl,
+        });
         if (result.ok) {
-          setReplyToCommentId(null)
-          refetchDetail(detail.id, setDetail)
+          setReplyToCommentId(null);
+          refetchDetail(detail.id, setDetail);
         } else if ("code" in result && result.code === "MODERATION_WARNING") {
-          setReplyModerationScores(result.scores)
-          setReplyModerationFlagged(result.flagged)
+          setReplyModerationScores(result.scores);
+          setReplyModerationFlagged(result.flagged);
           setReplyModerationPayload({
             momentId: detail.id,
             content: textToSend,
             parentId,
             mediaUrl,
-          })
-          setReplyModerationOpen(true)
-          setReplyText(content || "")
+          });
+          setReplyModerationOpen(true);
+          setReplyText(content || "");
           if (fileToUpload) {
-            setReplyAttachment(fileToUpload)
-            const url = URL.createObjectURL(fileToUpload)
-            replyPreviewUrlRef.current = url
-            setReplyPreviewUrl(url)
+            setReplyAttachment(fileToUpload);
+            const url = URL.createObjectURL(fileToUpload);
+            replyPreviewUrlRef.current = url;
+            setReplyPreviewUrl(url);
           }
         } else {
-          setActionError(result.error)
-          setReplyText(content || "")
+          setActionError(result.error);
+          setReplyText(content || "");
           if (fileToUpload) {
-            setReplyAttachment(fileToUpload)
-            const url = URL.createObjectURL(fileToUpload)
-            replyPreviewUrlRef.current = url
-            setReplyPreviewUrl(url)
+            setReplyAttachment(fileToUpload);
+            const url = URL.createObjectURL(fileToUpload);
+            replyPreviewUrlRef.current = url;
+            setReplyPreviewUrl(url);
           }
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        if (message.includes("413") || message.toLowerCase().includes("too large") || message.includes("entity too large")) {
-          setActionError(`요청이 너무 큽니다. 사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하로 올려 주세요.`)
+        const message = err instanceof Error ? err.message : String(err);
+        if (
+          message.includes("413") ||
+          message.toLowerCase().includes("too large") ||
+          message.includes("entity too large")
+        ) {
+          setActionError(
+            `요청이 너무 큽니다. 사진·영상은 ${MAX_FILE_SIZE_MB}MB 이하로 올려 주세요.`,
+          );
         } else {
-          setActionError(`전송에 실패했습니다. ${message || "네트워크를 확인해 주세요."}`)
+          setActionError(
+            `전송에 실패했습니다. ${message || "네트워크를 확인해 주세요."}`,
+          );
         }
-        setReplyText(content || "")
+        setReplyText(content || "");
         if (fileToUpload) {
-          setReplyAttachment(fileToUpload)
-          const url = URL.createObjectURL(fileToUpload)
-          replyPreviewUrlRef.current = url
-          setReplyPreviewUrl(url)
+          setReplyAttachment(fileToUpload);
+          const url = URL.createObjectURL(fileToUpload);
+          replyPreviewUrlRef.current = url;
+          setReplyPreviewUrl(url);
         }
       } finally {
-        setReplyPending(false)
-        replyLockRef.current = false
+        setReplyPending(false);
+        replyLockRef.current = false;
       }
     },
-    [detail?.id, replyText, replyAttachment]
-  )
+    [detail?.id, replyText, replyAttachment],
+  );
 
   const handleReplyModerationForceSubmit = useCallback(async () => {
-    if (!replyModerationPayload) return
-    setReplyModerationForcePending(true)
+    if (!replyModerationPayload) return;
+    setReplyModerationForcePending(true);
     const result = await createComment(replyModerationPayload.momentId, {
       content: replyModerationPayload.content,
       parentId: replyModerationPayload.parentId,
       mediaUrl: replyModerationPayload.mediaUrl,
       forceSubmitAfterModeration: true,
-    })
-    setReplyModerationForcePending(false)
+    });
+    setReplyModerationForcePending(false);
     if (result.ok) {
-      setReplyModerationOpen(false)
-      setReplyModerationPayload(null)
-      setReplyToCommentId(null)
-      setReplyText("")
-      setReplyAttachment(null)
+      setReplyModerationOpen(false);
+      setReplyModerationPayload(null);
+      setReplyToCommentId(null);
+      setReplyText("");
+      setReplyAttachment(null);
       if (replyPreviewUrlRef.current) {
-        URL.revokeObjectURL(replyPreviewUrlRef.current)
-        replyPreviewUrlRef.current = null
+        URL.revokeObjectURL(replyPreviewUrlRef.current);
+        replyPreviewUrlRef.current = null;
       }
-      setReplyPreviewUrl(null)
-      refetchDetail(replyModerationPayload.momentId, setDetail)
+      setReplyPreviewUrl(null);
+      refetchDetail(replyModerationPayload.momentId, setDetail);
     } else if (!("code" in result && result.code === "MODERATION_WARNING")) {
-      setActionError(result.error)
+      setActionError(result.error);
     }
-  }, [replyModerationPayload])
+  }, [replyModerationPayload]);
 
-  if (!open) return null
+  if (!open) return null;
 
-  const title = moment ? `${moment.homeName} vs ${moment.awayName}` : ""
-  const time = moment?.time ?? ""
-  const varCount = detail?.seeVarCount ?? moment?.varCount ?? 0
-  const comments = detail?.comments ?? []
-  const isSeeVarByMe = Boolean(detail?.hasSeeVarByMe ?? (detail?.currentUserId && detail?.author?.id && detail.currentUserId === detail.author.id))
-  const currentUserId = detail?.currentUserId ?? null
+  const title = moment ? `${moment.homeName} vs ${moment.awayName}` : "";
+  const time = moment?.time ?? "";
+  const varCount = detail?.seeVarCount ?? moment?.varCount ?? 0;
+  const comments = detail?.comments ?? [];
+  const isSeeVarByMe = Boolean(
+    detail?.hasSeeVarByMe ??
+    (detail?.currentUserId &&
+      detail?.author?.id &&
+      detail.currentUserId === detail.author.id),
+  );
+  const currentUserId = detail?.currentUserId ?? null;
 
   const getLikeState = (c: CommentRow) => {
-    const reactions = c.reactions ?? []
-    const likeCount = reactions.filter((r) => r.type === "LIKE").length
+    const reactions = c.reactions ?? [];
+    const likeCount = reactions.filter((r) => r.type === "LIKE").length;
     const likedByMe = Boolean(
-      currentUserId && reactions.some((r) => r.type === "LIKE" && r.userId === currentUserId)
-    )
-    return { likeCount, likedByMe }
-  }
+      currentUserId &&
+      reactions.some((r) => r.type === "LIKE" && r.userId === currentUserId),
+    );
+    return { likeCount, likedByMe };
+  };
 
   return (
     <div
@@ -719,16 +828,19 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                 <button
                   type="button"
                   onClick={async () => {
-                    const momentId = moment?.momentId ?? detail?.id
-                    if (!momentId) return
-                    const path = `${matchDetailPath}${matchDetailPath.includes("?") ? "&" : "?"}openMoment=${encodeURIComponent(momentId)}`
-                    const url = typeof window !== "undefined" ? `${window.location.origin}${path}` : path
+                    const momentId = moment?.momentId ?? detail?.id;
+                    if (!momentId) return;
+                    const path = `${matchDetailPath}${matchDetailPath.includes("?") ? "&" : "?"}openMoment=${encodeURIComponent(momentId)}`;
+                    const url =
+                      typeof window !== "undefined"
+                        ? `${window.location.origin}${path}`
+                        : path;
                     try {
-                      await navigator.clipboard.writeText(url)
-                      setShareCopied(true)
-                      setTimeout(() => setShareCopied(false), 2000)
+                      await navigator.clipboard.writeText(url);
+                      setShareCopied(true);
+                      setTimeout(() => setShareCopied(false), 2000);
                     } catch {
-                      setShareCopied(false)
+                      setShareCopied(false);
                     }
                   }}
                   className="p-1.5 text-muted-foreground hover:text-foreground rounded font-mono text-[10px] flex items-center gap-1"
@@ -758,103 +870,134 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                   {varCount.toLocaleString()}
                 </span>
               </div>
-              {detail?.seeVarByTeam && (detail.seeVarByTeam.home > 0 || detail.seeVarByTeam.away > 0 || detail.seeVarByTeam.other > 0) && (
-                <div className="flex flex-wrap items-center gap-3" role="list" aria-label="팀별 이의 제기 인원">
-                  {detail.seeVarByTeam.home > 0 && (
-                    <span
-                      className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground cursor-default"
-                      title={`${detail.match.homeTeam.name} ${detail.seeVarByTeam.home}명`}
-                    >
-                      <EmblemImage
-                        src={detail.match.homeTeam.emblemPath}
-                        alt={detail.match.homeTeam.name}
-                        width={20}
-                        height={20}
-                        className="w-5 h-5 shrink-0 rounded-sm object-contain"
-                      />
-                      <span className="tabular-nums font-medium text-foreground/90" title={`${detail.match.homeTeam.name} ${detail.seeVarByTeam.home}명`}>
-                        {detail.seeVarByTeam.home}
-                      </span>
-                    </span>
-                  )}
-                  {detail.seeVarByTeam.away > 0 && (
-                    <span
-                      className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground cursor-default"
-                      title={`${detail.match.awayTeam.name} ${detail.seeVarByTeam.away}명`}
-                    >
-                      <EmblemImage
-                        src={detail.match.awayTeam.emblemPath}
-                        alt={detail.match.awayTeam.name}
-                        width={20}
-                        height={20}
-                        className="w-5 h-5 shrink-0 rounded-sm object-contain"
-                      />
-                      <span className="tabular-nums font-medium text-foreground/90" title={`${detail.match.awayTeam.name} ${detail.seeVarByTeam.away}명`}>
-                        {detail.seeVarByTeam.away}
-                      </span>
-                    </span>
-                  )}
-                  {(detail.seeVarByTeamOtherTeams?.length
-                    ? detail.seeVarByTeamOtherTeams
-                    : detail.seeVarByTeam.other > 0
-                      ? [{ teamId: "_other", name: "기타 팀", emblemPath: null, count: detail.seeVarByTeam.other }]
-                      : []
-                  ).map((t) => (
-                    <span
-                      key={t.teamId}
-                      className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground cursor-default"
-                      title={`${t.name} ${t.count}명`}
-                    >
-                      {t.emblemPath ? (
+              {detail?.seeVarByTeam &&
+                (detail.seeVarByTeam.home > 0 ||
+                  detail.seeVarByTeam.away > 0 ||
+                  detail.seeVarByTeam.other > 0) && (
+                  <div
+                    className="flex flex-wrap items-center gap-3"
+                    role="list"
+                    aria-label="팀별 이의 제기 인원"
+                  >
+                    {detail.seeVarByTeam.home > 0 && (
+                      <span
+                        className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground cursor-default"
+                        title={`${detail.match.homeTeam.name} ${detail.seeVarByTeam.home}명`}
+                      >
                         <EmblemImage
-                          src={t.emblemPath}
-                          alt={t.name}
+                          src={detail.match.homeTeam.emblemPath}
+                          alt={detail.match.homeTeam.name}
                           width={20}
                           height={20}
                           className="w-5 h-5 shrink-0 rounded-sm object-contain"
                         />
-                      ) : (
                         <span
-                          className="w-5 h-5 shrink-0 rounded-sm bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground"
-                          title={t.name}
+                          className="tabular-nums font-medium text-foreground/90"
+                          title={`${detail.match.homeTeam.name} ${detail.seeVarByTeam.home}명`}
                         >
-                          ?
+                          {detail.seeVarByTeam.home}
                         </span>
-                      )}
-                      <span className="tabular-nums font-medium text-foreground/90" title={`${t.name} ${t.count}명`}>
-                        {t.count}
                       </span>
-                    </span>
-                  ))}
-                </div>
-              )}
+                    )}
+                    {detail.seeVarByTeam.away > 0 && (
+                      <span
+                        className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground cursor-default"
+                        title={`${detail.match.awayTeam.name} ${detail.seeVarByTeam.away}명`}
+                      >
+                        <EmblemImage
+                          src={detail.match.awayTeam.emblemPath}
+                          alt={detail.match.awayTeam.name}
+                          width={20}
+                          height={20}
+                          className="w-5 h-5 shrink-0 rounded-sm object-contain"
+                        />
+                        <span
+                          className="tabular-nums font-medium text-foreground/90"
+                          title={`${detail.match.awayTeam.name} ${detail.seeVarByTeam.away}명`}
+                        >
+                          {detail.seeVarByTeam.away}
+                        </span>
+                      </span>
+                    )}
+                    {(detail.seeVarByTeamOtherTeams?.length
+                      ? detail.seeVarByTeamOtherTeams
+                      : detail.seeVarByTeam.other > 0
+                        ? [
+                            {
+                              teamId: "_other",
+                              name: "기타 팀",
+                              emblemPath: null,
+                              count: detail.seeVarByTeam.other,
+                            },
+                          ]
+                        : []
+                    ).map((t) => (
+                      <span
+                        key={t.teamId}
+                        className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground cursor-default"
+                        title={`${t.name} ${t.count}명`}
+                      >
+                        {t.emblemPath ? (
+                          <EmblemImage
+                            src={t.emblemPath}
+                            alt={t.name}
+                            width={20}
+                            height={20}
+                            className="w-5 h-5 shrink-0 rounded-sm object-contain"
+                          />
+                        ) : (
+                          <span
+                            className="w-5 h-5 shrink-0 rounded-sm bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground"
+                            title={t.name}
+                          >
+                            ?
+                          </span>
+                        )}
+                        <span
+                          className="tabular-nums font-medium text-foreground/90"
+                          title={`${t.name} ${t.count}명`}
+                        >
+                          {t.count}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                )}
             </div>
             <button
               type="button"
               disabled={seeVarPending || !detail?.id}
               onClick={async () => {
                 if (!detail?.currentUserId) {
-                  setLoginRequiredMessage("판정 이의 제기를 하려면 먼저 로그인 해주세요.")
-                  setLoginRequiredOpen(true)
-                  return
+                  setLoginRequiredMessage(
+                    "판정 이의 제기를 하려면 먼저 로그인 해주세요.",
+                  );
+                  setLoginRequiredOpen(true);
+                  return;
                 }
-                if (!detail?.id || isSeeVarByMe || seeVarPending) return
-                setSeeVarPending(true)
-                setActionError(null)
+                if (!detail?.id || isSeeVarByMe || seeVarPending) return;
+                setSeeVarPending(true);
+                setActionError(null);
                 try {
-                  const result = await toggleMomentSeeVar(detail.id)
+                  const result = await toggleMomentSeeVar(detail.id);
                   if (result.ok) {
                     setDetail((prev) =>
-                      prev ? { ...prev, seeVarCount: result.seeVarCount, hasSeeVarByMe: true } : null
-                    )
+                      prev
+                        ? {
+                            ...prev,
+                            seeVarCount: result.seeVarCount,
+                            hasSeeVarByMe: true,
+                          }
+                        : null,
+                    );
                     fetch(`/api/moments/${detail.id}`, { cache: "no-store" })
                       .then((res) => (res.ok ? res.json() : null))
-                      .then((data) => data && setDetail(data))
+                      .then((data) => data && setDetail(data));
                   } else {
-                    setActionError(result.error)
+                    setActionError(result.error);
                   }
                 } finally {
-                  setSeeVarPending(false)
+                  setSeeVarPending(false);
                 }
               }}
               className={`h-full font-black italic font-mono text-[10px] sm:text-xs px-3 py-1.5 sm:px-4 sm:py-2 rounded border transition-colors shrink-0 min-h-[2.5rem] ${
@@ -864,7 +1007,9 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
               }`}
               title={isSeeVarByMe ? "함께 이의 제기했습니다" : "함께 이의 제기"}
             >
-              {seeVarPending ? <Loader2 className="size-3.5 sm:size-4 animate-spin inline-block" /> : null}
+              {seeVarPending ? (
+                <Loader2 className="size-3.5 sm:size-4 animate-spin inline-block" />
+              ) : null}
               함께 이의 제기
             </button>
           </div>
@@ -882,45 +1027,48 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
           ) : (
             <div className="divide-y divide-border">
               {comments.map((c) => {
-                const isOwn = detail?.currentUserId && c.author?.id === detail.currentUserId
-                const isEditing = editingCommentId === c.id
-                const status = c.status ?? "VISIBLE"
-                const isHidden = status === "HIDDEN"
-                const isPending = status === "PENDING_REAPPROVAL"
-                const isModerated = isHidden || isPending
+                const isOwn =
+                  detail?.currentUserId &&
+                  c.author?.id === detail.currentUserId;
+                const isEditing = editingCommentId === c.id;
+                const status = c.status ?? "VISIBLE";
+                const isHidden = status === "HIDDEN";
+                const isPending = status === "PENDING_REAPPROVAL";
+                const isModerated = isHidden || isPending;
                 return (
-                <div
-                  key={c.id}
-                  className="p-4 md:p-6 hover:bg-white/[0.02] transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="relative shrink-0">
-                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
-                        {c.author?.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={c.author.image}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground font-mono">?</span>
+                  <div
+                    key={c.id}
+                    className="p-4 md:p-6 hover:bg-white/[0.02] transition-colors"
+                  >
+                    <div className="flex items-start gap-4 md:gap-5">
+                      <div className="relative shrink-0">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
+                          {c.author?.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={c.author.image}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              ?
+                            </span>
+                          )}
+                        </div>
+                        {c.author?.supportingTeam?.emblemPath && (
+                          <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-white rounded-full border border-zinc-200 flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                            <Image
+                              src={c.author.supportingTeam.emblemPath}
+                              alt=""
+                              width={20}
+                              height={20}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
                         )}
                       </div>
-                      {c.author?.supportingTeam?.emblemPath && (
-                        <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-white rounded-full border border-zinc-200 flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
-                          <Image
-                            src={c.author.supportingTeam.emblemPath}
-                            alt=""
-                            width={20}
-                            height={20}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1 flex flex-col gap-1">
-                      <div className="flex items-center gap-2 flex-wrap justify-between">
+                      <div className="min-w-0 flex-1 flex flex-col gap-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <UserProfileLink
                             handle={c.author?.handle ?? null}
@@ -928,634 +1076,779 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                           >
                             {c.author?.name ?? "Anonymous"}
                           </UserProfileLink>
-                          <span className="font-mono text-[8px] text-muted-foreground">
-                            {new Date(c.createdAt).toLocaleString("ko-KR")}
+                          <span className="font-mono text-[10px] md:text-xs text-muted-foreground">
+                            {new Date(
+                              c.updatedAt ?? c.createdAt,
+                            ).toLocaleString("ko-KR")}
                           </span>
                         </div>
-                        <div className="hidden md:flex items-center gap-1">
-                        {currentUserId && !isModerated && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleToggleLike(c.id)}
-                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
-                                getLikeState(c).likedByMe
-                                  ? "text-primary"
-                                  : "text-muted-foreground hover:text-foreground"
-                              }`}
-                              aria-label="좋아요"
-                            >
-                              <Heart
-                                className={`size-3.5 ${getLikeState(c).likedByMe ? "fill-current" : ""}`}
-                              />
-                              {getLikeState(c).likeCount > 0 && (
-                                <span>{getLikeState(c).likeCount}</span>
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setReplyToCommentId(c.id)}
-                              className="p-1 text-muted-foreground hover:text-foreground rounded flex items-center gap-1"
-                              aria-label="답글"
-                            >
-                              <MessageCircle className="size-3.5" />
-                              {flattenReplies(c.replies).length > 0 && (
-                                <span className="text-[10px] font-mono">
-                                  {flattenReplies(c.replies).length}
-                                </span>
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => openReportForm(c.id)}
-                              className="p-1 text-muted-foreground hover:text-foreground rounded"
-                              aria-label="신고"
-                            >
-                              <Flag className="size-3.5" />
-                            </button>
-                          </>
-                        )}
-                        {isOwn && !isEditing && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingCommentId(c.id)
-                                setEditingContent(c.content)
-                              }}
-                              className="p-1 text-muted-foreground hover:text-foreground rounded"
-                              aria-label="수정"
-                            >
-                              <Pencil className="size-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(c.id)}
-                              className="p-1 text-muted-foreground hover:text-destructive rounded"
-                              aria-label="삭제"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </button>
-                          </>
-                        )}
-                          </div>
-                      </div>
-                      {isModerated && !isEditing ? (
-                        <p className="text-xs md:text-sm mt-1 text-muted-foreground italic">
-                          {hiddenMessage(status)}
-                        </p>
-                      ) : isEditing ? (
-                        <div className="mt-2 space-y-2">
-                          <textarea
-                            value={editingContent}
-                            onChange={(e) => setEditingContent(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault()
-                                handleSaveEdit(c.id)
+                        {isModerated && !isEditing ? (
+                          <p className="text-xs md:text-sm mt-1 text-muted-foreground italic">
+                            {hiddenMessage(status)}
+                          </p>
+                        ) : isEditing ? (
+                          <div className="mt-2 space-y-2">
+                            <textarea
+                              value={editingContent}
+                              onChange={(e) =>
+                                setEditingContent(e.target.value)
                               }
-                            }}
-                            rows={3}
-                            className="w-full min-w-0 py-2 px-3 bg-muted border border-border text-xs font-mono rounded focus:border-primary outline-none resize-y"
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleSaveEdit(c.id)}
-                              className="px-3 py-1.5 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90"
-                            >
-                              저장
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingCommentId(null)
-                                setEditingContent("")
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSaveEdit(c.id);
+                                }
                               }}
-                              className="px-3 py-1.5 border border-border text-[10px] font-mono rounded hover:bg-muted"
-                            >
-                              취소
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                      <div className="text-xs md:text-sm mt-1 text-muted-foreground">
-                        <TextWithEmbedPreview text={c.content} />
-                      </div>
-                      )}
-                      <div className="flex md:hidden items-center gap-1 mt-1">
-                        {currentUserId && !isModerated && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleToggleLike(c.id)}
-                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
-                                getLikeState(c).likedByMe
-                                  ? "text-primary"
-                                  : "text-muted-foreground hover:text-foreground"
-                              }`}
-                              aria-label="좋아요"
-                            >
-                              <Heart
-                                className={`size-3.5 ${getLikeState(c).likedByMe ? "fill-current" : ""}`}
-                              />
-                              {getLikeState(c).likeCount > 0 && (
-                                <span>{getLikeState(c).likeCount}</span>
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setReplyToCommentId(c.id)}
-                              className="p-1 text-muted-foreground hover:text-foreground rounded flex items-center gap-1"
-                              aria-label="답글"
-                            >
-                              <MessageCircle className="size-3.5" />
-                              {flattenReplies(c.replies).length > 0 && (
-                                <span className="text-[10px] font-mono">
-                                  {flattenReplies(c.replies).length}
-                                </span>
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => openReportForm(c.id)}
-                              className="p-1 text-muted-foreground hover:text-foreground rounded"
-                              aria-label="신고"
-                            >
-                              <Flag className="size-3.5" />
-                            </button>
-                          </>
-                        )}
-                        {isOwn && !isEditing && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingCommentId(c.id)
-                                setEditingContent(c.content)
-                              }}
-                              className="p-1 text-muted-foreground hover:text-foreground rounded"
-                              aria-label="수정"
-                            >
-                              <Pencil className="size-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(c.id)}
-                              className="p-1 text-muted-foreground hover:text-destructive rounded"
-                              aria-label="삭제"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                      {!isModerated && c.mediaUrl && (
-                        <div className="mt-2 rounded overflow-hidden border border-border max-w-[280px]">
-                          {c.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i) ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={c.mediaUrl}
-                              alt=""
-                              className="w-full max-h-48 object-cover"
+                              rows={3}
+                              className="w-full min-w-0 py-2 px-3 bg-muted border border-border text-xs font-mono rounded focus:border-primary outline-none resize-y"
                             />
-                          ) : (
-                            <video
-                              src={c.mediaUrl}
-                              controls
-                              className="w-full max-h-48"
-                              preload="metadata"
-                            />
-                          )}
-                        </div>
-                      )}
-                      {c.poll && (
-                        <div className="mt-3 border border-border bg-black/30 rounded p-3">
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <p className="text-xs md:text-sm font-mono text-muted-foreground uppercase tracking-widest">
-                              투표 · {c.poll.title}
-                            </p>
-                            <span className="text-xs md:text-sm font-mono text-muted-foreground">
-                              총{" "}
-                              {c.poll.options.reduce(
-                                (sum, opt) => sum + (opt.votes?.length ?? 0),
-                                0
-                              )}{" "}
-                              표
-                            </span>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleSaveEdit(c.id)}
+                                className="px-3 py-1.5 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90"
+                              >
+                                저장
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingCommentId(null);
+                                  setEditingContent("");
+                                }}
+                                className="px-3 py-1.5 border border-border text-[10px] font-mono rounded hover:bg-muted"
+                              >
+                                취소
+                              </button>
+                            </div>
                           </div>
-                          {detail?.currentUserId ? (
-                            (() => {
-                              const totalVotes = c.poll!.options.reduce(
-                                (sum, opt) => sum + (opt.votes?.length ?? 0),
-                                0
-                              )
-                              const myOptionId =
-                                c.poll!.options.find((opt) =>
-                                  opt.votes?.some(
-                                    (v) => v.userId === detail.currentUserId
-                                  )
-                                )?.id ?? null
-                              const hasVoted = Boolean(myOptionId)
-                              return (
-                                <div className="space-y-2">
-                                  {c.poll!.options.map((opt) => {
-                                    const count = opt.votes?.length ?? 0
-                                    const percent =
-                                      totalVotes > 0
-                                        ? Math.round((count / totalVotes) * 100)
-                                        : 0
-                                    const teamMap = new Map<
-                                      string,
-                                      {
-                                        teamId: string | null
-                                        name: string
-                                        emblemPath: string | null
-                                        count: number
-                                      }
-                                    >()
-                                    for (const v of opt.votes ?? []) {
-                                      const team = v.user?.supportingTeam
-                                      const key = team?.id ?? "none"
-                                      const entry = teamMap.get(key)
-                                      if (entry) entry.count += 1
-                                      else {
-                                        teamMap.set(key, {
-                                          teamId: team?.id ?? null,
-                                          name: team?.name ?? "기타/무소속",
-                                          emblemPath: team?.emblemPath ?? null,
-                                          count: 1,
-                                        })
-                                      }
-                                    }
-                                    const teams = Array.from(teamMap.values()).sort(
-                                      (a, b) => b.count - a.count
-                                    )
-                                    const canRevote = hasVoted && revotePollId === c.poll!.id
-                                    const canClick = !hasVoted || canRevote
-                                    return (
-                                      <div
-                                        key={opt.id}
-                                        className="border border-border/60 rounded px-2 py-1.5 space-y-1"
-                                      >
-                                        <p className="text-xs md:text-sm font-mono text-foreground">
-                                          {opt.label}
-                                        </p>
-                                        <div className="flex items-center gap-2">
-                                          <button
-                                            type="button"
-                                            onClick={async () => {
-                                              if (!detail?.id) return
-                                              if (!canClick) return
-                                              // 최초 투표 또는 재투표 모드에서의 즉시 반영
-                                              setActionError(null)
-                                              setVotingPollId(c.poll!.id)
-                                              const result = await votePoll(
-                                                c.poll!.id,
-                                                opt.id
-                                              )
-                                              setVotingPollId(null)
-                                              if (!result.ok) {
-                                                setActionError(result.error)
-                                              } else {
-                                                setRevotePollId(null)
-                                                refetchDetail(detail.id, setDetail)
-                                              }
-                                            }}
-                                            disabled={
-                                              votingPollId === c.poll!.id || !canClick
-                                            }
-                                            className={`flex-1 text-left rounded border px-2 py-1 text-xs md:text-sm font-mono disabled:opacity-50 ${
-                                              hasVoted
-                                                ? opt.id === myOptionId
-                                                  ? "border-primary text-primary bg-primary/10"
-                                                  : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
-                                                : "border-border hover:border-primary hover:text-primary"
-                                            }`}
-                                          >
-                                            <div className="flex items-center gap-2">
-                                              <div className="flex-1 h-2 bg-zinc-900 rounded overflow-hidden">
-                                                <div
-                                                  className={`h-2 ${
-                                                    opt.id === myOptionId
-                                                      ? "bg-primary"
-                                                      : "bg-muted-foreground/40"
-                                                  }`}
-                                                  style={{
-                                                    width:
-                                                      totalVotes > 0
-                                                        ? `${percent}%`
-                                                        : "0%",
-                                                  }}
-                                                />
-                                              </div>
-                                              <span className="text-xs font-mono text-muted-foreground">
-                                                {percent}% ({count})
-                                              </span>
-                                            </div>
-                                          </button>
-                                        </div>
-                                        {hasVoted && teams.length > 0 && (
-                                          <div className="mt-1 flex flex-wrap items-center gap-2">
-                                            <span className="text-[9px] md:text-[10px] font-mono text-muted-foreground">
-                                              응원팀별
-                                            </span>
-                                            {teams.map((t) => (
-                                              <span
-                                                key={t.teamId ?? t.name}
-                                                className="inline-flex items-center gap-1 text-[9px] md:text-[10px] font-mono text-muted-foreground"
-                                              >
-                                                {t.emblemPath ? (
-                                                  <EmblemImage
-                                                    src={t.emblemPath}
-                                                    alt={t.name}
-                                                    width={16}
-                                                    height={16}
-                                                    className="w-4 h-4 rounded-full border border-border object-contain bg-black"
-                                                  />
-                                                ) : (
-                                                  <span className="w-4 h-4 rounded-full border border-border bg-muted-foreground/30" />
-                                                )}
-                                                <span>{t.count}</span>
-                                              </span>
-                                            ))}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  })}
-                                  {hasVoted && (
-                                    <div className="pt-2 flex items-center justify-end gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setRevotePollId(
-                                            revotePollId === c.poll!.id ? null : c.poll!.id
-                                          )
-                                        }
-                                        className={`px-2 py-1 rounded text-[10px] md:text-xs font-mono border ${
-                                          revotePollId === c.poll!.id
-                                            ? "border-primary text-primary bg-primary/10"
-                                            : "border-border text-muted-foreground hover:border-primary hover:text-primary"
-                                        }`}
-                                      >
-                                        {revotePollId === c.poll!.id ? "투표 취소" : "다시 투표하기"}
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            })()
-                          ) : (
-                            <p className="text-[10px] font-mono text-muted-foreground">
-                              로그인 후 투표에 참여할 수 있습니다.
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      {currentUserId && !isModerated && replyToCommentId === c.id && (
-                        <div className="mt-2">
-                          <div className="space-y-2">
-                              <div className="flex gap-2 items-end">
-                                <textarea
-                                  value={replyText}
-                                  onChange={(e) => setReplyText(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" && !e.shiftKey) {
-                                      e.preventDefault()
-                                      if (e.repeat) return
-                                      handleSubmitReply(c.id)
-                                    }
-                                  }}
-                                  placeholder="답글 입력... (Enter 전송)"
-                                  rows={2}
-                                  className="flex-1 min-w-0 py-2 px-3 bg-muted border border-border text-xs font-mono rounded focus:border-primary outline-none resize-none"
-                                />
-                                <label
-                                  htmlFor={replyFileInputId}
-                                  className="shrink-0 h-9 w-9 flex items-center justify-center border border-border rounded text-muted-foreground hover:text-foreground hover:border-primary transition-colors cursor-pointer"
-                                  title={`사진/영상 첨부 (최대 ${MAX_FILE_SIZE_MB}MB)`}
-                                >
-                                  <ImagePlus className="size-4" />
-                                </label>
-                                <input
-                                  id={replyFileInputId}
-                                  type="file"
-                                  accept="image/*,video/*"
-                                  className="hidden"
-                                  onChange={handleReplyFileChange}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleSubmitReply(c.id)}
-                                  disabled={replyPending || (!replyText.trim() && !replyAttachment)}
-                                  className="shrink-0 px-3 py-2 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-1"
-                                >
-                                  {replyPending ? <Loader2 className="size-3 animate-spin" /> : null}
-                                  전송
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setReplyToCommentId(null)
-                                    setReplyText("")
-                                    clearReplyAttachment()
-                                  }}
-                                  className="shrink-0 px-2 py-2 text-[10px] font-mono text-muted-foreground hover:text-foreground"
-                                >
-                                  취소
-                                </button>
-                              </div>
-                              {replyAttachment && (
-                                <div className="flex items-center gap-2">
-                                  {replyPreviewUrl &&
-                                    (replyAttachment.type.startsWith("image/") ? (
-                                      <img
-                                        src={replyPreviewUrl}
-                                        alt=""
-                                        className="w-12 h-12 object-cover rounded border border-border"
-                                      />
-                                    ) : (
-                                      <span className="text-[10px] font-mono text-muted-foreground border border-border rounded px-2 py-1">영상</span>
-                                    ))}
-                                  <span className="text-[10px] font-mono text-muted-foreground truncate flex-1">{replyAttachment.name}</span>
-                                  <button type="button" onClick={clearReplyAttachment} className="p-1 text-muted-foreground hover:text-destructive" aria-label="첨부 제거">
-                                    <X className="size-4" />
+                        ) : (
+                          <div className="flex items-start justify-between gap-2 flex-wrap mt-1">
+                            <div className="text-xs md:text-sm text-muted-foreground min-w-0 flex-1">
+                              <TextWithEmbedPreview text={c.content} />
+                            </div>
+                            <div className="hidden md:flex items-center gap-1 shrink-0">
+                              {currentUserId && !isModerated && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleLike(c.id)}
+                                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                                      getLikeState(c).likedByMe
+                                        ? "text-primary"
+                                        : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                    aria-label="좋아요"
+                                  >
+                                    <Heart
+                                      className={`size-3.5 ${getLikeState(c).likedByMe ? "fill-current" : ""}`}
+                                    />
+                                    {getLikeState(c).likeCount > 0 && (
+                                      <span>{getLikeState(c).likeCount}</span>
+                                    )}
                                   </button>
-                                </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setReplyToCommentId(c.id)}
+                                    className="p-1 text-muted-foreground hover:text-foreground rounded flex items-center gap-1"
+                                    aria-label="답글"
+                                  >
+                                    <MessageCircle className="size-3.5" />
+                                    {flattenReplies(c.replies).length > 0 && (
+                                      <span className="text-[10px] font-mono">
+                                        {flattenReplies(c.replies).length}
+                                      </span>
+                                    )}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => openReportForm(c.id)}
+                                    className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                    aria-label="신고"
+                                  >
+                                    <Flag className="size-3.5" />
+                                  </button>
+                                </>
+                              )}
+                              {isOwn && !isEditing && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingCommentId(c.id);
+                                      setEditingContent(c.content);
+                                    }}
+                                    className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                    aria-label="수정"
+                                  >
+                                    <Pencil className="size-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDelete(c.id)}
+                                    className="p-1 text-muted-foreground hover:text-destructive rounded"
+                                    aria-label="삭제"
+                                  >
+                                    <Trash2 className="size-3.5" />
+                                  </button>
+                                </>
                               )}
                             </div>
-                        </div>
-                      )}
-                      {reportCommentId === c.id && (
-                        <form
-                          onSubmit={handleSubmitReport}
-                          className="mt-3 p-3 bg-muted/30 border border-border rounded space-y-3"
-                        >
-                          <p className="font-mono text-[10px] font-bold uppercase text-muted-foreground">
-                            신고 사유 선택
-                          </p>
-                          <div className="space-y-2">
-                            {[
-                              { value: "ABUSE", label: "욕설 및 비하" },
-                              { value: "SPAM", label: "도배 및 광고" },
-                              { value: "INAPPROPRIATE", label: "부적절한 게시물 (정치·혐오 등)" },
-                              { value: "FALSE_INFO", label: "허위 사실 유포" },
-                            ].map((opt) => (
-                              <label
-                                key={opt.value}
-                                className="flex items-center gap-2 cursor-pointer font-mono text-xs"
+                          </div>
+                        )}
+                        <div className="flex md:hidden items-center gap-1 mt-1">
+                          {currentUserId && !isModerated && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleLike(c.id)}
+                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                                  getLikeState(c).likedByMe
+                                    ? "text-primary"
+                                    : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                aria-label="좋아요"
                               >
-                                <input
-                                  type="radio"
-                                  name={`reportReason-${c.id}`}
-                                  value={opt.value}
-                                  checked={reportReason === opt.value}
-                                  onChange={() => setReportReason(opt.value)}
-                                  className="rounded border-border"
+                                <Heart
+                                  className={`size-3.5 ${getLikeState(c).likedByMe ? "fill-current" : ""}`}
                                 />
-                                {opt.label}
-                              </label>
-                            ))}
-                          </div>
-                          <div>
-                            <label className="block font-mono text-[10px] text-muted-foreground mb-1">
-                              상세 설명 (선택)
-                            </label>
-                            <textarea
-                              value={reportDescription}
-                              onChange={(e) => setReportDescription(e.target.value.slice(0, 500))}
-                              placeholder="추가로 전달할 내용이 있으면 입력해 주세요."
-                              rows={2}
-                              className="w-full bg-background border border-border px-2 py-1.5 text-xs font-mono rounded focus:border-primary outline-none resize-none"
-                            />
-                          </div>
-                          {reportError && (
-                            <p className="text-destructive text-[10px] font-mono">{reportError}</p>
+                                {getLikeState(c).likeCount > 0 && (
+                                  <span>{getLikeState(c).likeCount}</span>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setReplyToCommentId(c.id)}
+                                className="p-1 text-muted-foreground hover:text-foreground rounded flex items-center gap-1"
+                                aria-label="답글"
+                              >
+                                <MessageCircle className="size-3.5" />
+                                {flattenReplies(c.replies).length > 0 && (
+                                  <span className="text-[10px] font-mono">
+                                    {flattenReplies(c.replies).length}
+                                  </span>
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openReportForm(c.id)}
+                                className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                aria-label="신고"
+                              >
+                                <Flag className="size-3.5" />
+                              </button>
+                            </>
                           )}
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={closeReportForm}
-                              className="px-3 py-1.5 border border-border text-[10px] font-mono rounded hover:bg-muted/50"
-                            >
-                              취소
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={reportPending}
-                              className="px-3 py-1.5 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50"
-                            >
-                              {reportPending ? "처리 중..." : "신고하기"}
-                            </button>
+                          {isOwn && !isEditing && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingCommentId(c.id);
+                                  setEditingContent(c.content);
+                                }}
+                                className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                aria-label="수정"
+                              >
+                                <Pencil className="size-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(c.id)}
+                                className="p-1 text-muted-foreground hover:text-destructive rounded"
+                                aria-label="삭제"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                        {!isModerated && c.mediaUrl && (
+                          <div className="mt-2 rounded overflow-hidden border border-border max-w-[280px]">
+                            {c.mediaUrl.match(
+                              /\.(jpg|jpeg|png|gif|webp)(\?|$)/i,
+                            ) ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={c.mediaUrl}
+                                alt=""
+                                className="w-full max-h-48 object-cover"
+                              />
+                            ) : (
+                              <video
+                                src={c.mediaUrl}
+                                controls
+                                className="w-full max-h-48"
+                                preload="metadata"
+                              />
+                            )}
                           </div>
-                        </form>
-                      )}
-                      {flattenReplies(c.replies).length > 0 && (
-                        <div className="mt-3 pl-4 border-l-2 border-border space-y-3">
-                          {flattenReplies(c.replies).map((r) => {
-                            const replyLike = getLikeState(r)
-                            const isOwnReply = currentUserId && r.author?.id === currentUserId
-                            const isEditingReply = editingCommentId === r.id
-                            const replyStatus = r.status ?? "VISIBLE"
-                            const isReplyHidden = replyStatus === "HIDDEN"
-                            const isReplyPending = replyStatus === "PENDING_REAPPROVAL"
-                            const isReplyModerated = isReplyHidden || isReplyPending
-                            const parentName = r.parent?.author?.name ?? "알 수 없음"
-                            return (
-                              <div key={r.id} className="space-y-1">
-                                <div className="flex items-start gap-3">
-                                  <div className="relative shrink-0">
-                                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
-                                      {r.author?.image ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img
-                                          src={r.author.image}
-                                          alt=""
-                                          className="w-full h-full object-cover"
-                                        />
-                                      ) : (
-                                        <span className="text-[10px] text-muted-foreground font-mono">?</span>
-                                      )}
-                                    </div>
-                                    {r.author?.supportingTeam?.emblemPath && (
-                                      <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-white rounded-full border border-zinc-200 flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
-                                        <Image
-                                          src={r.author.supportingTeam.emblemPath}
-                                          alt=""
-                                          width={20}
-                                          height={20}
-                                          className="w-full h-full object-contain"
-                                        />
+                        )}
+                        {c.poll && (
+                          <div className="mt-3 border border-border bg-black/30 rounded p-3">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <p className="text-xs md:text-sm font-mono text-muted-foreground uppercase tracking-widest">
+                                투표 · {c.poll.title}
+                              </p>
+                              <span className="text-xs md:text-sm font-mono text-muted-foreground">
+                                총{" "}
+                                {c.poll.options.reduce(
+                                  (sum, opt) => sum + (opt.votes?.length ?? 0),
+                                  0,
+                                )}{" "}
+                                표
+                              </span>
+                            </div>
+                            {detail?.currentUserId ? (
+                              (() => {
+                                const totalVotes = c.poll!.options.reduce(
+                                  (sum, opt) => sum + (opt.votes?.length ?? 0),
+                                  0,
+                                );
+                                const myOptionId =
+                                  c.poll!.options.find((opt) =>
+                                    opt.votes?.some(
+                                      (v) => v.userId === detail.currentUserId,
+                                    ),
+                                  )?.id ?? null;
+                                const hasVoted = Boolean(myOptionId);
+                                return (
+                                  <div className="space-y-2">
+                                    {c.poll!.options.map((opt) => {
+                                      const count = opt.votes?.length ?? 0;
+                                      const percent =
+                                        totalVotes > 0
+                                          ? Math.round(
+                                              (count / totalVotes) * 100,
+                                            )
+                                          : 0;
+                                      const teamMap = new Map<
+                                        string,
+                                        {
+                                          teamId: string | null;
+                                          name: string;
+                                          emblemPath: string | null;
+                                          count: number;
+                                        }
+                                      >();
+                                      for (const v of opt.votes ?? []) {
+                                        const team = v.user?.supportingTeam;
+                                        const key = team?.id ?? "none";
+                                        const entry = teamMap.get(key);
+                                        if (entry) entry.count += 1;
+                                        else {
+                                          teamMap.set(key, {
+                                            teamId: team?.id ?? null,
+                                            name: team?.name ?? "기타/무소속",
+                                            emblemPath:
+                                              team?.emblemPath ?? null,
+                                            count: 1,
+                                          });
+                                        }
+                                      }
+                                      const teams = Array.from(
+                                        teamMap.values(),
+                                      ).sort((a, b) => b.count - a.count);
+                                      const canRevote =
+                                        hasVoted && revotePollId === c.poll!.id;
+                                      const canClick = !hasVoted || canRevote;
+                                      return (
+                                        <div
+                                          key={opt.id}
+                                          className="border border-border/60 rounded px-2 py-1.5 space-y-1"
+                                        >
+                                          <p className="text-xs md:text-sm font-mono text-foreground">
+                                            {opt.label}
+                                          </p>
+                                          <div className="flex items-center gap-2">
+                                            <button
+                                              type="button"
+                                              onClick={async () => {
+                                                if (!detail?.id) return;
+                                                if (!canClick) return;
+                                                // 최초 투표 또는 재투표 모드에서의 즉시 반영
+                                                setActionError(null);
+                                                setVotingPollId(c.poll!.id);
+                                                const result = await votePoll(
+                                                  c.poll!.id,
+                                                  opt.id,
+                                                );
+                                                setVotingPollId(null);
+                                                if (!result.ok) {
+                                                  setActionError(result.error);
+                                                } else {
+                                                  setRevotePollId(null);
+                                                  refetchDetail(
+                                                    detail.id,
+                                                    setDetail,
+                                                  );
+                                                }
+                                              }}
+                                              disabled={
+                                                votingPollId === c.poll!.id ||
+                                                !canClick
+                                              }
+                                              className={`flex-1 text-left rounded border px-2 py-1 text-xs md:text-sm font-mono disabled:opacity-50 ${
+                                                hasVoted
+                                                  ? opt.id === myOptionId
+                                                    ? "border-primary text-primary bg-primary/10"
+                                                    : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
+                                                  : "border-border hover:border-primary hover:text-primary"
+                                              }`}
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <div className="flex-1 h-2 bg-zinc-900 rounded overflow-hidden">
+                                                  <div
+                                                    className={`h-2 ${
+                                                      opt.id === myOptionId
+                                                        ? "bg-primary"
+                                                        : "bg-muted-foreground/40"
+                                                    }`}
+                                                    style={{
+                                                      width:
+                                                        totalVotes > 0
+                                                          ? `${percent}%`
+                                                          : "0%",
+                                                    }}
+                                                  />
+                                                </div>
+                                                <span className="text-xs font-mono text-muted-foreground">
+                                                  {percent}% ({count})
+                                                </span>
+                                              </div>
+                                            </button>
+                                          </div>
+                                          {hasVoted && teams.length > 0 && (
+                                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                                              <span className="text-[9px] md:text-[10px] font-mono text-muted-foreground">
+                                                응원팀별
+                                              </span>
+                                              {teams.map((t) => (
+                                                <span
+                                                  key={t.teamId ?? t.name}
+                                                  className="inline-flex items-center gap-1 text-[9px] md:text-[10px] font-mono text-muted-foreground"
+                                                >
+                                                  {t.emblemPath ? (
+                                                    <EmblemImage
+                                                      src={t.emblemPath}
+                                                      alt={t.name}
+                                                      width={16}
+                                                      height={16}
+                                                      className="w-4 h-4 rounded-full border border-border object-contain bg-black"
+                                                    />
+                                                  ) : (
+                                                    <span className="w-4 h-4 rounded-full border border-border bg-muted-foreground/30" />
+                                                  )}
+                                                  <span>{t.count}</span>
+                                                </span>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                    {hasVoted && (
+                                      <div className="pt-2 flex items-center justify-end gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setRevotePollId(
+                                              revotePollId === c.poll!.id
+                                                ? null
+                                                : c.poll!.id,
+                                            )
+                                          }
+                                          className={`px-2 py-1 rounded text-[10px] md:text-xs font-mono border ${
+                                            revotePollId === c.poll!.id
+                                              ? "border-primary text-primary bg-primary/10"
+                                              : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                                          }`}
+                                        >
+                                          {revotePollId === c.poll!.id
+                                            ? "투표 취소"
+                                            : "다시 투표하기"}
+                                        </button>
                                       </div>
                                     )}
                                   </div>
-                                  <div className="min-w-0 flex-1 flex flex-col gap-0.5">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="text-[10px] text-muted-foreground">
-                                        @{parentName}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <UserProfileLink
-                                        handle={r.author?.handle ?? null}
-                                        className="text-[10px] md:text-xs font-bold hover:underline"
-                                      >
-                                        {r.author?.name ?? "Anonymous"}
-                                      </UserProfileLink>
-                                      <span className="font-mono text-[8px] text-muted-foreground">
-                                        {new Date(r.createdAt).toLocaleString("ko-KR")}
-                                      </span>
-                                    </div>
-                                    {isReplyModerated && !isEditingReply ? (
-                                      <p className="text-xs md:text-sm text-muted-foreground mt-0.5 italic">
-                                        {hiddenMessage(replyStatus)}
-                                      </p>
-                                    ) : isEditingReply ? (
-                                      <div className="mt-2 space-y-2">
-                                        <textarea
-                                          value={editingContent}
-                                          onChange={(e) => setEditingContent(e.target.value)}
-                                          onKeyDown={(e) => {
-                                            if (e.key === "Enter" && !e.shiftKey) {
-                                              e.preventDefault()
-                                              handleSaveEdit(r.id)
-                                            }
-                                          }}
-                                          rows={2}
-                                          className="w-full min-w-0 py-2 px-3 bg-muted border border-border text-xs font-mono rounded focus:border-primary outline-none resize-y"
+                                );
+                              })()
+                            ) : (
+                              <p className="text-[10px] font-mono text-muted-foreground">
+                                로그인 후 투표에 참여할 수 있습니다.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {currentUserId &&
+                          !isModerated &&
+                          replyToCommentId === c.id && (
+                            <div className="mt-2">
+                              <div className="space-y-2">
+                                <div className="flex gap-2 items-end">
+                                  <textarea
+                                    value={replyText}
+                                    onChange={(e) =>
+                                      setReplyText(e.target.value)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault();
+                                        if (e.repeat) return;
+                                        handleSubmitReply(c.id);
+                                      }
+                                    }}
+                                    placeholder="답글 입력... (Enter 전송)"
+                                    rows={2}
+                                    className="flex-1 min-w-0 py-2 px-3 bg-muted border border-border text-xs font-mono rounded focus:border-primary outline-none resize-none"
+                                  />
+                                  <label
+                                    htmlFor={replyFileInputId}
+                                    className="shrink-0 h-9 w-9 flex items-center justify-center border border-border rounded text-muted-foreground hover:text-foreground hover:border-primary transition-colors cursor-pointer"
+                                    title={`사진/영상 첨부 (최대 ${MAX_FILE_SIZE_MB}MB)`}
+                                  >
+                                    <ImagePlus className="size-4" />
+                                  </label>
+                                  <input
+                                    id={replyFileInputId}
+                                    type="file"
+                                    accept="image/*,video/*"
+                                    className="hidden"
+                                    onChange={handleReplyFileChange}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSubmitReply(c.id)}
+                                    disabled={
+                                      replyPending ||
+                                      (!replyText.trim() && !replyAttachment)
+                                    }
+                                    className="shrink-0 px-3 py-2 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-1"
+                                  >
+                                    {replyPending ? (
+                                      <Loader2 className="size-3 animate-spin" />
+                                    ) : null}
+                                    전송
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setReplyToCommentId(null);
+                                      setReplyText("");
+                                      clearReplyAttachment();
+                                    }}
+                                    className="shrink-0 px-2 py-2 text-[10px] font-mono text-muted-foreground hover:text-foreground"
+                                  >
+                                    취소
+                                  </button>
+                                </div>
+                                {replyAttachment && (
+                                  <div className="flex items-center gap-2">
+                                    {replyPreviewUrl &&
+                                      (replyAttachment.type.startsWith(
+                                        "image/",
+                                      ) ? (
+                                        <img
+                                          src={replyPreviewUrl}
+                                          alt=""
+                                          className="w-12 h-12 object-cover rounded border border-border"
                                         />
-                                        <div className="flex gap-2">
-                                          <button
-                                            type="button"
-                                            onClick={() => handleSaveEdit(r.id)}
-                                            className="px-2 py-1 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90"
-                                          >
-                                            저장
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setEditingCommentId(null)
-                                              setEditingContent("")
-                                            }}
-                                            className="px-2 py-1 border border-border text-[10px] font-mono rounded hover:bg-muted"
-                                          >
-                                            취소
-                                          </button>
-                                        </div>
+                                      ) : (
+                                        <span className="text-[10px] font-mono text-muted-foreground border border-border rounded px-2 py-1">
+                                          영상
+                                        </span>
+                                      ))}
+                                    <span className="text-[10px] font-mono text-muted-foreground truncate flex-1">
+                                      {replyAttachment.name}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={clearReplyAttachment}
+                                      className="p-1 text-muted-foreground hover:text-destructive"
+                                      aria-label="첨부 제거"
+                                    >
+                                      <X className="size-4" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        {reportCommentId === c.id && (
+                          <form
+                            onSubmit={handleSubmitReport}
+                            className="mt-3 p-3 bg-muted/30 border border-border rounded space-y-3"
+                          >
+                            <p className="font-mono text-[10px] font-bold uppercase text-muted-foreground">
+                              신고 사유 선택
+                            </p>
+                            <div className="space-y-2">
+                              {[
+                                { value: "ABUSE", label: "욕설 및 비하" },
+                                { value: "SPAM", label: "도배 및 광고" },
+                                {
+                                  value: "INAPPROPRIATE",
+                                  label: "부적절한 게시물 (정치·혐오 등)",
+                                },
+                                {
+                                  value: "FALSE_INFO",
+                                  label: "허위 사실 유포",
+                                },
+                              ].map((opt) => (
+                                <label
+                                  key={opt.value}
+                                  className="flex items-center gap-2 cursor-pointer font-mono text-xs"
+                                >
+                                  <input
+                                    type="radio"
+                                    name={`reportReason-${c.id}`}
+                                    value={opt.value}
+                                    checked={reportReason === opt.value}
+                                    onChange={() => setReportReason(opt.value)}
+                                    className="rounded border-border"
+                                  />
+                                  {opt.label}
+                                </label>
+                              ))}
+                            </div>
+                            <div>
+                              <label className="block font-mono text-[10px] text-muted-foreground mb-1">
+                                상세 설명 (선택)
+                              </label>
+                              <textarea
+                                value={reportDescription}
+                                onChange={(e) =>
+                                  setReportDescription(
+                                    e.target.value.slice(0, 500),
+                                  )
+                                }
+                                placeholder="추가로 전달할 내용이 있으면 입력해 주세요."
+                                rows={2}
+                                className="w-full bg-background border border-border px-2 py-1.5 text-xs font-mono rounded focus:border-primary outline-none resize-none"
+                              />
+                            </div>
+                            {reportError && (
+                              <p className="text-destructive text-[10px] font-mono">
+                                {reportError}
+                              </p>
+                            )}
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={closeReportForm}
+                                className="px-3 py-1.5 border border-border text-[10px] font-mono rounded hover:bg-muted/50"
+                              >
+                                취소
+                              </button>
+                              <button
+                                type="submit"
+                                disabled={reportPending}
+                                className="px-3 py-1.5 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50"
+                              >
+                                {reportPending ? "처리 중..." : "신고하기"}
+                              </button>
+                            </div>
+                          </form>
+                        )}
+                        {flattenReplies(c.replies).length > 0 && (
+                          <div className="mt-3 pl-1 md:pl-2 border-l-2 border-border space-y-3">
+                            {flattenReplies(c.replies).map((r) => {
+                              const replyLike = getLikeState(r);
+                              const isOwnReply =
+                                currentUserId && r.author?.id === currentUserId;
+                              const isEditingReply = editingCommentId === r.id;
+                              const replyStatus = r.status ?? "VISIBLE";
+                              const isReplyHidden = replyStatus === "HIDDEN";
+                              const isReplyPending =
+                                replyStatus === "PENDING_REAPPROVAL";
+                              const isReplyModerated =
+                                isReplyHidden || isReplyPending;
+                              const parentName =
+                                r.parent?.author?.name ?? "알 수 없음";
+                              return (
+                                <div key={r.id} className="space-y-1">
+                                  <div className="flex items-start gap-4 md:gap-5">
+                                    <div className="relative shrink-0 mt-7">
+                                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
+                                        {r.author?.image ? (
+                                          // eslint-disable-next-line @next/next/no-img-element
+                                          <img
+                                            src={r.author.image}
+                                            alt=""
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : (
+                                          <span className="text-[10px] text-muted-foreground font-mono">
+                                            ?
+                                          </span>
+                                        )}
                                       </div>
-                                    ) : (
-                                    <div className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                                      <TextWithEmbedPreview text={r.content} />
+                                      {r.author?.supportingTeam?.emblemPath && (
+                                        <div className="absolute -bottom-1 -right-2 w-5 h-5 bg-white rounded-full border border-zinc-200 flex items-center justify-center p-0.5 shadow-lg z-10 overflow-hidden">
+                                          <Image
+                                            src={
+                                              r.author.supportingTeam.emblemPath
+                                            }
+                                            alt=""
+                                            width={20}
+                                            height={20}
+                                            className="w-full h-full object-contain"
+                                          />
+                                        </div>
+                                      )}
                                     </div>
-                                    )}
-                                    <div className="flex md:hidden items-center gap-1 mt-1">
+                                    <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-[10px] text-muted-foreground">
+                                          @{parentName}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <UserProfileLink
+                                          handle={r.author?.handle ?? null}
+                                          className="text-[10px] md:text-xs font-bold hover:underline"
+                                        >
+                                          {r.author?.name ?? "Anonymous"}
+                                        </UserProfileLink>
+                                        <span className="font-mono text-[10px] md:text-xs text-muted-foreground">
+                                          {new Date(
+                                            r.updatedAt ?? r.createdAt,
+                                          ).toLocaleString("ko-KR")}
+                                        </span>
+                                      </div>
+                                      {isReplyModerated && !isEditingReply ? (
+                                        <p className="text-xs md:text-sm text-muted-foreground mt-0.5 italic">
+                                          {hiddenMessage(replyStatus)}
+                                        </p>
+                                      ) : isEditingReply ? (
+                                        <div className="mt-2 space-y-2">
+                                          <textarea
+                                            value={editingContent}
+                                            onChange={(e) =>
+                                              setEditingContent(e.target.value)
+                                            }
+                                            onKeyDown={(e) => {
+                                              if (
+                                                e.key === "Enter" &&
+                                                !e.shiftKey
+                                              ) {
+                                                e.preventDefault();
+                                                handleSaveEdit(r.id);
+                                              }
+                                            }}
+                                            rows={2}
+                                            className="w-full min-w-0 py-2 px-3 bg-muted border border-border text-xs font-mono rounded focus:border-primary outline-none resize-y"
+                                          />
+                                          <div className="flex gap-2">
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                handleSaveEdit(r.id)
+                                              }
+                                              className="px-2 py-1 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90"
+                                            >
+                                              저장
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setEditingCommentId(null);
+                                                setEditingContent("");
+                                              }}
+                                              className="px-2 py-1 border border-border text-[10px] font-mono rounded hover:bg-muted"
+                                            >
+                                              취소
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                                          <TextWithEmbedPreview
+                                            text={r.content}
+                                          />
+                                        </div>
+                                      )}
+                                      <div className="flex md:hidden items-center gap-2 mt-1">
+                                        {currentUserId && !isReplyModerated && (
+                                          <>
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                handleToggleLike(r.id)
+                                              }
+                                              className={`p-1 rounded ${replyLike.likedByMe ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                                              aria-label="좋아요"
+                                            >
+                                              <Heart
+                                                className={`size-3 ${replyLike.likedByMe ? "fill-current" : ""}`}
+                                              />
+                                            </button>
+                                            {replyLike.likeCount > 0 && (
+                                              <span className="text-[10px] font-mono">
+                                                {replyLike.likeCount}
+                                              </span>
+                                            )}
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                setReplyToCommentId(r.id)
+                                              }
+                                              className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                              aria-label="답글"
+                                            >
+                                              <MessageCircle className="size-3" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                openReportForm(r.id)
+                                              }
+                                              className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                              aria-label="신고"
+                                            >
+                                              <Flag className="size-3" />
+                                            </button>
+                                            {isOwnReply &&
+                                              !isEditingReply &&
+                                              !isReplyModerated && (
+                                                <>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      setEditingCommentId(r.id);
+                                                      setEditingContent(
+                                                        r.content,
+                                                      );
+                                                    }}
+                                                    className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                                    aria-label="수정"
+                                                  >
+                                                    <Pencil className="size-3" />
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      handleDelete(r.id)
+                                                    }
+                                                    className="p-1 text-muted-foreground hover:text-destructive rounded"
+                                                    aria-label="삭제"
+                                                  >
+                                                    <Trash2 className="size-3" />
+                                                  </button>
+                                                </>
+                                              )}
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="hidden md:flex items-center gap-2 shrink-0 self-start mt-2 md:mt-11">
                                       {currentUserId && !isReplyModerated && (
                                         <>
                                           <button
                                             type="button"
-                                            onClick={() => handleToggleLike(r.id)}
+                                            onClick={() =>
+                                              handleToggleLike(r.id)
+                                            }
                                             className={`p-1 rounded ${replyLike.likedByMe ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                                             aria-label="좋아요"
                                           >
@@ -1564,11 +1857,15 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                                             />
                                           </button>
                                           {replyLike.likeCount > 0 && (
-                                            <span className="text-[10px] font-mono">{replyLike.likeCount}</span>
+                                            <span className="text-[10px] font-mono">
+                                              {replyLike.likeCount}
+                                            </span>
                                           )}
                                           <button
                                             type="button"
-                                            onClick={() => setReplyToCommentId(r.id)}
+                                            onClick={() =>
+                                              setReplyToCommentId(r.id)
+                                            }
                                             className="p-1 text-muted-foreground hover:text-foreground rounded"
                                             aria-label="답글"
                                           >
@@ -1582,229 +1879,225 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                                           >
                                             <Flag className="size-3" />
                                           </button>
-                                          {isOwnReply && !isEditingReply && !isReplyModerated && (
-                                            <>
-                                              <button
-                                                type="button"
-                                                onClick={() => {
-                                                  setEditingCommentId(r.id)
-                                                  setEditingContent(r.content)
-                                                }}
-                                                className="p-1 text-muted-foreground hover:text-foreground rounded"
-                                                aria-label="수정"
-                                              >
-                                                <Pencil className="size-3" />
-                                              </button>
-                                              <button
-                                                type="button"
-                                                onClick={() => handleDelete(r.id)}
-                                                className="p-1 text-muted-foreground hover:text-destructive rounded"
-                                                aria-label="삭제"
-                                              >
-                                                <Trash2 className="size-3" />
-                                              </button>
-                                            </>
-                                          )}
+                                          {isOwnReply &&
+                                            !isEditingReply &&
+                                            !isReplyModerated && (
+                                              <>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setEditingCommentId(r.id);
+                                                    setEditingContent(
+                                                      r.content,
+                                                    );
+                                                  }}
+                                                  className="p-1 text-muted-foreground hover:text-foreground rounded"
+                                                  aria-label="수정"
+                                                >
+                                                  <Pencil className="size-3" />
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    handleDelete(r.id)
+                                                  }
+                                                  className="p-1 text-muted-foreground hover:text-destructive rounded"
+                                                  aria-label="삭제"
+                                                >
+                                                  <Trash2 className="size-3" />
+                                                </button>
+                                              </>
+                                            )}
                                         </>
                                       )}
                                     </div>
                                   </div>
-                                  <div className="hidden md:flex items-center gap-1 shrink-0">
-                                    {currentUserId && !isReplyModerated && (
-                                      <>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleToggleLike(r.id)}
-                                          className={`p-1 rounded ${replyLike.likedByMe ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                                          aria-label="좋아요"
-                                        >
-                                          <Heart
-                                            className={`size-3 ${replyLike.likedByMe ? "fill-current" : ""}`}
-                                          />
-                                        </button>
-                                        {replyLike.likeCount > 0 && (
-                                          <span className="text-[10px] font-mono">{replyLike.likeCount}</span>
-                                        )}
-                                        <button
-                                          type="button"
-                                          onClick={() => setReplyToCommentId(r.id)}
-                                          className="p-1 text-muted-foreground hover:text-foreground rounded"
-                                          aria-label="답글"
-                                        >
-                                          <MessageCircle className="size-3" />
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => openReportForm(r.id)}
-                                          className="p-1 text-muted-foreground hover:text-foreground rounded"
-                                          aria-label="신고"
-                                        >
-                                          <Flag className="size-3" />
-                                        </button>
-                                        {isOwnReply && !isEditingReply && !isReplyModerated && (
-                                          <>
+                                  {currentUserId &&
+                                    replyToCommentId === r.id && (
+                                      <div className="ml-0">
+                                        <div className="space-y-2">
+                                          <div className="flex gap-2 items-end">
+                                            <textarea
+                                              value={replyText}
+                                              onChange={(e) =>
+                                                setReplyText(e.target.value)
+                                              }
+                                              onKeyDown={(e) => {
+                                                if (
+                                                  e.key === "Enter" &&
+                                                  !e.shiftKey
+                                                ) {
+                                                  e.preventDefault();
+                                                  if (e.repeat) return;
+                                                  handleSubmitReply(r.id);
+                                                }
+                                              }}
+                                              placeholder="답글 입력... (Enter 전송)"
+                                              rows={2}
+                                              className="flex-1 min-w-0 py-2 px-3 bg-muted border border-border text-xs font-mono rounded focus:border-primary outline-none resize-none"
+                                            />
+                                            <label
+                                              htmlFor={replyFileInputId}
+                                              className="shrink-0 h-9 w-9 flex items-center justify-center border border-border rounded text-muted-foreground hover:text-foreground hover:border-primary transition-colors cursor-pointer"
+                                              title={`사진/영상 첨부 (최대 ${MAX_FILE_SIZE_MB}MB)`}
+                                            >
+                                              <ImagePlus className="size-4" />
+                                            </label>
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                handleSubmitReply(r.id)
+                                              }
+                                              disabled={
+                                                replyPending ||
+                                                (!replyText.trim() &&
+                                                  !replyAttachment)
+                                              }
+                                              className="shrink-0 px-3 py-2 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-1"
+                                            >
+                                              {replyPending ? (
+                                                <Loader2 className="size-3 animate-spin" />
+                                              ) : null}
+                                              전송
+                                            </button>
                                             <button
                                               type="button"
                                               onClick={() => {
-                                                setEditingCommentId(r.id)
-                                                setEditingContent(r.content)
+                                                setReplyToCommentId(null);
+                                                setReplyText("");
+                                                clearReplyAttachment();
                                               }}
-                                              className="p-1 text-muted-foreground hover:text-foreground rounded"
-                                              aria-label="수정"
+                                              className="shrink-0 px-2 py-2 text-[10px] font-mono text-muted-foreground hover:text-foreground"
                                             >
-                                              <Pencil className="size-3" />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => handleDelete(r.id)}
-                                              className="p-1 text-muted-foreground hover:text-destructive rounded"
-                                              aria-label="삭제"
-                                            >
-                                              <Trash2 className="size-3" />
-                                            </button>
-                                          </>
-                                        )}
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-                                {currentUserId && replyToCommentId === r.id && (
-                                  <div className="ml-0">
-                                      <div className="space-y-2">
-                                        <div className="flex gap-2 items-end">
-                                          <textarea
-                                            value={replyText}
-                                            onChange={(e) => setReplyText(e.target.value)}
-                                            onKeyDown={(e) => {
-                                              if (e.key === "Enter" && !e.shiftKey) {
-                                                e.preventDefault()
-                                                if (e.repeat) return
-                                                handleSubmitReply(r.id)
-                                              }
-                                            }}
-                                            placeholder="답글 입력... (Enter 전송)"
-                                            rows={2}
-                                            className="flex-1 min-w-0 py-2 px-3 bg-muted border border-border text-xs font-mono rounded focus:border-primary outline-none resize-none"
-                                          />
-                                          <label
-                                            htmlFor={replyFileInputId}
-                                            className="shrink-0 h-9 w-9 flex items-center justify-center border border-border rounded text-muted-foreground hover:text-foreground hover:border-primary transition-colors cursor-pointer"
-                                            title={`사진/영상 첨부 (최대 ${MAX_FILE_SIZE_MB}MB)`}
-                                          >
-                                            <ImagePlus className="size-4" />
-                                          </label>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleSubmitReply(r.id)}
-                                            disabled={replyPending || (!replyText.trim() && !replyAttachment)}
-                                            className="shrink-0 px-3 py-2 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-1"
-                                          >
-                                            {replyPending ? <Loader2 className="size-3 animate-spin" /> : null}
-                                            전송
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setReplyToCommentId(null)
-                                              setReplyText("")
-                                              clearReplyAttachment()
-                                            }}
-                                            className="shrink-0 px-2 py-2 text-[10px] font-mono text-muted-foreground hover:text-foreground"
-                                          >
-                                            취소
-                                          </button>
-                                        </div>
-                                        {replyAttachment && (
-                                          <div className="flex items-center gap-2">
-                                            {replyPreviewUrl &&
-                                              (replyAttachment.type.startsWith("image/") ? (
-                                                <img
-                                                  src={replyPreviewUrl}
-                                                  alt=""
-                                                  className="w-12 h-12 object-cover rounded border border-border"
-                                                />
-                                              ) : (
-                                                <span className="text-[10px] font-mono text-muted-foreground border border-border rounded px-2 py-1">영상</span>
-                                              ))}
-                                            <span className="text-[10px] font-mono text-muted-foreground truncate flex-1">{replyAttachment.name}</span>
-                                            <button type="button" onClick={clearReplyAttachment} className="p-1 text-muted-foreground hover:text-destructive" aria-label="첨부 제거">
-                                              <X className="size-4" />
+                                              취소
                                             </button>
                                           </div>
-                                        )}
+                                          {replyAttachment && (
+                                            <div className="flex items-center gap-2">
+                                              {replyPreviewUrl &&
+                                                (replyAttachment.type.startsWith(
+                                                  "image/",
+                                                ) ? (
+                                                  <img
+                                                    src={replyPreviewUrl}
+                                                    alt=""
+                                                    className="w-12 h-12 object-cover rounded border border-border"
+                                                  />
+                                                ) : (
+                                                  <span className="text-[10px] font-mono text-muted-foreground border border-border rounded px-2 py-1">
+                                                    영상
+                                                  </span>
+                                                ))}
+                                              <span className="text-[10px] font-mono text-muted-foreground truncate flex-1">
+                                                {replyAttachment.name}
+                                              </span>
+                                              <button
+                                                type="button"
+                                                onClick={clearReplyAttachment}
+                                                className="p-1 text-muted-foreground hover:text-destructive"
+                                                aria-label="첨부 제거"
+                                              >
+                                                <X className="size-4" />
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
-                                  </div>
-                                )}
-                                {reportCommentId === r.id && (
-                                  <form
-                                    onSubmit={handleSubmitReport}
-                                    className="mt-2 p-3 bg-muted/30 border border-border rounded space-y-2"
-                                  >
-                                    <p className="font-mono text-[10px] font-bold uppercase text-muted-foreground">
-                                      신고 사유
-                                    </p>
-                                    <div className="space-y-1.5">
-                                      {[
-                                        { value: "ABUSE", label: "욕설 및 비하" },
-                                        { value: "SPAM", label: "도배 및 광고" },
-                                        { value: "INAPPROPRIATE", label: "부적절한 게시물" },
-                                        { value: "FALSE_INFO", label: "허위 사실 유포" },
-                                      ].map((opt) => (
-                                        <label
-                                          key={opt.value}
-                                          className="flex items-center gap-2 cursor-pointer font-mono text-[10px]"
-                                        >
-                                          <input
-                                            type="radio"
-                                            name={`reportReason-reply-${r.id}`}
-                                            value={opt.value}
-                                            checked={reportReason === opt.value}
-                                            onChange={() => setReportReason(opt.value)}
-                                            className="rounded border-border"
-                                          />
-                                          {opt.label}
-                                        </label>
-                                      ))}
-                                    </div>
-                                    <div>
-                                      <textarea
-                                        value={reportDescription}
-                                        onChange={(e) => setReportDescription(e.target.value.slice(0, 500))}
-                                        placeholder="상세 설명 (선택)"
-                                        rows={2}
-                                        className="w-full bg-background border border-border px-2 py-1.5 text-[10px] font-mono rounded focus:border-primary outline-none resize-none"
-                                      />
-                                    </div>
-                                    {reportError && (
-                                      <p className="text-destructive text-[10px] font-mono">{reportError}</p>
                                     )}
-                                    <div className="flex gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={closeReportForm}
-                                        className="px-2 py-1 border border-border text-[10px] font-mono rounded hover:bg-muted/50"
-                                      >
-                                        취소
-                                      </button>
-                                      <button
-                                        type="submit"
-                                        disabled={reportPending}
-                                        className="px-2 py-1 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50"
-                                      >
-                                        {reportPending ? "처리 중..." : "신고하기"}
-                                      </button>
-                                    </div>
-                                  </form>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
+                                  {reportCommentId === r.id && (
+                                    <form
+                                      onSubmit={handleSubmitReport}
+                                      className="mt-2 p-3 bg-muted/30 border border-border rounded space-y-2"
+                                    >
+                                      <p className="font-mono text-[10px] font-bold uppercase text-muted-foreground">
+                                        신고 사유
+                                      </p>
+                                      <div className="space-y-1.5">
+                                        {[
+                                          {
+                                            value: "ABUSE",
+                                            label: "욕설 및 비하",
+                                          },
+                                          {
+                                            value: "SPAM",
+                                            label: "도배 및 광고",
+                                          },
+                                          {
+                                            value: "INAPPROPRIATE",
+                                            label: "부적절한 게시물",
+                                          },
+                                          {
+                                            value: "FALSE_INFO",
+                                            label: "허위 사실 유포",
+                                          },
+                                        ].map((opt) => (
+                                          <label
+                                            key={opt.value}
+                                            className="flex items-center gap-2 cursor-pointer font-mono text-[10px]"
+                                          >
+                                            <input
+                                              type="radio"
+                                              name={`reportReason-reply-${r.id}`}
+                                              value={opt.value}
+                                              checked={
+                                                reportReason === opt.value
+                                              }
+                                              onChange={() =>
+                                                setReportReason(opt.value)
+                                              }
+                                              className="rounded border-border"
+                                            />
+                                            {opt.label}
+                                          </label>
+                                        ))}
+                                      </div>
+                                      <div>
+                                        <textarea
+                                          value={reportDescription}
+                                          onChange={(e) =>
+                                            setReportDescription(
+                                              e.target.value.slice(0, 500),
+                                            )
+                                          }
+                                          placeholder="상세 설명 (선택)"
+                                          rows={2}
+                                          className="w-full bg-background border border-border px-2 py-1.5 text-[10px] font-mono rounded focus:border-primary outline-none resize-none"
+                                        />
+                                      </div>
+                                      {reportError && (
+                                        <p className="text-destructive text-[10px] font-mono">
+                                          {reportError}
+                                        </p>
+                                      )}
+                                      <div className="flex gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={closeReportForm}
+                                          className="px-2 py-1 border border-border text-[10px] font-mono rounded hover:bg-muted/50"
+                                        >
+                                          취소
+                                        </button>
+                                        <button
+                                          type="submit"
+                                          disabled={reportPending}
+                                          className="px-2 py-1 bg-primary text-primary-foreground text-[10px] font-mono rounded hover:opacity-90 disabled:opacity-50"
+                                        >
+                                          {reportPending
+                                            ? "처리 중..."
+                                            : "신고하기"}
+                                        </button>
+                                      </div>
+                                    </form>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                )
+                );
               })}
             </div>
           )}
@@ -1812,7 +2105,9 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
 
         <div className="p-4 md:p-6 border-t border-border shrink-0 space-y-3">
           {actionError && (
-            <p className="text-[10px] font-mono text-destructive">{actionError}</p>
+            <p className="text-[10px] font-mono text-destructive">
+              {actionError}
+            </p>
           )}
           <div className="flex gap-2 items-center min-h-10">
             <textarea
@@ -1821,9 +2116,11 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
               onKeyDown={handleKeyDown}
               onFocus={(e) => {
                 if (!detail?.currentUserId) {
-                  e.target.blur()
-                  setLoginRequiredMessage("이 순간에 코멘트를 남기려면 먼저 로그인해주세요.")
-                  setLoginRequiredOpen(true)
+                  e.target.blur();
+                  setLoginRequiredMessage(
+                    "이 순간에 코멘트를 남기려면 먼저 로그인해주세요.",
+                  );
+                  setLoginRequiredOpen(true);
                 }
               }}
               placeholder="QUICK COMMENT... (Enter 전송, Shift+Enter 줄바꿈)"
@@ -1845,8 +2142,8 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
               multiple
               className="hidden"
               onChange={(e) => {
-                addFiles(e.target.files)
-                e.target.value = ""
+                addFiles(e.target.files);
+                e.target.value = "";
               }}
             />
             <button
@@ -1855,27 +2152,29 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
               disabled={submitPending || !commentText.trim()}
               className="shrink-0 h-10 bg-primary text-primary-foreground px-4 font-black italic font-mono text-xs hover:opacity-90 transition-opacity flex items-center gap-2 rounded disabled:opacity-50"
             >
-              {submitPending ? <Loader2 className="size-4 animate-spin" /> : null}
+              {submitPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : null}
               작성
             </button>
           </div>
           <div
             className={`rounded border border-dashed p-3 min-h-[56px] transition-colors ${isDraggingOver ? "border-primary bg-primary/10" : "border-border bg-muted/30"}`}
             onDragOver={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setIsDraggingOver(true)
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDraggingOver(true);
             }}
             onDragLeave={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setIsDraggingOver(false)
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDraggingOver(false);
             }}
             onDrop={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setIsDraggingOver(false)
-              addFiles(e.dataTransfer.files)
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDraggingOver(false);
+              addFiles(e.dataTransfer.files);
             }}
           >
             {attachments.length === 0 ? (
@@ -1908,8 +2207,12 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
                 <BarChart3 className="size-4 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-mono text-muted-foreground uppercase">투표</p>
-                <p className="text-sm font-mono text-foreground truncate">{pollTitle}</p>
+                <p className="text-xs font-mono text-muted-foreground uppercase">
+                  투표
+                </p>
+                <p className="text-sm font-mono text-foreground truncate">
+                  {pollTitle}
+                </p>
               </div>
               <button
                 type="button"
@@ -1936,8 +2239,8 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
         title={pollTitle}
         options={pollOptions}
         onSave={(t, opts) => {
-          setPollTitle(t)
-          setPollOptions(opts)
+          setPollTitle(t);
+          setPollOptions(opts);
         }}
       />
       <ModerationConfirmDialog
@@ -1964,5 +2267,5 @@ export function MomentCommentModal({ open, onClose, moment, matchDetailPath }: P
         message={loginRequiredMessage}
       />
     </div>
-  )
+  );
 }
