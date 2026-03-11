@@ -365,8 +365,18 @@ export default async function HomePage() {
       if (statsWithFeedbacks.length > 0) {
         for (const role of ROLES_FOR_BEST_WORST) {
           const byRole = statsWithFeedbacks.filter((s) => s.role === role)
-          const byBest = [...byRole].sort((a, b) => b.avg - a.avg)
-          const byWorst = [...byRole].sort((a, b) => a.avg - b.avg)
+          const byBest = [...byRole].sort((a, b) => {
+            const diff = b.avg - a.avg
+            if (Math.abs(diff) > 1e-6) return diff
+            // 동일 평균이면 투표 수 많은 심판이 베스트
+            return b.voteCount - a.voteCount
+          })
+          const byWorst = [...byRole].sort((a, b) => {
+            const diff = a.avg - b.avg
+            if (Math.abs(diff) > 1e-6) return diff
+            // 동일 평균이면 투표 수 많은 심판이 워스트
+            return b.voteCount - a.voteCount
+          })
           const best = byBest[0]
           const worst = byWorst[0]
           const toReviews = (fbs: RefFeedback[]) =>

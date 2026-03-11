@@ -432,7 +432,12 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         awayAvg: v.awayCount > 0 ? v.awaySum / v.awayCount : undefined,
         reviews: v.reviews.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
       }))
-      allRoundReferees = [...stats].sort((a, b) => b.avg - a.avg).map((s) => ({
+      allRoundReferees = [...stats].sort((a, b) => {
+        const diff = b.avg - a.avg
+        if (Math.abs(diff) > 1e-6) return diff
+        // 동일 평균이면 투표 수가 많은 순
+        return b.voteCount - a.voteCount
+      }).map((s) => ({
         id: s.refereeId,
         slug: s.refereeSlug,
         name: s.name,
@@ -447,8 +452,18 @@ export default async function MatchesArchivePage({ params }: { params: Params })
       if (stats.length > 0) {
         for (const role of ROLES_FOR_BEST_WORST) {
           const byRole = stats.filter((s) => s.role === role)
-          const byBest = [...byRole].sort((a, b) => b.avg - a.avg)
-          const byWorst = [...byRole].sort((a, b) => a.avg - b.avg)
+          const byBest = [...byRole].sort((a, b) => {
+            const diff = b.avg - a.avg
+            if (Math.abs(diff) > 1e-6) return diff
+            // 동일 평균이면 투표 수 많은 사람이 베스트
+            return b.voteCount - a.voteCount
+          })
+          const byWorst = [...byRole].sort((a, b) => {
+            const diff = a.avg - b.avg
+            if (Math.abs(diff) > 1e-6) return diff
+            // 동일 평균이면 투표 수 많은 사람이 워스트
+            return b.voteCount - a.voteCount
+          })
           const best = byBest[0]
           const worst = byWorst[0]
           if (best) {
