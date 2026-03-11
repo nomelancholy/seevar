@@ -49,6 +49,7 @@ type RoundRefereeStat = {
   slug: string
   name: string
   role: string
+  matchId: string
   avg: number
   voteCount: number
   matchForDisplay?: {
