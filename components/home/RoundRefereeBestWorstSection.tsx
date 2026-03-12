@@ -119,6 +119,7 @@ export function RoundRefereeBestWorstSection({
                   {i > 0 && ", "}
                   <Link
                     href={`/referees/${ref.slug}`}
+                    prefetch={false}
                     className={`${hoverAccent} transition-colors`}
                   >
                     {ref.name}
@@ -134,6 +135,7 @@ export function RoundRefereeBestWorstSection({
             {data.matchForDisplay && (
               <Link
                 href={data.matchForDisplay.matchPath}
+                prefetch={false}
                 className={`mt-2 block font-mono text-[10px] md:text-xs text-muted-foreground ${hoverAccent} transition-colors not-italic whitespace-nowrap`}
               >
                 {data.matchForDisplay.homeName} vs{" "}
@@ -362,6 +364,7 @@ export function RoundRefereeBestWorstSection({
                 <td className="py-2.5 pr-2 md:pr-3 align-middle">
                   <Link
                     href={`/referees/${ref.slug}`}
+                    prefetch={false}
                     className="font-bold text-foreground hover:text-primary transition-colors whitespace-nowrap"
                   >
                     {ref.name}
@@ -371,6 +374,7 @@ export function RoundRefereeBestWorstSection({
                   {ref.matchForDisplay ? (
                     <Link
                       href={ref.matchForDisplay.matchPath}
+                      prefetch={false}
                       className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
                     >
                       <span className="flex md:hidden items-center gap-1 shrink-0">

@@ -19,6 +19,36 @@ export const metadata = {
 
 type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string }>
 
+/** 베스트/워스트 심판 영역 — Suspense로 스트리밍되어 경기 목록보다 늦게 도착해도 먼저 보이는 영역은 바로 표시됨 */
+async function ArchiveRefereeHighlightSection(props: {
+  promise: Promise<{
+    bestByRole: Partial<Record<string, import("@/components/home/RoundRefereeBestWorstSection").RefereeCardData>>
+    worstByRole: Partial<Record<string, import("@/components/home/RoundRefereeBestWorstSection").RefereeCardData>>
+    allRoundReferees: Array<{
+      id: string
+      slug: string
+      name: string
+      role: string
+      avg: number
+      voteCount: number
+      matchForDisplay?: { homeName: string; awayName: string; matchPath: string }
+    }>
+  }>
+  leagueName: string
+  roundNumber: number
+}) {
+  const { bestByRole, worstByRole, allRoundReferees } = await props.promise
+  return (
+    <RoundRefereeBestWorstSection
+      bestByRole={bestByRole}
+      worstByRole={worstByRole}
+      allRoundReferees={allRoundReferees}
+      leagueName={props.leagueName}
+      roundNumber={props.roundNumber}
+    />
+  )
+}
+
 export default async function MatchesArchivePage({ params }: { params: Params }) {
   const { year: yearStr, leagueSlug, roundSlug } = await params
   const year = parseInt(yearStr, 10)
@@ -155,14 +185,11 @@ export default async function MatchesArchivePage({ params }: { params: Params })
       rating: number
     }[]
   }
-  let bestByRole: Partial<Record<string, RefereeCardPayload>> = {}
-  let worstByRole: Partial<Record<string, RefereeCardPayload>> = {}
-  let allRoundReferees: { id: string; slug: string; name: string; role: string; avg: number; voteCount: number; matchForDisplay?: { homeName: string; awayName: string; matchPath: string } }[] = []
-
-  function getRoundDataCached(roundIdParam: string, seasonIdParam: string) {
+  /** 경기 목록 + 쟁점 순간만 조회 (TTFB 단축용, 베스트/워스트는 Suspense로 별도 스트리밍) */
+  function getRoundMatchesAndMomentsCached(roundIdParam: string, seasonIdParam: string) {
     return unstable_cache(
       async () => {
-        const [matchesRes, rawHotMomentsRes, reviewsRes] = await Promise.all([
+        const [matchesRes, rawHotMomentsRes] = await Promise.all([
           prisma.match.findMany({
             where: {
               roundId: roundIdParam,
@@ -204,39 +231,257 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               },
             })
             .catch((e: { code?: string }) => (e?.code === "P2021" ? [] : Promise.reject(e))),
-          prisma.refereeReview.findMany({
-            where: {
-              status: "VISIBLE",
-              match: {
-                roundId: roundIdParam,
-                round: { league: { seasonId: seasonIdParam } },
-              },
-            },
-            include: {
-              referee: true,
-              match: {
-                include: {
-                  homeTeam: true,
-                  awayTeam: true,
-                  round: { include: { league: { include: { season: true } } } },
-                },
-              },
-              fanTeam: {
-                select: { name: true, slug: true, emblemPath: true },
-              },
-              user: {
-                select: { name: true, handle: true, image: true },
-              },
-              reactions: {
-                select: { type: true },
-              },
-            },
-          }),
         ])
-
-        return { matchesRes, rawHotMomentsRes, reviewsRes }
+        return { matchesRes, rawHotMomentsRes }
       },
-      ["archive-round", roundIdParam, seasonIdParam],
+      ["archive-round-matches", roundIdParam, seasonIdParam],
+      { revalidate: 60, tags: ["archive-rounds"] },
+    )()
+  }
+
+  /** 베스트/워스트 심판 집계만 조회 (Suspense 경계에서 사용해 스트리밍) */
+  function getRoundRefereeHighlightsCached(
+    roundIdParam: string,
+    seasonIdParam: string,
+    archiveBackPath: string,
+  ) {
+    return unstable_cache(
+      async () => {
+        const reviewsRes = await prisma.refereeReview.findMany({
+          where: {
+            status: "VISIBLE",
+            match: {
+              roundId: roundIdParam,
+              round: { league: { seasonId: seasonIdParam } },
+            },
+          },
+          include: {
+            referee: true,
+            match: {
+              include: {
+                homeTeam: true,
+                awayTeam: true,
+                round: { include: { league: { include: { season: true } } } },
+              },
+            },
+            fanTeam: {
+              select: { name: true, slug: true, emblemPath: true },
+            },
+            user: {
+              select: { name: true, handle: true, image: true },
+            },
+            reactions: {
+              select: { type: true },
+            },
+          },
+        })
+        const bestByRole: Partial<Record<string, RefereeCardPayload>> = {}
+        const worstByRole: Partial<Record<string, RefereeCardPayload>> = {}
+        const byRef = new Map<
+          string,
+          {
+            refereeId: string
+            refereeSlug: string
+            name: string
+            role: string
+            matchId: string
+            sum: number
+            count: number
+            homeSum: number
+            homeCount: number
+            awaySum: number
+            awayCount: number
+            matchForDisplay: { homeName: string; awayName: string; matchPath: string; homeEmblemPath?: string | null; awayEmblemPath?: string | null }
+            reviews: RefereeCardPayload["reviews"]
+          }
+        >()
+        for (const r of reviewsRes) {
+          const key = `${r.refereeId}:${r.role}`
+          const cur = byRef.get(key)
+          const likeCount = r.reactions.filter((rx) => rx.type === "LIKE").length
+          const homeName = r.match.homeTeam.name
+          const awayName = r.match.awayTeam.name
+          const match = r.match as { homeTeamId: string; awayTeamId: string }
+          const isHomeFan = r.fanTeamId != null && r.fanTeamId === match.homeTeamId
+          const isAwayFan = r.fanTeamId != null && r.fanTeamId === match.awayTeamId
+          const matchForDisplay = {
+            homeName,
+            awayName,
+            matchPath:
+              getMatchDetailPathWithBack(r.match as unknown as MatchForPath, archiveBackPath) +
+              "&scroll=referee-rating&referee=" +
+              encodeURIComponent((r.referee as { slug: string }).slug),
+            homeEmblemPath: (r.match.homeTeam as { emblemPath: string | null }).emblemPath ?? null,
+            awayEmblemPath: (r.match.awayTeam as { emblemPath: string | null }).emblemPath ?? null,
+          }
+          if (r.comment) {
+            const summary = {
+              id: r.id,
+              userName: r.user?.name || "Supporter",
+              userHandle: (r.user as { handle?: string | null })?.handle ?? null,
+              userImage: (r.user as { image?: string | null })?.image ?? null,
+              teamName: r.fanTeam?.name ?? null,
+              teamSlug: r.fanTeam?.slug ?? null,
+              teamEmblem: r.fanTeam?.emblemPath ?? null,
+              likeCount,
+              comment: r.comment,
+              matchLabel: `${homeName} vs ${awayName}`,
+              rating: r.rating,
+            }
+            if (cur) {
+              cur.reviews.push(summary)
+              cur.sum += r.rating
+              cur.count += 1
+              if (isHomeFan) {
+                cur.homeSum += r.rating
+                cur.homeCount += 1
+              }
+              if (isAwayFan) {
+                cur.awaySum += r.rating
+                cur.awayCount += 1
+              }
+            } else {
+              byRef.set(key, {
+                refereeId: r.refereeId,
+                refereeSlug: (r.referee as { slug: string }).slug ?? r.refereeId,
+                name: r.referee.name,
+                role: r.role,
+                matchId: r.matchId,
+                sum: r.rating,
+                count: 1,
+                homeSum: isHomeFan ? r.rating : 0,
+                homeCount: isHomeFan ? 1 : 0,
+                awaySum: isAwayFan ? r.rating : 0,
+                awayCount: isAwayFan ? 1 : 0,
+                matchForDisplay,
+                reviews: [summary],
+              })
+              continue
+            }
+          } else {
+            if (cur) {
+              cur.sum += r.rating
+              cur.count += 1
+              if (isHomeFan) {
+                cur.homeSum += r.rating
+                cur.homeCount += 1
+              }
+              if (isAwayFan) {
+                cur.awaySum += r.rating
+                cur.awayCount += 1
+              }
+            } else {
+              byRef.set(key, {
+                refereeId: r.refereeId,
+                refereeSlug: (r.referee as { slug: string }).slug ?? r.refereeId,
+                name: r.referee.name,
+                role: r.role,
+                matchId: r.matchId,
+                sum: r.rating,
+                count: 1,
+                homeSum: isHomeFan ? r.rating : 0,
+                homeCount: isHomeFan ? 1 : 0,
+                awaySum: isAwayFan ? r.rating : 0,
+                awayCount: isAwayFan ? 1 : 0,
+                matchForDisplay,
+                reviews: [],
+              })
+            }
+          }
+        }
+        const stats = [...byRef.values()].map((v) => ({
+          refereeId: v.refereeId,
+          refereeSlug: v.refereeSlug,
+          name: v.name,
+          role: v.role,
+          matchId: v.matchId,
+          avg: v.count > 0 ? v.sum / v.count : 0,
+          voteCount: v.count,
+          matchForDisplay: v.matchForDisplay,
+          homeAvg: v.homeCount > 0 ? v.homeSum / v.homeCount : undefined,
+          awayAvg: v.awayCount > 0 ? v.awaySum / v.awayCount : undefined,
+          reviews: v.reviews.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
+        }))
+        const allRoundReferees = [...stats].sort((a, b) => {
+          const diff = b.avg - a.avg
+          if (Math.abs(diff) > 1e-6) return diff
+          return b.voteCount - a.voteCount
+        }).map((s) => ({
+          id: s.refereeId,
+          slug: s.refereeSlug,
+          name: s.name,
+          role: s.role,
+          avg: s.avg,
+          voteCount: s.voteCount,
+          matchForDisplay: s.matchForDisplay,
+          homeAvg: s.homeAvg,
+          awayAvg: s.awayAvg,
+        }))
+
+        if (stats.length > 0) {
+          for (const role of ROLES_FOR_BEST_WORST) {
+            const byRole = stats.filter((s) => s.role === role)
+            const byBest = [...byRole].sort((a, b) => {
+              const diff = b.avg - a.avg
+              if (Math.abs(diff) > 1e-6) return diff
+              return b.voteCount - a.voteCount
+            })
+            const byWorst = [...byRole].sort((a, b) => {
+              const diff = a.avg - b.avg
+              if (Math.abs(diff) > 1e-6) return diff
+              return b.voteCount - a.voteCount
+            })
+            const best = byBest[0]
+            const worst = byWorst[0]
+            if (best) {
+              const bestPeers = byRole.filter(
+                (s) =>
+                  s.refereeId !== best.refereeId &&
+                  s.matchId === best.matchId &&
+                  Math.abs(s.avg - best.avg) < 1e-6,
+              )
+              bestByRole[role] = {
+                refereeId: best.refereeId,
+                slug: best.refereeSlug,
+                name: best.name,
+                role: best.role,
+                avg: best.avg,
+                voteCount: best.voteCount,
+                peerRefs:
+                  bestPeers.length > 0
+                    ? bestPeers.map((p) => ({ name: p.name, slug: p.refereeSlug }))
+                    : undefined,
+                matchForDisplay: best.matchForDisplay,
+                reviews: best.reviews,
+              }
+            }
+            if (worst) {
+              const worstPeers = byRole.filter(
+                (s) =>
+                  s.refereeId !== worst.refereeId &&
+                  s.matchId === worst.matchId &&
+                  Math.abs(s.avg - worst.avg) < 1e-6,
+              )
+              worstByRole[role] = {
+                refereeId: worst.refereeId,
+                slug: worst.refereeSlug,
+                name: worst.name,
+                role: worst.role,
+                avg: worst.avg,
+                voteCount: worst.voteCount,
+                peerRefs:
+                  worstPeers.length > 0
+                    ? worstPeers.map((p) => ({ name: p.name, slug: p.refereeSlug }))
+                    : undefined,
+                matchForDisplay: worst.matchForDisplay,
+                reviews: worst.reviews,
+              }
+            }
+          }
+        }
+        return { bestByRole, worstByRole, allRoundReferees }
+      },
+      ["archive-round-referee-highlights", roundIdParam, seasonIdParam, archiveBackPath],
       { revalidate: 60, tags: ["archive-rounds"] },
     )()
   }
@@ -294,231 +539,9 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   }
 
   if (roundId) {
-    const { matchesRes, rawHotMomentsRes, reviewsRes } = await getRoundDataCached(roundId, seasonId)
+    const { matchesRes, rawHotMomentsRes } = await getRoundMatchesAndMomentsCached(roundId, seasonId)
     matches = matchesRes
     rawHotMoments = rawHotMomentsRes
-
-    // ROUND BEST / WORST REFEREE (평균 평점 기준) + TOP FAN FEEDBACKS
-    if (reviewsRes.length > 0) {
-      const archiveBackPath = `/matches/archive/${yearStr}/${leagueSlug}/${roundSlug}`
-      const byRef = new Map<
-        string,
-        {
-          refereeId: string
-          refereeSlug: string
-          name: string
-          role: string
-          matchId: string
-          sum: number
-          count: number
-          homeSum: number
-          homeCount: number
-          awaySum: number
-          awayCount: number
-          matchForDisplay: { homeName: string; awayName: string; matchPath: string }
-          reviews: {
-            id: string
-            userName: string
-            userHandle?: string | null
-            userImage?: string | null
-            teamName: string | null
-            teamSlug: string | null
-            teamEmblem: string | null
-            likeCount: number
-            comment: string
-            matchLabel: string
-          }[]
-        }
-      >()
-      for (const r of reviewsRes) {
-        const key = `${r.refereeId}:${r.role}`
-        const cur = byRef.get(key)
-        const likeCount = r.reactions.filter((rx) => rx.type === "LIKE").length
-        const homeName = r.match.homeTeam.name
-        const awayName = r.match.awayTeam.name
-        const matchLabel = `${homeName} vs ${awayName}`
-        const match = r.match as { homeTeamId: string; awayTeamId: string }
-        const isHomeFan = r.fanTeamId != null && r.fanTeamId === match.homeTeamId
-        const isAwayFan = r.fanTeamId != null && r.fanTeamId === match.awayTeamId
-        const matchForDisplay = {
-          homeName,
-          awayName,
-          matchPath:
-            getMatchDetailPathWithBack(r.match as unknown as MatchForPath, archiveBackPath) +
-            "&scroll=referee-rating&referee=" +
-            encodeURIComponent((r.referee as { slug: string }).slug),
-          homeEmblemPath: (r.match.homeTeam as { emblemPath: string | null }).emblemPath ?? null,
-          awayEmblemPath: (r.match.awayTeam as { emblemPath: string | null }).emblemPath ?? null,
-        }
-        if (r.comment) {
-          const summary = {
-            id: r.id,
-            userName: r.user?.name || "Supporter",
-            userHandle: (r.user as { handle?: string | null })?.handle ?? null,
-            userImage: (r.user as { image?: string | null })?.image ?? null,
-            teamName: r.fanTeam?.name ?? null,
-            teamSlug: r.fanTeam?.slug ?? null,
-            teamEmblem: r.fanTeam?.emblemPath ?? null,
-            likeCount,
-            comment: r.comment,
-            matchLabel,
-            rating: r.rating,
-          }
-          if (cur) {
-            cur.reviews.push(summary)
-            cur.sum += r.rating
-            cur.count += 1
-            if (isHomeFan) {
-              cur.homeSum += r.rating
-              cur.homeCount += 1
-            }
-            if (isAwayFan) {
-              cur.awaySum += r.rating
-              cur.awayCount += 1
-            }
-          } else {
-            byRef.set(key, {
-              refereeId: r.refereeId,
-              refereeSlug: (r.referee as { slug: string }).slug ?? r.refereeId,
-              name: r.referee.name,
-              role: r.role,
-              matchId: r.matchId,
-              sum: r.rating,
-              count: 1,
-              homeSum: isHomeFan ? r.rating : 0,
-              homeCount: isHomeFan ? 1 : 0,
-              awaySum: isAwayFan ? r.rating : 0,
-              awayCount: isAwayFan ? 1 : 0,
-              matchForDisplay,
-              reviews: [summary],
-            })
-            continue
-          }
-        } else {
-          if (cur) {
-            cur.sum += r.rating
-            cur.count += 1
-            if (isHomeFan) {
-              cur.homeSum += r.rating
-              cur.homeCount += 1
-            }
-            if (isAwayFan) {
-              cur.awaySum += r.rating
-              cur.awayCount += 1
-            }
-          } else {
-            byRef.set(key, {
-              refereeId: r.refereeId,
-              refereeSlug: (r.referee as { slug: string }).slug ?? r.refereeId,
-              name: r.referee.name,
-              role: r.role,
-              matchId: r.matchId,
-              sum: r.rating,
-              count: 1,
-              homeSum: isHomeFan ? r.rating : 0,
-              homeCount: isHomeFan ? 1 : 0,
-              awaySum: isAwayFan ? r.rating : 0,
-              awayCount: isAwayFan ? 1 : 0,
-              matchForDisplay,
-              reviews: [],
-            })
-          }
-        }
-      }
-      const stats = [...byRef.values()].map((v) => ({
-        refereeId: v.refereeId,
-        refereeSlug: v.refereeSlug,
-        name: v.name,
-        role: v.role,
-        matchId: v.matchId,
-        avg: v.count > 0 ? v.sum / v.count : 0,
-        voteCount: v.count,
-        matchForDisplay: v.matchForDisplay,
-        homeAvg: v.homeCount > 0 ? v.homeSum / v.homeCount : undefined,
-        awayAvg: v.awayCount > 0 ? v.awaySum / v.awayCount : undefined,
-        reviews: v.reviews.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
-      }))
-      allRoundReferees = [...stats].sort((a, b) => {
-        const diff = b.avg - a.avg
-        if (Math.abs(diff) > 1e-6) return diff
-        // 동일 평균이면 투표 수가 많은 순
-        return b.voteCount - a.voteCount
-      }).map((s) => ({
-        id: s.refereeId,
-        slug: s.refereeSlug,
-        name: s.name,
-        role: s.role,
-        avg: s.avg,
-        voteCount: s.voteCount,
-        matchForDisplay: s.matchForDisplay,
-        homeAvg: s.homeAvg,
-        awayAvg: s.awayAvg,
-      }))
-
-      if (stats.length > 0) {
-        for (const role of ROLES_FOR_BEST_WORST) {
-          const byRole = stats.filter((s) => s.role === role)
-          const byBest = [...byRole].sort((a, b) => {
-            const diff = b.avg - a.avg
-            if (Math.abs(diff) > 1e-6) return diff
-            // 동일 평균이면 투표 수 많은 사람이 베스트
-            return b.voteCount - a.voteCount
-          })
-          const byWorst = [...byRole].sort((a, b) => {
-            const diff = a.avg - b.avg
-            if (Math.abs(diff) > 1e-6) return diff
-            // 동일 평균이면 투표 수 많은 사람이 워스트
-            return b.voteCount - a.voteCount
-          })
-          const best = byBest[0]
-          const worst = byWorst[0]
-          if (best) {
-            const bestPeers = byRole.filter(
-              (s) =>
-                s.refereeId !== best.refereeId &&
-                s.matchId === best.matchId &&
-                Math.abs(s.avg - best.avg) < 1e-6,
-            )
-            bestByRole[role] = {
-              refereeId: best.refereeId,
-              slug: best.refereeSlug,
-              name: best.name,
-              role: best.role,
-              avg: best.avg,
-              voteCount: best.voteCount,
-              peerRefs:
-                bestPeers.length > 0
-                  ? bestPeers.map((p) => ({ name: p.name, slug: p.refereeSlug }))
-                  : undefined,
-              matchForDisplay: best.matchForDisplay,
-              reviews: best.reviews as RefereeCardPayload["reviews"],
-            }
-          }
-          if (worst) {
-            const worstPeers = byRole.filter(
-              (s) =>
-                s.refereeId !== worst.refereeId &&
-                s.matchId === worst.matchId &&
-                Math.abs(s.avg - worst.avg) < 1e-6,
-            )
-            worstByRole[role] = {
-              refereeId: worst.refereeId,
-              slug: worst.refereeSlug,
-              name: worst.name,
-              role: worst.role,
-              avg: worst.avg,
-              voteCount: worst.voteCount,
-              peerRefs:
-                worstPeers.length > 0
-                  ? worstPeers.map((p) => ({ name: p.name, slug: p.refereeSlug }))
-                  : undefined,
-              matchForDisplay: worst.matchForDisplay,
-              reviews: worst.reviews as RefereeCardPayload["reviews"],
-            }
-          }
-        }
-      }
-    }
   }
 
   const hotList = rawHotMoments.map((mom, i) => {
@@ -632,15 +655,25 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         </Suspense>
       </header>
 
-      {/* 역할별 베스트/워스트 심판 + 라운드 심판 전체 평점 보기 */}
+      {/* 역할별 베스트/워스트 심판 (Suspense로 스트리밍 — 경기 목록보다 늦게 와도 먼저 보이는 영역은 바로 표시) */}
       {round && (
-        <RoundRefereeBestWorstSection
-          bestByRole={bestByRole}
-          worstByRole={worstByRole}
-          allRoundReferees={allRoundReferees}
-          leagueName={round.league.name}
-          roundNumber={round.number}
-        />
+        <Suspense
+          fallback={
+            <section className="mb-8 md:mb-12">
+              <div className="h-48 md:h-56 w-full rounded border border-border bg-card/50 animate-pulse" />
+            </section>
+          }
+        >
+          <ArchiveRefereeHighlightSection
+            promise={getRoundRefereeHighlightsCached(
+              round.id,
+              seasonId,
+              `/matches/archive/${yearStr}/${leagueSlug}/${roundSlug}`,
+            )}
+            leagueName={round.league.name}
+            roundNumber={round.number}
+          />
+        </Suspense>
       )}
 
       {/* HOT MOMENTS */}
@@ -678,6 +711,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
               <Link
                 key={m.id}
                 href={getMatchDetailPathWithBack(m as unknown as MatchForPath, `/matches/archive/${yearStr}/${leagueSlug}/${roundSlug}`)}
+                prefetch={false}
                 className="block p-4 md:p-6 match-row group md:grid md:grid-cols-12 md:items-center"
               >
                 {/* 모바일: 카드형 세로 배치 */}
