@@ -36,36 +36,54 @@ export function ArchiveFilters({
   const [open, setOpen] = useState<"season" | "league" | "round" | null>(null)
   const [isNavigating, setIsNavigating] = useState(false)
   const pathWhenStartedRef = useRef(pathname)
+  const navigatingToRef = useRef<string | null>(null)
 
+  // pathname 변경 시 또는 서버에서 내려준 URL(현재 페이지)이 목표 URL과 일치하면 로딩 해제
+  const currentPathFromProps = `/matches/archive/${currentYear}/${currentLeagueSlug}/${currentRoundSlug}`
   useEffect(() => {
-    if (isNavigating && pathname !== pathWhenStartedRef.current) {
+    if (!isNavigating) return
+    const target = navigatingToRef.current
+    const pathChanged = pathname !== pathWhenStartedRef.current
+    const propsMatchTarget = target != null && pathname === target
+    const serverRenderedTarget = target != null && currentPathFromProps === target
+    if (pathChanged || propsMatchTarget || serverRenderedTarget) {
       pathWhenStartedRef.current = pathname
+      navigatingToRef.current = null
       setIsNavigating(false)
     }
-  }, [pathname, isNavigating])
+  }, [pathname, isNavigating, currentPathFromProps])
+
+  // RSC 적용 지연 등으로 pathname이 안 바뀌는 경우 대비 타임아웃
+  useEffect(() => {
+    if (!isNavigating) return
+    const t = setTimeout(() => {
+      navigatingToRef.current = null
+      setIsNavigating(false)
+    }, 8000)
+    return () => clearTimeout(t)
+  }, [isNavigating])
+
+  function navigateTo(path: string) {
+    pathWhenStartedRef.current = pathname
+    navigatingToRef.current = path
+    setIsNavigating(true)
+    setOpen(null)
+    router.push(path)
+  }
 
   function updateSeason(year: number) {
     const y = String(year)
-    pathWhenStartedRef.current = pathname
-    setIsNavigating(true)
-    setOpen(null)
-    router.push(`/matches/archive/${y}/${currentLeagueSlug}/${currentRoundSlug}`)
+    navigateTo(`/matches/archive/${y}/${currentLeagueSlug}/${currentRoundSlug}`)
   }
 
   function updateLeague(leagueSlug: string) {
     if (!leagueSlug) return
-    pathWhenStartedRef.current = pathname
-    setIsNavigating(true)
-    setOpen(null)
-    router.push(`/matches/archive/${currentYear}/${leagueSlug}/${currentRoundSlug}`)
+    navigateTo(`/matches/archive/${currentYear}/${leagueSlug}/${currentRoundSlug}`)
   }
 
   function updateRound(roundSlug: string) {
     if (!roundSlug) return
-    pathWhenStartedRef.current = pathname
-    setIsNavigating(true)
-    setOpen(null)
-    router.push(`/matches/archive/${currentYear}/${currentLeagueSlug}/${roundSlug}`)
+    navigateTo(`/matches/archive/${currentYear}/${currentLeagueSlug}/${roundSlug}`)
   }
 
   // URL slug가 옵션과 대소문자 등으로 다를 수 있으므로, 옵션 목록에서 매칭되는 값 사용
