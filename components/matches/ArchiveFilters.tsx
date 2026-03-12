@@ -37,35 +37,85 @@ export function ArchiveFilters({
   const [isNavigating, setIsNavigating] = useState(false)
   const pathWhenStartedRef = useRef(pathname)
   const navigatingToRef = useRef<string | null>(null)
+  /** 목표 (year, league, round) — path 문자열 비교가 실패할 때(대소문자 등) 세그먼트로 비교 */
+  const navigatingToSegmentsRef = useRef<{
+    year: string
+    leagueSlug: string
+    roundSlug: string
+  } | null>(null)
 
-  // pathname 변경 시 또는 서버에서 내려준 URL(현재 페이지)이 목표 URL과 일치하면 로딩 해제
   const currentPathFromProps = `/matches/archive/${currentYear}/${currentLeagueSlug}/${currentRoundSlug}`
+  const norm = (p: string) => p.toLowerCase().replace(/\/$/, "")
+
+  const clearNavigating = () => {
+    pathWhenStartedRef.current = pathname
+    navigatingToRef.current = null
+    navigatingToSegmentsRef.current = null
+    setIsNavigating(false)
+  }
+
+  // pathname 변경 / 서버 props와 목표 일치 시 로딩 해제 (정규화 비교 + 세그먼트 비교)
   useEffect(() => {
     if (!isNavigating) return
     const target = navigatingToRef.current
+    const segments = navigatingToSegmentsRef.current
     const pathChanged = pathname !== pathWhenStartedRef.current
-    const propsMatchTarget = target != null && pathname === target
-    const serverRenderedTarget = target != null && currentPathFromProps === target
-    if (pathChanged || propsMatchTarget || serverRenderedTarget) {
-      pathWhenStartedRef.current = pathname
-      navigatingToRef.current = null
-      setIsNavigating(false)
+    const pathOrPropsMatchTarget =
+      target != null &&
+      (norm(pathname) === norm(target) || norm(currentPathFromProps) === norm(target))
+    const propsMatchSegments =
+      segments != null &&
+      String(currentYear) === segments.year &&
+      currentLeagueSlug.toLowerCase() === segments.leagueSlug.toLowerCase() &&
+      currentRoundSlug === segments.roundSlug
+    if (pathChanged || pathOrPropsMatchTarget || propsMatchSegments) {
+      clearNavigating()
     }
-  }, [pathname, isNavigating, currentPathFromProps])
+  }, [pathname, isNavigating, currentPathFromProps, currentYear, currentLeagueSlug, currentRoundSlug])
+
+  // 첫 요청 시 pathname/effect가 늦게 반영되는 경우를 위해 짧은 간격으로 목표 도달 여부 확인
+  useEffect(() => {
+    if (!isNavigating) return
+    const id = setInterval(() => {
+      const target = navigatingToRef.current
+      const segments = navigatingToSegmentsRef.current
+      if (target == null && segments == null) return
+      const pathOk =
+        target != null &&
+        (norm(pathname) === norm(target) || norm(currentPathFromProps) === norm(target))
+      const segmentsOk =
+        segments != null &&
+        String(currentYear) === segments.year &&
+        currentLeagueSlug.toLowerCase() === segments.leagueSlug.toLowerCase() &&
+        currentRoundSlug === segments.roundSlug
+      if (pathOk || segmentsOk) {
+        clearNavigating()
+      }
+    }, 150)
+    return () => clearInterval(id)
+  }, [
+    isNavigating,
+    pathname,
+    currentPathFromProps,
+    currentYear,
+    currentLeagueSlug,
+    currentRoundSlug,
+  ])
 
   // RSC 적용 지연 등으로 pathname이 안 바뀌는 경우 대비 타임아웃
   useEffect(() => {
     if (!isNavigating) return
-    const t = setTimeout(() => {
-      navigatingToRef.current = null
-      setIsNavigating(false)
-    }, 8000)
+    const t = setTimeout(clearNavigating, 8000)
     return () => clearTimeout(t)
   }, [isNavigating])
 
-  function navigateTo(path: string) {
+  function navigateTo(
+    path: string,
+    segments: { year: string; leagueSlug: string; roundSlug: string },
+  ) {
     pathWhenStartedRef.current = pathname
     navigatingToRef.current = path
+    navigatingToSegmentsRef.current = segments
     setIsNavigating(true)
     setOpen(null)
     router.push(path)
@@ -73,17 +123,29 @@ export function ArchiveFilters({
 
   function updateSeason(year: number) {
     const y = String(year)
-    navigateTo(`/matches/archive/${y}/${currentLeagueSlug}/${currentRoundSlug}`)
+    navigateTo(`/matches/archive/${y}/${currentLeagueSlug}/${currentRoundSlug}`, {
+      year: y,
+      leagueSlug: currentLeagueSlug,
+      roundSlug: currentRoundSlug,
+    })
   }
 
   function updateLeague(leagueSlug: string) {
     if (!leagueSlug) return
-    navigateTo(`/matches/archive/${currentYear}/${leagueSlug}/${currentRoundSlug}`)
+    navigateTo(`/matches/archive/${currentYear}/${leagueSlug}/${currentRoundSlug}`, {
+      year: String(currentYear),
+      leagueSlug,
+      roundSlug: currentRoundSlug,
+    })
   }
 
   function updateRound(roundSlug: string) {
     if (!roundSlug) return
-    navigateTo(`/matches/archive/${currentYear}/${currentLeagueSlug}/${roundSlug}`)
+    navigateTo(`/matches/archive/${currentYear}/${currentLeagueSlug}/${roundSlug}`, {
+      year: String(currentYear),
+      leagueSlug: currentLeagueSlug,
+      roundSlug,
+    })
   }
 
   // URL slug가 옵션과 대소문자 등으로 다를 수 있으므로, 옵션 목록에서 매칭되는 값 사용
