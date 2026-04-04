@@ -48,6 +48,7 @@ import { ModerationConfirmDialog } from "@/components/moderation/ModerationConfi
 import { votePoll } from "@/lib/actions/polls";
 import { PollEditorDialog } from "@/components/poll/PollEditorDialog";
 import { UserProfileLink } from "@/components/user/UserProfileLink";
+import { AdaptiveVideo } from "@/components/media/AdaptiveVideo";
 
 type HotMomentItem = {
   momentId?: string;
@@ -1275,11 +1276,10 @@ export function MomentCommentModal({
                                 className="w-full max-h-48 object-cover"
                               />
                             ) : (
-                              <video
+                              <AdaptiveVideo
                                 src={c.mediaUrl}
-                                controls
                                 className="w-full max-h-48"
-                                preload="metadata"
+                                preload="none"
                               />
                             )}
                           </div>

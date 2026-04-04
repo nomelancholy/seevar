@@ -1147,7 +1147,7 @@ export function MatchRefereeRatingSection({
               <h4 className="text-xs md:text-sm font-black font-mono text-muted-foreground uppercase tracking-widest mb-4">
                 실시간 팬 반응
               </h4>
-              <div className="space-y-0 border border-border bg-black/20 max-h-[400px] overflow-y-auto">
+              <div className="fan-reactions-scroll space-y-0 border border-border bg-black/20 max-h-[400px] overflow-y-auto">
                 {orderedSelectedReviews.length === 0 ? (
                   <div className="p-8 text-center font-mono text-sm md:text-base text-muted-foreground">
                     아직 평가가 없습니다.

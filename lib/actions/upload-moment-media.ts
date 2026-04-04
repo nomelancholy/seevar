@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { uploadToSpaces } from "@/lib/spaces"
 import { randomBytes } from "crypto"
 import { MAX_FILE_SIZE_BYTES } from "@/lib/constants/upload"
+import { transcodeAndUploadHlsFromBuffer } from "@/lib/video/transcode-hls"
 
 export type UploadMomentMediaResult = { ok: true; url: string } | { ok: false; error: string }
 
@@ -34,6 +35,19 @@ export async function uploadMomentMedia(formData: FormData): Promise<UploadMomen
 
   const bytes = await file.arrayBuffer()
   const buf = Buffer.from(bytes)
+
+  // Video: transcode to HLS(ABR) first for smoother playback.
+  // If ffmpeg is unavailable or transcode fails, gracefully fall back to original upload.
+  if (isVideo) {
+    const hls = await transcodeAndUploadHlsFromBuffer({
+      buffer: buf,
+      originalExt: safeExt,
+      keyPrefix: `moments/hls/${filename.replace(`.${safeExt}`, "")}`,
+    })
+    if (hls.ok) return { ok: true, url: hls.masterUrl }
+    console.error("HLS transcode failed. fallback to original upload:", hls.error)
+  }
+
   const result = await uploadToSpaces(key, buf, file.type)
   if (!result.ok) return result
 

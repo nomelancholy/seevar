@@ -18,6 +18,8 @@ function EmbedBlock({ segment }: { segment: EmbedSegment }) {
           src={`https://www.youtube.com/embed/${segment.videoId}`}
           title="YouTube"
           className="aspect-video w-full rounded border border-border bg-black"
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
@@ -34,6 +36,8 @@ function EmbedBlock({ segment }: { segment: EmbedSegment }) {
           src={`https://www.instagram.com/${embedPath}`}
           title="Instagram"
           className="min-h-[480px] w-full max-w-[360px] rounded border border-border bg-black"
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
           frameBorder={0}
           allow="encrypted-media"
         />
