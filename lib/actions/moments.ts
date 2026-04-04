@@ -42,9 +42,19 @@ export async function createMoment(
 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
-    select: { id: true },
+    select: {
+      id: true,
+      status: true,
+      _count: { select: { matchReferees: true } },
+    },
   })
   if (!match) return { ok: false, error: "경기를 찾을 수 없습니다." }
+  if (match.status === "CANCELLED") {
+    return { ok: false, error: "취소된 경기에는 이슈를 등록할 수 없습니다." }
+  }
+  if (match._count.matchReferees < 1) {
+    return { ok: false, error: "심판이 배정된 후에 이슈를 등록할 수 있습니다." }
+  }
 
   const start = input.startMinute ?? null
   const end = input.endMinute ?? null

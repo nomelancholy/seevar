@@ -181,6 +181,9 @@ export default async function MatchDetailBySlugPage({
   const isUpcoming = status === "SCHEDULED"
   const isLive = status === "LIVE"
   const isFinished = status === "FINISHED"
+  const isCancelled = match.status === "CANCELLED"
+  const hasRefereeAssignments = match.matchReferees.length > 0
+  const canRateAndDiscuss = hasRefereeAssignments && !isCancelled
   const tz = "Asia/Seoul"
   const dateStr = match.playedAt
     ? new Intl.DateTimeFormat("en-CA", {
@@ -275,7 +278,7 @@ export default async function MatchDetailBySlugPage({
   })
 
   const matchReviewsRaw =
-    (isLive || isFinished) &&
+    canRateAndDiscuss &&
     (await unstable_cache(
       async () =>
         prisma.refereeReview.findMany({
@@ -324,29 +327,14 @@ export default async function MatchDetailBySlugPage({
           <h1 className="text-2xl md:text-4xl font-black italic tracking-tighter uppercase mb-1">
             {match.homeTeam.name} vs {match.awayTeam.name}
           </h1>
-          <div className="flex items-center gap-2 font-mono text-[10px] md:text-xs text-muted-foreground">
-            {isLive && (
-              <span className="bg-red-600 text-white px-2 py-0.5 font-bold uppercase animate-pulse">
-                ● LIVE
-              </span>
-            )}
-            {isUpcoming && (
-              <span className="bg-muted text-foreground px-2 py-0.5 font-bold uppercase">
-                MATCH UPCOMING
-              </span>
-            )}
-            {isFinished && (
-              <span className="bg-muted text-foreground px-2 py-0.5 font-bold uppercase">
-                FINISHED
-              </span>
-            )}
-            {dateStr && (
+          {dateStr && (
+            <div className="font-mono text-[10px] md:text-xs text-muted-foreground">
               <span className="opacity-90">
                 {dateStr}
                 {timeStr ? ` ${timeStr} KST` : ""}
               </span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </header>
 
@@ -373,9 +361,6 @@ export default async function MatchDetailBySlugPage({
           <div className="text-center flex flex-col items-center min-w-0">
             {isLive && (
               <>
-                <div className="font-mono text-primary text-xs md:text-sm mb-2 uppercase font-bold tracking-widest animate-pulse">
-                  ● LIVE NOW
-                </div>
                 <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-4 md:gap-6">
                   <span>{match.scoreHome ?? 0}</span>
                   <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
@@ -392,9 +377,6 @@ export default async function MatchDetailBySlugPage({
             )}
             {isUpcoming && (
               <>
-                <div className="font-mono text-muted-foreground text-xs md:text-sm mb-2 uppercase font-bold tracking-widest">
-                  KICK OFF {timeStr || "—"}
-                </div>
                 <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4">
                   VS
                 </div>
@@ -503,34 +485,30 @@ export default async function MatchDetailBySlugPage({
               })}
             </div>
 
-            {isLive && (
+            {canRateAndDiscuss && (
               <div className="flex justify-center">
                 <SeeVarButtonWithModal
                   matchId={match.id}
-                  variant="live"
+                  variant={isLive ? "live" : "finished"}
                   isLoggedIn={!!currentUser}
                 />
               </div>
             )}
-            {isUpcoming && (
-              <div className="bg-card border border-border px-6 md:px-8 py-3 md:py-4 font-mono text-[10px] md:text-xs text-muted-foreground italic">
-                경기 시작 전입니다.
+            {!canRateAndDiscuss && isCancelled && (
+              <div className="bg-card border border-border px-6 md:px-8 py-3 md:py-4 font-mono text-[10px] md:text-xs text-muted-foreground italic text-center">
+                취소된 경기에서는 판정 이의 제기를 남길 수 없습니다.
               </div>
             )}
-            {isFinished && (
-              <div className="flex justify-center">
-                <SeeVarButtonWithModal
-                  matchId={match.id}
-                  variant="finished"
-                  isLoggedIn={!!currentUser}
-                />
+            {!canRateAndDiscuss && !isCancelled && !hasRefereeAssignments && (
+              <div className="bg-card border border-border px-6 md:px-8 py-3 md:py-4 font-mono text-[10px] md:text-xs text-muted-foreground italic text-center">
+                심판이 배정되면 판정 이의 제기를 남길 수 있습니다.
               </div>
             )}
           </div>
         </div>
       </section>
 
-      {(isLive || isFinished) && hotMomentsForSection.length > 0 && (
+      {hotMomentsForSection.length > 0 && (
         <HotMomentsSection
           title="경기 쟁점 순간"
           hotMoments={hotMomentsForSection}
@@ -539,7 +517,7 @@ export default async function MatchDetailBySlugPage({
       )}
 
       <section id="referee-rating" className="scroll-mt-6">
-      {(isLive || isFinished) ? (
+      {canRateAndDiscuss ? (
         <MatchRefereeRatingSectionDynamic
           matchId={match.id}
           homeTeamId={match.homeTeam.id}
@@ -616,7 +594,9 @@ export default async function MatchDetailBySlugPage({
             </button>
           </div>
           <div className="p-8 text-center font-mono text-xs text-muted-foreground">
-            심판 평가는 경기 시작 후 활성화됩니다.
+            {isCancelled
+              ? "취소된 경기에서는 심판 평가를 남길 수 없습니다."
+              : "심판이 배정되면 심판 평가와 한줄평을 남길 수 있습니다."}
           </div>
         </div>
       )}

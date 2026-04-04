@@ -43,11 +43,19 @@ export async function createRefereeReview(
 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
-    select: { id: true, status: true, roundId: true },
+    select: {
+      id: true,
+      status: true,
+      roundId: true,
+      _count: { select: { matchReferees: true } },
+    },
   })
   if (!match) return { ok: false, error: "경기를 찾을 수 없습니다." }
-  if (match.status !== "LIVE" && match.status !== "FINISHED") {
-    return { ok: false, error: "경기 시작 후에만 평가할 수 있습니다." }
+  if (match.status === "CANCELLED") {
+    return { ok: false, error: "취소된 경기에는 평가할 수 없습니다." }
+  }
+  if (match._count.matchReferees < 1) {
+    return { ok: false, error: "심판이 배정된 후에 평가할 수 있습니다." }
   }
 
   const assigned = await prisma.matchReferee.findFirst({
