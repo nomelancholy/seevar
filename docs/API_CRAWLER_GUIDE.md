@@ -137,6 +137,39 @@
   }
   ```
 
+### 3.3 경기 상세 일정 수정
+- **Endpoint**: `PATCH /api/matches/{matchId}/schedule`
+- **Request Body**:
+  ```json
+  {
+    "playedAt": "2026-03-01T14:00:00+09:00",
+    "venue": "울산문수축구경기장"
+  }
+  ```
+- **설명**: 기존 경기의 일시나 경기장 정보를 수정합니다. 연맹의 일시 변경 대응 시 사용합니다.
+
+### 3.4 신규 경기 생성
+- **Endpoint**: `POST /api/matches`
+- **Request Body**:
+  ```json
+  {
+    "roundId": "clx12345...",
+    "homeTeamId": "team-id-1",
+    "awayTeamId": "team-id-2",
+    "playedAt": "2026-03-01T14:00:00+09:00",
+    "venue": "울산문수축구경기장",
+    "roundOrder": 1
+  }
+  ```
+- **설명**: 관리자가 등록하지 않은 경기를 새로 생성합니다. `roundOrder`를 생략하면 라운드의 마지막 순번 다음으로 자동 지정됩니다.
+- **Response 예시**:
+  ```json
+  {
+    "ok": true,
+    "match": { "id": "new-match-id", ... }
+  }
+  ```
+
 ---
 
 ## 4. 경기 상세 데이터 동기화 API
