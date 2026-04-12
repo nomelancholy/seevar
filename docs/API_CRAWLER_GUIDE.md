@@ -13,9 +13,24 @@
 
 ## 2. 정보 조회 및 매핑 API
 
-크롤러가 가지고 있는 텍스트 데이터(팀명, 심판명)를 시스템의 내부 ID와 매칭하기 위해 사용합니다.
+크롤러가 작업을 수행하기 전, 대상 리그 및 라운드를 식별하거나 신규 정보를 등록하기 위해 사용합니다.
 
-### 2.1 경기 일정 조회
+### 2.1 리그 목록 조회
+- **Endpoint**: `GET /api/leagues`
+- **Query Parameters**:
+  - `year`: (선택) 연도 필터링
+- **Response 예시**:
+  ```json
+  {
+    "ok": true,
+    "leagues": [
+      { "id": "league-cuid-1", "name": "K League 1", "slug": "kleague1", "year": 2026 },
+      { "id": "league-cuid-2", "name": "K League 2", "slug": "kleague2", "year": 2026 }
+    ]
+  }
+  ```
+
+### 2.2 경기 일정 조회
 - **Endpoint**: `GET /api/schedule`
 - **Query Parameters**:
   - `year`: 시즌 연도 (예: `2026`)
@@ -41,7 +56,33 @@
   }
   ```
 
-### 2.2 심판 검색
+### 2.3 라운드 조회 및 생성
+- **조회 Endpoint**: `GET /api/rounds`
+- **Query Parameters**:
+  - `leagueId`: (필수) 리그 ID
+  - `number`: (선택) 라운드 번호
+- **Response 예시**:
+  ```json
+  {
+    "ok": true,
+    "rounds": [
+      { "id": "round-cuid-5", "number": 5, "slug": "round-5" }
+    ]
+  }
+  ```
+
+- **생성 Endpoint**: `POST /api/rounds`
+- **Request Body**:
+  ```json
+  {
+    "leagueId": "league-id-here",
+    "number": 5,
+    "slug": "round-5"
+  }
+  ```
+- **설명**: 크롤러가 작업하려는 라운드가 위 조회 API나 `GET /api/schedule`에서 확인되지 않을 경우 직접 생성합니다.
+
+### 2.4 심판 검색
 - **Endpoint**: `GET /api/referees/search`
 - **Query Parameters**:
   - `name`: 검색할 심판 이름
@@ -60,7 +101,7 @@
   }
   ```
 
-### 2.3 팀 검색
+### 2.5 팀 검색
 - **Endpoint**: `GET /api/teams/search`
 - **Query Parameters**:
   - `name`: 검색할 팀 이름
@@ -79,7 +120,7 @@
   }
   ```
 
-### 2.4 신규 심판 등록
+### 2.6 신규 심판 등록
 - **Endpoint**: `POST /api/referees`
 - **Request Body**:
   ```json
