@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { checkCrawlerAuth } from "@/lib/auth"
 
 /**
  * 경기 일정 조회 API (외부 크롤러/일렉트론 등에서 호출).
@@ -8,14 +9,8 @@ import { prisma } from "@/lib/prisma"
  * 응답 matches[]: roundOrder(경기 숫자, 라운드 내 1·2·3…), home/away/date/stadium 등 포함. roundOrder는 심판 배정·경기 결과 JSON의 matchIdentifier로 사용 가능.
  */
 export async function GET(request: NextRequest) {
-  const apiKey = process.env.CRAWLER_API_KEY
-  if (apiKey) {
-    const authHeader = request.headers.get("authorization")
-    const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
-    const headerKey = request.headers.get("x-crawler-api-key")
-    if (bearer !== apiKey && headerKey !== apiKey) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+  if (!checkCrawlerAuth(request.headers)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const { searchParams } = new URL(request.url)

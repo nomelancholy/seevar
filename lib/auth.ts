@@ -45,3 +45,18 @@ export async function getAdminUserIds(): Promise<string[]> {
   })
   return [...new Set(users.map((u) => u.id))]
 }
+
+/**
+ * 크롤러 API 키 인증 확인.
+ * CRAWLER_API_KEY 환경변수가 설정되어 있으면 Authorization: Bearer <key> 또는 x-crawler-api-key 헤더 확인.
+ */
+export function checkCrawlerAuth(headers: Headers): boolean {
+  const apiKey = process.env.CRAWLER_API_KEY
+  if (!apiKey) return true // 키가 설정되지 않았으면 인증 패스 (개발 단계)
+
+  const authHeader = headers.get("authorization")
+  const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
+  const headerKey = headers.get("x-crawler-api-key")
+
+  return bearer === apiKey || headerKey === apiKey
+}
