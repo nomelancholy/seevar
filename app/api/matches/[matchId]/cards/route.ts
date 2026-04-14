@@ -10,13 +10,13 @@ import { revalidatePath } from "next/cache"
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { matchId: string } }
+  { params }: { params: Promise<{ matchId: string }> }
 ) {
   if (!checkCrawlerAuth(request.headers)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { matchId } = params
+  const { matchId } = await params
 
   try {
     const body = await request.json()
