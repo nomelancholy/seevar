@@ -46,14 +46,14 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
   ];
 
   return (
-    <nav className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 mb-8 md:mb-12 border-b border-border pb-6 w-full">
-      <div className="flex items-center justify-between w-full md:w-auto gap-4 shrink-0 md:min-w-0">
+    <nav className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-6 mb-8 lg:mb-12 border-b border-border pb-6 w-full">
+      <div className="flex items-center justify-between w-full lg:w-auto gap-4 shrink-0 lg:min-w-0">
         {/* 모바일: 햄버거 → 왼쪽 메뉴 시트 */}
         <Sheet>
           <SheetTrigger asChild>
             <button
               type="button"
-              className="md:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+              className="lg:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
               aria-label="메뉴 열기"
             >
               <Menu className="size-6" />
@@ -111,19 +111,19 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
         </Sheet>
         <Link
           href="/"
-          className="text-2xl md:text-3xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity"
+          className="text-2xl lg:text-3xl font-black tracking-tighter leading-none italic hover:opacity-80 transition-opacity"
         >
           SEE <span className="text-primary">VAR</span>
         </Link>
         <div
-          className="h-8 w-px bg-border hidden md:block shrink-0 md:ml-6 lg:ml-8"
+          className="h-8 w-px bg-border hidden lg:block shrink-0 lg:ml-8"
           aria-hidden
         />
         {user ? (
           <NotificationModal
             unreadCount={unreadNotificationCount}
             compact
-            className="md:hidden relative p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            className="lg:hidden relative p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors shrink-0"
             ariaLabel={
               unreadNotificationCount > 0
                 ? `알림 ${unreadNotificationCount}건`
@@ -133,7 +133,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
         ) : null}
         {/* 모바일: 레벨/경험치 + 프로필(이미지) + 우하단 엠블럼 → 드로어 */}
         {user ? (
-          <div className="md:hidden text-[9px] text-muted-foreground mr-1 whitespace-nowrap" aria-label={`레벨 ${getLevelFromXp(user.xp ?? 0)}, 진행률 ${getXpProgressPercent(user.xp ?? 0)}%`}>
+          <div className="lg:hidden text-[9px] text-muted-foreground mr-1 whitespace-nowrap" aria-label={`레벨 ${getLevelFromXp(user.xp ?? 0)}, 진행률 ${getXpProgressPercent(user.xp ?? 0)}%`}>
             Lv.{getLevelFromXp(user.xp ?? 0)} · {getXpProgressPercent(user.xp ?? 0)}%
           </div>
         ) : null}
@@ -141,7 +141,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
           <SheetTrigger asChild>
             <button
               type="button"
-              className="md:hidden relative shrink-0 rounded-full border border-border bg-card overflow-visible p-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="lg:hidden relative shrink-0 rounded-full border border-border bg-card overflow-visible p-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               aria-label={
                 user ? "마이페이지 열기" : "네이버 로그인 또는 회원가입"
               }
@@ -179,7 +179,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
       </div>
 
       {/* 데스크톱: 메뉴 링크 — 중앙 균형 배치 / 모바일: 햄버거 메뉴로 대체 */}
-      <div className="hidden md:flex flex-1 items-center justify-center gap-8 md:gap-12 lg:gap-14 text-sm md:text-base font-bold tracking-widest font-mono min-w-0">
+      <div className="hidden lg:flex flex-1 items-center justify-center gap-4 lg:gap-8 xl:gap-14 text-sm xl:text-base font-bold tracking-widest font-mono min-w-0">
         {navLinks.map(({ href, label }) => (
           <Link
             key={href}
@@ -192,7 +192,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
       </div>
 
       {/* 데스크톱: 유튜브·인스타·IFAB 아이콘 + 알림 + 로그인 시 Supporting / 비로그인 시 LOG IN */}
-      <div className="hidden md:flex items-center shrink-0 md:ml-6 lg:ml-8 gap-1">
+      <div className="hidden lg:flex items-center shrink-0 lg:ml-6 xl:ml-8 gap-1">
         <a
           href={SEEVAR_YOUTUBE_URL}
           target="_blank"
@@ -235,7 +235,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
               <SheetTrigger asChild>
                 <button
                   type="button"
-                  className="hidden md:flex items-center gap-3 pl-6 lg:pl-8 border-l border-border cursor-pointer group"
+                  className="hidden lg:flex items-center gap-3 pl-4 xl:pl-8 border-l border-border cursor-pointer group"
                   aria-label="마이페이지 열기"
                 >
                   <div className="flex flex-col items-end">
@@ -289,7 +289,7 @@ export function SiteNav({ user, unreadNotificationCount = 0 }: SiteNavProps) {
           <>
             <Link
               href="/login"
-              className="hidden md:flex items-center gap-3 pl-6 lg:pl-8 border-l border-border group text-muted-foreground hover:text-foreground transition-colors"
+              className="hidden lg:flex items-center gap-3 pl-4 xl:pl-8 border-l border-border group text-muted-foreground hover:text-foreground transition-colors"
               aria-label="로그인 또는 회원가입"
             >
               <div className="flex flex-col items-end">
