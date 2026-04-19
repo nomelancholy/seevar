@@ -10,6 +10,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # 빌드 시 필요한 환경변수가 있다면 여기에 추가 (예: NEXT_PUBLIC_...)
+ENV NEXT_TELEMETRY_DISABLED 1
 RUN npx prisma generate
 RUN npm run build
 

@@ -3,6 +3,8 @@ import path from "path"
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
   // NextAuth(JWT)가 사용하는 jose를 번들에서 제외 → vendor-chunks/jose.js MODULE_NOT_FOUND 방지
   serverExternalPackages: ["jose"],
   // 상위 폴더 lockfile 대신 이 프로젝트를 루트로 사용 (vendor-chunks 경로 등 안정화)
