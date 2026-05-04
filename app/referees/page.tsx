@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { RefereeListWithSearch } from "@/components/referees/RefereeListWithSearch"
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 
 export const metadata = {
   title: "심판 정보 | SEE VAR",
@@ -60,6 +61,9 @@ export default async function RefereesPage() {
 
   return (
     <main className="py-8 md:py-12">
+      <div className="w-full flex justify-center items-center mb-8">
+        <KakaoAdFit />
+      </div>
       <header className="mb-8 md:mb-12">
         <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">
           심판 정보

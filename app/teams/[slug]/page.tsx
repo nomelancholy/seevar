@@ -5,6 +5,7 @@ import { getMatchDetailPathWithBack } from "@/lib/match-url"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { TeamDetailSection } from "@/components/teams/TeamDetailSection"
 import { ChevronLeft } from "lucide-react"
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 
 type Params = Promise<{ slug: string }>
 type SearchParams = Promise<{ back?: string; year?: string; sort?: string }>
@@ -150,13 +151,13 @@ export default async function TeamDetailPage({
     derivedAssignments.length > 0
       ? derivedAssignments
       : teamStats.map((s) => ({
-          id: s.referee.id,
-          slug: s.referee.slug,
-          name: s.referee.name,
-          fanAverageRating: s.fanAverageRating,
-          totalAssignments: s.totalAssignments,
-          roleCounts: s.roleCounts as Record<string, number> | null,
-        }))
+        id: s.referee.id,
+        slug: s.referee.slug,
+        name: s.referee.name,
+        fanAverageRating: s.fanAverageRating,
+        totalAssignments: s.totalAssignments,
+        roleCounts: s.roleCounts as Record<string, number> | null,
+      }))
 
   // REFEREE COMPATIBILITY: RefereeTeamStat 우선, 없으면 이 팀 팬 리뷰(RefereeReview) 집계 사용
   const withRatingFromStats = teamStats.filter((s) => s.fanAverageRating > 0)
@@ -187,24 +188,24 @@ export default async function TeamDetailPage({
   const compatibility = {
     high: sortedByRating[0]
       ? {
-          id: sortedByRating[0].id,
-          slug: sortedByRating[0].slug,
-          name: sortedByRating[0].name,
-          fanAverageRating: sortedByRating[0].fanAverageRating,
-          totalAssignments: sortedByRating[0].totalAssignments,
-          roleCounts: sortedByRating[0].roleCounts,
-        }
+        id: sortedByRating[0].id,
+        slug: sortedByRating[0].slug,
+        name: sortedByRating[0].name,
+        fanAverageRating: sortedByRating[0].fanAverageRating,
+        totalAssignments: sortedByRating[0].totalAssignments,
+        roleCounts: sortedByRating[0].roleCounts,
+      }
       : null,
     low:
       sortedByRating.length >= 2
         ? {
-            id: sortedByRating[sortedByRating.length - 1].id,
-            slug: sortedByRating[sortedByRating.length - 1].slug,
-            name: sortedByRating[sortedByRating.length - 1].name,
-            fanAverageRating: sortedByRating[sortedByRating.length - 1].fanAverageRating,
-            totalAssignments: sortedByRating[sortedByRating.length - 1].totalAssignments,
-            roleCounts: sortedByRating[sortedByRating.length - 1].roleCounts,
-          }
+          id: sortedByRating[sortedByRating.length - 1].id,
+          slug: sortedByRating[sortedByRating.length - 1].slug,
+          name: sortedByRating[sortedByRating.length - 1].name,
+          fanAverageRating: sortedByRating[sortedByRating.length - 1].fanAverageRating,
+          totalAssignments: sortedByRating[sortedByRating.length - 1].totalAssignments,
+          roleCounts: sortedByRating[sortedByRating.length - 1].roleCounts,
+        }
         : null,
   }
 
@@ -276,9 +277,9 @@ export default async function TeamDetailPage({
   const filteredByYear =
     effectiveYear != null
       ? allMatches.filter((m) => {
-          const y = m.playedAt != null ? new Date(m.playedAt).getFullYear() : null
-          return y === effectiveYear
-        })
+        const y = m.playedAt != null ? new Date(m.playedAt).getFullYear() : null
+        return y === effectiveYear
+      })
       : allMatches
 
   const matches =
@@ -288,6 +289,7 @@ export default async function TeamDetailPage({
 
   return (
     <main className="py-8 md:py-12">
+      <KakaoAdFit />
       <div className="mb-6 md:mb-8">
         <Link
           href={backHref}

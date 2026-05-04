@@ -7,6 +7,7 @@ import { RefereeRatingSection } from "@/components/referees/RefereeRatingSection
 import { RefereeMatchRow } from "@/components/referees/RefereeMatchRow"
 import { RefereeSectionWithTeamExpand } from "@/components/referees/RefereeSectionWithTeamExpand"
 import { RefereeDetailBackLink } from "@/components/referees/RefereeDetailBackLink"
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -151,9 +152,9 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
     statsParam === "all" || statsParam == null || statsParam === ""
       ? null
       : (() => {
-          const n = parseInt(statsParam, 10)
-          return Number.isInteger(n) && availableYears.includes(n) ? n : null
-        })()
+        const n = parseInt(statsParam, 10)
+        return Number.isInteger(n) && availableYears.includes(n) ? n : null
+      })()
 
   // Global Rating: 유저 제출 리뷰(RefereeReview) 기준으로 집계. 리뷰가 없을 때만 RefereeStats 사용
   const reviews = referee.reviews as Array<{ rating: number; role: string }>
@@ -330,14 +331,16 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
   const matchAssignmentsList =
     isYearValid && assignmentYear != null
       ? sortedMatchReferees.filter(
-          (mr) => mr.match.round.league.season.year === assignmentYear
-        )
+        (mr) => mr.match.round.league.season.year === assignmentYear
+      )
       : sortedMatchReferees
 
   const formatCount = (n: number) => (n === 0 ? "—" : String(n))
 
   return (
     <main className="py-8 md:py-12 max-w-4xl mx-auto">
+      <KakaoAdFit />
+
       <div className="mb-6">
         <RefereeDetailBackLink fallbackHref={backHref} />
       </div>
@@ -431,6 +434,8 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
         </RefereeSectionWithTeamExpand>
       </section>
 
+      <KakaoAdFit />
+
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
         <RefereeSectionWithTeamExpand
           title="카드 통계"
@@ -462,6 +467,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
         </RefereeSectionWithTeamExpand>
       </section>
 
+
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
         <RefereeSectionWithTeamExpand
           title="경기 배정"
@@ -472,56 +478,56 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           variant="match"
         >
           <div className="space-y-3 md:space-y-4">
-          {matchAssignmentsList.map((mr) => {
-            const m = mr.match
-            const matchReviews = reviewsByMatchId.get(m.id) ?? []
-            const matchAvg =
-              matchReviews.length > 0
-                ? matchReviews.reduce((s, r) => s + r.rating, 0) / matchReviews.length
-                : null
-            const matchPath = getMatchDetailPathWithBack(
-              {
-                roundOrder: m.roundOrder,
-                round: {
-                  slug: m.round.slug,
-                  league: {
-                    slug: m.round.league.slug,
-                    season: { year: m.round.league.season.year },
+            {matchAssignmentsList.map((mr) => {
+              const m = mr.match
+              const matchReviews = reviewsByMatchId.get(m.id) ?? []
+              const matchAvg =
+                matchReviews.length > 0
+                  ? matchReviews.reduce((s, r) => s + r.rating, 0) / matchReviews.length
+                  : null
+              const matchPath = getMatchDetailPathWithBack(
+                {
+                  roundOrder: m.roundOrder,
+                  round: {
+                    slug: m.round.slug,
+                    league: {
+                      slug: m.round.league.slug,
+                      season: { year: m.round.league.season.year },
+                    },
                   },
                 },
-              },
-              `/referees/${referee.slug}`
-            )
-            const dateStr = m.playedAt
-              ? new Date(m.playedAt).toLocaleDateString("ko-KR", {
+                `/referees/${referee.slug}`
+              )
+              const dateStr = m.playedAt
+                ? new Date(m.playedAt).toLocaleDateString("ko-KR", {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
                 })
-              : "—"
-            return (
-              <RefereeMatchRow
-                key={mr.id}
-                matchDate={dateStr}
-                venue={m.venue ?? null}
-                homeName={m.homeTeam.name}
-                awayName={m.awayTeam.name}
-                homeEmblem={m.homeTeam.emblemPath}
-                awayEmblem={m.awayTeam.emblemPath}
-                role={mr.role}
-                matchRating={matchAvg}
-                matchPath={matchPath}
-                reviews={matchReviews.map((rev) => ({
-                  userName: rev.user.name,
-                  userImage: rev.user.image ?? null,
-                  fanTeamName: rev.fanTeam?.name ?? null,
-                  fanTeamEmblem: (rev.fanTeam as unknown as { emblemPath: string | null } | null)?.emblemPath ?? null,
-                  rating: rev.rating,
-                  comment: rev.comment,
-                }))}
-              />
-            )
-          })}
+                : "—"
+              return (
+                <RefereeMatchRow
+                  key={mr.id}
+                  matchDate={dateStr}
+                  venue={m.venue ?? null}
+                  homeName={m.homeTeam.name}
+                  awayName={m.awayTeam.name}
+                  homeEmblem={m.homeTeam.emblemPath}
+                  awayEmblem={m.awayTeam.emblemPath}
+                  role={mr.role}
+                  matchRating={matchAvg}
+                  matchPath={matchPath}
+                  reviews={matchReviews.map((rev) => ({
+                    userName: rev.user.name,
+                    userImage: rev.user.image ?? null,
+                    fanTeamName: rev.fanTeam?.name ?? null,
+                    fanTeamEmblem: (rev.fanTeam as unknown as { emblemPath: string | null } | null)?.emblemPath ?? null,
+                    rating: rev.rating,
+                    comment: rev.comment,
+                  }))}
+                />
+              )
+            })}
           </div>
           {matchAssignmentsList.length === 0 && (
             <p className="font-mono text-[10px] text-muted-foreground">배정된 경기가 없습니다.</p>

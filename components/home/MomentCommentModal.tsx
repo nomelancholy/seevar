@@ -23,6 +23,7 @@ import {
   reportComment,
 } from "@/lib/actions/comments";
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview";
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit";
 import { toggleMomentSeeVar } from "@/lib/actions/moments";
 import { uploadMomentMedia } from "@/lib/actions/upload-moment-media";
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/constants/upload";
@@ -795,7 +796,7 @@ export function MomentCommentModal({
       aria-modal="true"
       aria-label="모멘트 댓글"
     >
-      <div className="bg-card border border-border w-full max-w-[min(92vw,640px)] h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+      <div className="bg-card border border-border w-full max-w-[min(96vw,800px)] h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
         <div className="p-4 md:p-5 pr-4 md:pr-6 border-b border-border shrink-0">
           <div className="flex justify-between items-start gap-4">
             {matchDetailPath ? (
@@ -2102,6 +2103,8 @@ export function MomentCommentModal({
             </div>
           )}
         </div>
+
+        <KakaoAdFit />
 
         <div className="p-4 md:p-6 border-t border-border shrink-0 space-y-3">
           {actionError && (

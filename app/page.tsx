@@ -9,6 +9,7 @@ import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { LeagueMatchesSection } from "@/components/home/LeagueMatchesSection"
 import { RoundRefereeBestWorstSection } from "@/components/home/RoundRefereeBestWorstSection"
 import { HomeEmptyState } from "@/components/home/HomeEmptyState"
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 
 type RoundWithMatches = Awaited<
   ReturnType<
@@ -162,8 +163,8 @@ export default async function HomePage() {
     const tz = "Asia/Seoul"
     const dateStr = d
       ? new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" })
-          .format(d)
-          .replace(/-/g, "/")
+        .format(d)
+        .replace(/-/g, "/")
       : ""
     const timeStr = d
       ? new Intl.DateTimeFormat("ko-KR", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(d)
@@ -290,18 +291,18 @@ export default async function HomePage() {
 
         const baseFeedback: RefFeedback | null = r.comment
           ? {
-              id: r.id,
-              userName: r.user?.name || "Supporter",
-              userHandle: (r.user as { handle?: string | null })?.handle ?? null,
-              userImage: r.user?.image ?? null,
-              teamName: r.fanTeam?.name ?? null,
-              teamSlug: r.fanTeam?.slug ?? null,
-              teamEmblem: r.fanTeam?.emblemPath ?? null,
-              likeCount,
-              comment: r.comment,
-              matchLabel,
-              rating: r.rating,
-            }
+            id: r.id,
+            userName: r.user?.name || "Supporter",
+            userHandle: (r.user as { handle?: string | null })?.handle ?? null,
+            userImage: r.user?.image ?? null,
+            teamName: r.fanTeam?.name ?? null,
+            teamSlug: r.fanTeam?.slug ?? null,
+            teamEmblem: r.fanTeam?.emblemPath ?? null,
+            likeCount,
+            comment: r.comment,
+            matchLabel,
+            rating: r.rating,
+          }
           : null
 
         const matchForDisplay = {
@@ -552,6 +553,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <KakaoAdFit />
       {hasFocusRound ? (
         <>
           {(k1Highlight || k2Highlight) && (
@@ -590,66 +592,67 @@ export default async function HomePage() {
             hasK1Focus={k1Round1 !== null}
             hasK2Focus={k2Round1 !== null}
           />
+          <KakaoAdFit />
 
           {/* 라운드 판정 리포트 - 메인 페이지 가장 하단 */}
           {(k1Highlight?.youtubeEmbedUrl ||
             k1Highlight?.instagramEmbedUrl ||
             k2Highlight?.youtubeEmbedUrl ||
             k2Highlight?.instagramEmbedUrl) && (
-            <section className="mb-8 md:mb-12">
-              <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
-                라운드 판정 리포트
-              </h2>
-              <div className="space-y-8">
-                {[k1Highlight, k2Highlight].map(
-                  (h) =>
-                    h &&
-                    (h.youtubeEmbedUrl || h.instagramEmbedUrl) && (
-                      <div key={`${h.leagueName}-${h.roundNumber}`} className="space-y-3 md:space-y-4">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
-                          {h.leagueName} · Round {h.roundNumber}
-                        </p>
-                        <div className="flex flex-col gap-4 md:gap-6">
-                          {h.youtubeEmbedUrl && (
-                            <div className="border border-border bg-card/60 p-3 md:p-4">
-                              <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
-                                Round Review · YouTube
-                              </p>
-                              <div className="relative w-full pt-[56.25%] bg-black border border-border overflow-hidden">
-                                <iframe
-                                  src={h.youtubeEmbedUrl}
-                                  title="Round review video"
-                                  className="absolute inset-0 w-full h-full"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                  allowFullScreen
-                                  loading="lazy"
-                                />
+              <section className="mb-8 md:mb-12">
+                <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-6">
+                  라운드 판정 리포트
+                </h2>
+                <div className="space-y-8">
+                  {[k1Highlight, k2Highlight].map(
+                    (h) =>
+                      h &&
+                      (h.youtubeEmbedUrl || h.instagramEmbedUrl) && (
+                        <div key={`${h.leagueName}-${h.roundNumber}`} className="space-y-3 md:space-y-4">
+                          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+                            {h.leagueName} · Round {h.roundNumber}
+                          </p>
+                          <div className="flex flex-col gap-4 md:gap-6">
+                            {h.youtubeEmbedUrl && (
+                              <div className="border border-border bg-card/60 p-3 md:p-4">
+                                <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
+                                  Round Review · YouTube
+                                </p>
+                                <div className="relative w-full pt-[56.25%] bg-black border border-border overflow-hidden">
+                                  <iframe
+                                    src={h.youtubeEmbedUrl}
+                                    title="Round review video"
+                                    className="absolute inset-0 w-full h-full"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                    loading="lazy"
+                                  />
+                                </div>
                               </div>
-                            </div>
-                          )}
-                          {h.instagramEmbedUrl && (
-                            <div className="border border-border bg-card/60 p-3 md:p-4">
-                              <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
-                                Card News · Instagram
-                              </p>
-                              <div className="relative w-full pt-[125%] bg-black border border-border overflow-hidden">
-                                <iframe
-                                  src={h.instagramEmbedUrl}
-                                  title="Round card news"
-                                  className="absolute inset-0 w-full h-full"
-                                  allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
-                                  loading="lazy"
-                                />
+                            )}
+                            {h.instagramEmbedUrl && (
+                              <div className="border border-border bg-card/60 p-3 md:p-4">
+                                <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
+                                  Card News · Instagram
+                                </p>
+                                <div className="relative w-full pt-[125%] bg-black border border-border overflow-hidden">
+                                  <iframe
+                                    src={h.instagramEmbedUrl}
+                                    title="Round card news"
+                                    className="absolute inset-0 w-full h-full"
+                                    allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
+                                    loading="lazy"
+                                  />
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ),
-                )}
-              </div>
-            </section>
-          )}
+                      ),
+                  )}
+                </div>
+              </section>
+            )}
         </>
       ) : (
         <HomeEmptyState />

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { EmblemImage } from "@/components/ui/EmblemImage"
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 
 export const metadata = {
   title: "팀 정보 | SEE VAR",
@@ -20,6 +21,9 @@ export default async function TeamsPage() {
 
   return (
     <main className="py-8 md:py-12">
+      <div className="w-full flex justify-center items-center mb-8">
+        <KakaoAdFit />
+      </div>
       <header className="mb-8 md:mb-12">
         <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">
           팀 정보

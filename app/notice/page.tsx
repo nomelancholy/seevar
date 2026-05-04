@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { getIsAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { ChevronLeft, Plus, Settings } from "lucide-react"
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 
 export const metadata = {
   title: "공지 | SEE VAR",
@@ -22,6 +23,8 @@ export default async function NoticeListPage() {
 
   return (
     <main className="max-w-4xl mx-auto py-8 md:py-12">
+
+      <KakaoAdFit />
       <header className="mb-8 md:mb-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase">
@@ -58,9 +61,8 @@ export default async function NoticeListPage() {
             <Link
               key={n.id}
               href={`/notice/${n.number}`}
-              className={`block p-4 md:p-6 border-b border-border last:border-b-0 transition-colors ${
-                n.isPinned ? "bg-primary/10 hover:bg-primary/15" : "hover:bg-muted/20"
-              }`}
+              className={`block p-4 md:p-6 border-b border-border last:border-b-0 transition-colors ${n.isPinned ? "bg-primary/10 hover:bg-primary/15" : "hover:bg-muted/20"
+                }`}
             >
               <h2 className="font-bold text-base md:text-lg mb-1">{n.title}</h2>
               <p className="font-mono text-[10px] md:text-xs text-muted-foreground">
@@ -74,6 +76,7 @@ export default async function NoticeListPage() {
           ))
         )}
       </div>
+
     </main>
   )
 }

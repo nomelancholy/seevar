@@ -16,6 +16,7 @@ import { getMatchDetailPath } from "@/lib/match-url"
 import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
 import { shortNameFromSlug } from "@/lib/team-short-names"
 import { getYouTubeEmbedUrl, getInstagramEmbedUrl } from "@/lib/embed-urls"
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 
 type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string; matchNumber: string }>
 
@@ -187,21 +188,21 @@ export default async function MatchDetailBySlugPage({
   const tz = "Asia/Seoul"
   const dateStr = match.playedAt
     ? new Intl.DateTimeFormat("en-CA", {
-        timeZone: tz,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      })
-        .format(new Date(match.playedAt))
-        .replace(/-/g, "/")
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+      .format(new Date(match.playedAt))
+      .replace(/-/g, "/")
     : ""
   const timeStr = match.playedAt
     ? new Intl.DateTimeFormat("ko-KR", {
-        timeZone: tz,
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }).format(new Date(match.playedAt))
+      timeZone: tz,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(new Date(match.playedAt))
     : ""
 
   const refereesByRole = ROLE_DISPLAY_ORDER.reduce(
@@ -315,6 +316,9 @@ export default async function MatchDetailBySlugPage({
 
   return (
     <main className="py-8 md:py-12">
+      <div className="w-full flex justify-center items-center mb-8">
+        <KakaoAdFit />
+      </div>
       <Suspense fallback={null}>
         <ScrollToRefereeSection />
       </Suspense>
@@ -508,6 +512,7 @@ export default async function MatchDetailBySlugPage({
         </div>
       </section>
 
+
       {hotMomentsForSection.length > 0 && (
         <HotMomentsSection
           title="경기 쟁점 순간"
@@ -517,89 +522,89 @@ export default async function MatchDetailBySlugPage({
       )}
 
       <section id="referee-rating" className="scroll-mt-6">
-      {canRateAndDiscuss ? (
-        <MatchRefereeRatingSectionDynamic
-          matchId={match.id}
-          homeTeamId={match.homeTeam.id}
-          awayTeamId={match.awayTeam.id}
-          initialRefereeSlug={refereeSlug ?? null}
-          matchReferees={match.matchReferees.map((mr) => ({
-            id: mr.id,
-            role: mr.role,
-            referee: { id: mr.referee.id, name: mr.referee.name, slug: mr.referee.slug },
-          }))}
-          reviews={reviewsForRating.map((r) => ({
-            id: r.id,
-            refereeId: r.refereeId,
-            userId: r.userId,
-            rating: r.rating,
-            comment: r.comment,
-            status: r.status,
-            filterReason: r.filterReason,
-            user: {
-              id: r.user.id,
-              name: r.user.name,
-              image: r.user.image ?? null,
-              handle: r.user.handle ?? null,
-            },
-            fanTeamId: r.fanTeamId,
-            fanTeam: r.fanTeam
-              ? { name: r.fanTeam.name, emblemPath: r.fanTeam.emblemPath }
-              : null,
-            reactions: r.reactions ?? [],
-            createdAt: r.createdAt,
-            updatedAt: r.updatedAt,
-            replies:
-              r.replies?.map((rp: MatchReviewWithRelations["replies"][number]) => ({
-                id: rp.id,
-                userId: rp.userId,
-                content: rp.content,
-                createdAt: rp.createdAt,
-                user: {
-                  id: rp.user.id,
-                  name: rp.user.name,
-                  image: rp.user.image ?? null,
-                  handle: rp.user.handle ?? null,
-                  supportingTeam: rp.user.supportingTeam
-                    ? {
+        {canRateAndDiscuss ? (
+          <MatchRefereeRatingSectionDynamic
+            matchId={match.id}
+            homeTeamId={match.homeTeam.id}
+            awayTeamId={match.awayTeam.id}
+            initialRefereeSlug={refereeSlug ?? null}
+            matchReferees={match.matchReferees.map((mr) => ({
+              id: mr.id,
+              role: mr.role,
+              referee: { id: mr.referee.id, name: mr.referee.name, slug: mr.referee.slug },
+            }))}
+            reviews={reviewsForRating.map((r) => ({
+              id: r.id,
+              refereeId: r.refereeId,
+              userId: r.userId,
+              rating: r.rating,
+              comment: r.comment,
+              status: r.status,
+              filterReason: r.filterReason,
+              user: {
+                id: r.user.id,
+                name: r.user.name,
+                image: r.user.image ?? null,
+                handle: r.user.handle ?? null,
+              },
+              fanTeamId: r.fanTeamId,
+              fanTeam: r.fanTeam
+                ? { name: r.fanTeam.name, emblemPath: r.fanTeam.emblemPath }
+                : null,
+              reactions: r.reactions ?? [],
+              createdAt: r.createdAt,
+              updatedAt: r.updatedAt,
+              replies:
+                r.replies?.map((rp: MatchReviewWithRelations["replies"][number]) => ({
+                  id: rp.id,
+                  userId: rp.userId,
+                  content: rp.content,
+                  createdAt: rp.createdAt,
+                  user: {
+                    id: rp.user.id,
+                    name: rp.user.name,
+                    image: rp.user.image ?? null,
+                    handle: rp.user.handle ?? null,
+                    supportingTeam: rp.user.supportingTeam
+                      ? {
                         name: rp.user.supportingTeam.name,
                         emblemPath: rp.user.supportingTeam.emblemPath,
                       }
-                    : null,
-                },
-                reactions: "reactions" in rp && Array.isArray(rp.reactions) ? rp.reactions : [],
-              })) ?? [],
-          }))}
-          currentUserId={currentUser?.id ?? null}
-          currentUserName={currentUser?.name ?? null}
-          currentUserImage={currentUser?.image ?? null}
-          currentUserSupportingTeam={
-            currentUser?.supportingTeam
-              ? {
+                      : null,
+                  },
+                  reactions: "reactions" in rp && Array.isArray(rp.reactions) ? rp.reactions : [],
+                })) ?? [],
+            }))}
+            currentUserId={currentUser?.id ?? null}
+            currentUserName={currentUser?.name ?? null}
+            currentUserImage={currentUser?.image ?? null}
+            currentUserSupportingTeam={
+              currentUser?.supportingTeam
+                ? {
                   name: currentUser.supportingTeam.name,
                   emblemPath: currentUser.supportingTeam.emblemPath,
                 }
-              : null
-          }
-        />
-      ) : (
-        <div className="mb-8 border border-border bg-card/50">
-          <div className="flex items-stretch border-b border-border">
-            <button
-              type="button"
-              className="px-4 md:px-6 py-3 font-mono text-xs font-black tracking-widest text-muted-foreground opacity-50 cursor-default"
-              disabled
-            >
-              심판 평가 (잠김)
-            </button>
+                : null
+            }
+          />
+        ) : (
+          <div className="mb-8 border border-border bg-card/50">
+            <div className="flex items-stretch border-b border-border">
+              <button
+                type="button"
+                className="px-4 md:px-6 py-3 font-mono text-xs font-black tracking-widest text-muted-foreground opacity-50 cursor-default"
+                disabled
+              >
+                심판 평가 (잠김)
+              </button>
+            </div>
+            <div className="p-8 text-center font-mono text-xs text-muted-foreground">
+              {isCancelled
+                ? "취소된 경기에서는 심판 평가를 남길 수 없습니다."
+                : "심판이 배정되면 심판 평가와 한줄평을 남길 수 있습니다."}
+            </div>
           </div>
-          <div className="p-8 text-center font-mono text-xs text-muted-foreground">
-            {isCancelled
-              ? "취소된 경기에서는 심판 평가를 남길 수 없습니다."
-              : "심판이 배정되면 심판 평가와 한줄평을 남길 수 있습니다."}
-          </div>
-        </div>
-      )}
+        )}
       </section>
 
       {/* 경기 판정 리포트 - 경기별 유튜브·인스타 카드 (Round Media와 동일 패턴) */}
