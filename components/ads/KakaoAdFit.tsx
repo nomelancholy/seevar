@@ -51,7 +51,7 @@ export function KakaoAdFit({ mobileOnly = false }: KakaoAdFitProps) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full my-6 bg-muted/10">
+    <div className="flex flex-col items-center justify-center w-full mt-4 mb-10 bg-muted/10">
       {/* PC 버전 광고 (md 이상에서 노출) */}
       <div ref={pcAdRef} className="hidden md:flex w-full max-w-[728px] justify-center items-center min-h-[90px]">
         <ins

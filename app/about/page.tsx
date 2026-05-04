@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Youtube, Instagram, Github } from "lucide-react";
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit";
 
 export const metadata = {
   title: "About | SEE VAR",
@@ -8,7 +9,9 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="max-w-4xl mx-auto py-8 md:py-12">
+    <>
+      <KakaoAdFit />
+      <main className="max-w-4xl mx-auto py-8 md:py-12">
       <header className="mb-12 md:mb-16 text-center md:text-left">
         <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase mb-4 md:mb-6 gradient-text">
           OUR MISSION
@@ -129,6 +132,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   );
 }

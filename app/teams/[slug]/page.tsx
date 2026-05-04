@@ -288,9 +288,10 @@ export default async function TeamDetailPage({
       : [...filteredByYear].sort((a, b) => a.roundNumber - b.roundNumber)
 
   return (
-    <main className="py-8 md:py-12">
+    <>
       <KakaoAdFit />
-      <div className="mb-6 md:mb-8">
+      <main className="py-8 md:py-12">
+        <div className="mb-6 md:mb-8">
         <Link
           href={backHref}
           className="inline-flex items-center gap-1 font-mono text-[10px] md:text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -333,6 +334,7 @@ export default async function TeamDetailPage({
         currentYear={effectiveYear}
         matchSortOrder={sortOrder}
       />
-    </main>
+      </main>
+    </>
   )
 }

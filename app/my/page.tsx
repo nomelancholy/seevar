@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { MyInformationForm } from "@/components/my/MyInformationForm"
 import { MyInformationDangerZone } from "@/components/my/MyInformationDangerZone"
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 
 export const metadata = {
   title: "내 정보 | SEE VAR",
@@ -17,8 +18,10 @@ export default async function MyInformationPage() {
   })
 
   return (
-    <main className="py-8 md:py-12 max-w-2xl mx-auto">
-      <div className="mb-6 md:mb-12">
+    <>
+      <KakaoAdFit />
+      <main className="py-8 md:py-12 max-w-2xl mx-auto">
+        <div className="mb-6 md:mb-12">
         <Link
           href="/"
           className="flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors"
@@ -76,6 +79,7 @@ export default async function MyInformationPage() {
           </Link>
         </section>
       )}
-    </main>
+      </main>
+    </>
   )
 }

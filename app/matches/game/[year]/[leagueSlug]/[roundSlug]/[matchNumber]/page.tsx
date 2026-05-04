@@ -315,11 +315,10 @@ export default async function MatchDetailBySlugPage({
   const reviewsForRating = matchReviews
 
   return (
-    <main className="py-8 md:py-12">
-      <div className="w-full flex justify-center items-center mb-8">
-        <KakaoAdFit />
-      </div>
-      <Suspense fallback={null}>
+    <>
+      <KakaoAdFit />
+      <main className="py-8 md:py-12">
+        <Suspense fallback={null}>
         <ScrollToRefereeSection />
       </Suspense>
       <div className="mb-6">
@@ -650,6 +649,7 @@ export default async function MatchDetailBySlugPage({
           </div>
         </section>
       )}
-    </main>
+      </main>
+    </>
   )
 }

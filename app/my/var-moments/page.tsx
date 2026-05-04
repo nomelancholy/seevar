@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPathWithBack } from "@/lib/match-url"
 import { MyVarMomentsContent } from "@/components/my/MyVarMomentsContent"
+import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 
 type MomentWithMatch = {
   id: string
@@ -175,8 +176,10 @@ export default async function MyVarMomentsPage() {
   }))
 
   return (
-    <main className="py-8 md:py-12 max-w-5xl mx-auto">
-      <div className="mb-6 md:mb-12">
+    <>
+      <KakaoAdFit />
+      <main className="py-8 md:py-12 max-w-5xl mx-auto">
+        <div className="mb-6 md:mb-12">
         <Link
           href="/"
           className="flex items-center gap-2 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors"
@@ -233,6 +236,7 @@ export default async function MyVarMomentsPage() {
           </Link>
         </section>
       )}
-    </main>
+      </main>
+    </>
   )
 }

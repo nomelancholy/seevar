@@ -592,7 +592,6 @@ export default async function HomePage() {
             hasK1Focus={k1Round1 !== null}
             hasK2Focus={k2Round1 !== null}
           />
-          <KakaoAdFit />
 
           {/* 라운드 판정 리포트 - 메인 페이지 가장 하단 */}
           {(k1Highlight?.youtubeEmbedUrl ||

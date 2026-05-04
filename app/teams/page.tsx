@@ -20,11 +20,10 @@ export default async function TeamsPage() {
   })
 
   return (
-    <main className="py-8 md:py-12">
-      <div className="w-full flex justify-center items-center mb-8">
-        <KakaoAdFit />
-      </div>
-      <header className="mb-8 md:mb-12">
+    <>
+      <KakaoAdFit />
+      <main className="py-8 md:py-12">
+        <header className="mb-8 md:mb-12">
         <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">
           팀 정보
         </h1>
@@ -63,6 +62,7 @@ export default async function TeamsPage() {
       {teams.length === 0 && (
         <p className="font-mono text-muted-foreground">등록된 팀이 없습니다.</p>
       )}
-    </main>
+      </main>
+    </>
   )
 }

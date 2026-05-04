@@ -634,11 +634,10 @@ export default async function MatchesArchivePage({ params }: { params: Params })
   )
 
   return (
-    <main className="py-8 md:py-12">
-      <div className="w-full flex justify-center items-center mb-8">
-        <KakaoAdFit />
-      </div>
-      <header className="mb-8 md:mb-12 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+    <>
+      <KakaoAdFit />
+      <main className="py-8 md:py-12">
+        <header className="mb-8 md:mb-12 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div>
           <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2 md:mb-4">
             경기 기록
@@ -959,7 +958,6 @@ export default async function MatchesArchivePage({ params }: { params: Params })
         </div>
       </section>
 
-      <KakaoAdFit />
 
       {/* 라운드 판정 리포트 - 페이지 가장 하단 */}
       {(youtubeEmbedUrl || instagramEmbedUrl) && (
@@ -1004,6 +1002,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
           </div>
         </section>
       )}
-    </main>
+      </main>
+    </>
   )
 }

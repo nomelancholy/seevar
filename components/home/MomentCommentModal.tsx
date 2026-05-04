@@ -23,7 +23,6 @@ import {
   reportComment,
 } from "@/lib/actions/comments";
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview";
-import { KakaoAdFit } from "@/components/ads/KakaoAdFit";
 import { toggleMomentSeeVar } from "@/lib/actions/moments";
 import { uploadMomentMedia } from "@/lib/actions/upload-moment-media";
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/constants/upload";
@@ -437,9 +436,9 @@ export function MomentCommentModal({
         pollOptions.some((o) => o.trim().length > 0);
       const poll = hasPollData
         ? {
-            title: pollTitle,
-            options: pollOptions,
-          }
+          title: pollTitle,
+          options: pollOptions,
+        }
         : null;
       const result = await createComment(detail.id, {
         content: textToSend,
@@ -925,13 +924,13 @@ export function MomentCommentModal({
                       ? detail.seeVarByTeamOtherTeams
                       : detail.seeVarByTeam.other > 0
                         ? [
-                            {
-                              teamId: "_other",
-                              name: "기타 팀",
-                              emblemPath: null,
-                              count: detail.seeVarByTeam.other,
-                            },
-                          ]
+                          {
+                            teamId: "_other",
+                            name: "기타 팀",
+                            emblemPath: null,
+                            count: detail.seeVarByTeam.other,
+                          },
+                        ]
                         : []
                     ).map((t) => (
                       <span
@@ -986,10 +985,10 @@ export function MomentCommentModal({
                     setDetail((prev) =>
                       prev
                         ? {
-                            ...prev,
-                            seeVarCount: result.seeVarCount,
-                            hasSeeVarByMe: true,
-                          }
+                          ...prev,
+                          seeVarCount: result.seeVarCount,
+                          hasSeeVarByMe: true,
+                        }
                         : null,
                     );
                     fetch(`/api/moments/${detail.id}`, { cache: "no-store" })
@@ -1002,11 +1001,10 @@ export function MomentCommentModal({
                   setSeeVarPending(false);
                 }
               }}
-              className={`h-full font-black italic font-mono text-[10px] sm:text-xs px-3 py-1.5 sm:px-4 sm:py-2 rounded border transition-colors shrink-0 min-h-[2.5rem] ${
-                isSeeVarByMe
+              className={`h-full font-black italic font-mono text-[10px] sm:text-xs px-3 py-1.5 sm:px-4 sm:py-2 rounded border transition-colors shrink-0 min-h-[2.5rem] ${isSeeVarByMe
                   ? "bg-primary text-primary-foreground border-primary shadow-inner cursor-default"
                   : "border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
-              }`}
+                }`}
               title={isSeeVarByMe ? "함께 이의 제기했습니다" : "함께 이의 제기"}
             >
               {seeVarPending ? (
@@ -1135,11 +1133,10 @@ export function MomentCommentModal({
                                   <button
                                     type="button"
                                     onClick={() => handleToggleLike(c.id)}
-                                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
-                                      getLikeState(c).likedByMe
+                                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${getLikeState(c).likedByMe
                                         ? "text-primary"
                                         : "text-muted-foreground hover:text-foreground"
-                                    }`}
+                                      }`}
                                     aria-label="좋아요"
                                   >
                                     <Heart
@@ -1204,11 +1201,10 @@ export function MomentCommentModal({
                               <button
                                 type="button"
                                 onClick={() => handleToggleLike(c.id)}
-                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
-                                  getLikeState(c).likedByMe
+                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${getLikeState(c).likedByMe
                                     ? "text-primary"
                                     : "text-muted-foreground hover:text-foreground"
-                                }`}
+                                  }`}
                                 aria-label="좋아요"
                               >
                                 <Heart
@@ -1320,8 +1316,8 @@ export function MomentCommentModal({
                                       const percent =
                                         totalVotes > 0
                                           ? Math.round(
-                                              (count / totalVotes) * 100,
-                                            )
+                                            (count / totalVotes) * 100,
+                                          )
                                           : 0;
                                       const teamMap = new Map<
                                         string,
@@ -1389,22 +1385,20 @@ export function MomentCommentModal({
                                                 votingPollId === c.poll!.id ||
                                                 !canClick
                                               }
-                                              className={`flex-1 text-left rounded border px-2 py-1 text-xs md:text-sm font-mono disabled:opacity-50 ${
-                                                hasVoted
+                                              className={`flex-1 text-left rounded border px-2 py-1 text-xs md:text-sm font-mono disabled:opacity-50 ${hasVoted
                                                   ? opt.id === myOptionId
                                                     ? "border-primary text-primary bg-primary/10"
                                                     : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
                                                   : "border-border hover:border-primary hover:text-primary"
-                                              }`}
+                                                }`}
                                             >
                                               <div className="flex items-center gap-2">
                                                 <div className="flex-1 h-2 bg-zinc-900 rounded overflow-hidden">
                                                   <div
-                                                    className={`h-2 ${
-                                                      opt.id === myOptionId
+                                                    className={`h-2 ${opt.id === myOptionId
                                                         ? "bg-primary"
                                                         : "bg-muted-foreground/40"
-                                                    }`}
+                                                      }`}
                                                     style={{
                                                       width:
                                                         totalVotes > 0
@@ -1459,11 +1453,10 @@ export function MomentCommentModal({
                                                 : c.poll!.id,
                                             )
                                           }
-                                          className={`px-2 py-1 rounded text-[10px] md:text-xs font-mono border ${
-                                            revotePollId === c.poll!.id
+                                          className={`px-2 py-1 rounded text-[10px] md:text-xs font-mono border ${revotePollId === c.poll!.id
                                               ? "border-primary text-primary bg-primary/10"
                                               : "border-border text-muted-foreground hover:border-primary hover:text-primary"
-                                          }`}
+                                            }`}
                                         >
                                           {revotePollId === c.poll!.id
                                             ? "투표 취소"
@@ -2104,7 +2097,6 @@ export function MomentCommentModal({
           )}
         </div>
 
-        <KakaoAdFit />
 
         <div className="p-4 md:p-6 border-t border-border shrink-0 space-y-3">
           {actionError && (
@@ -2251,7 +2243,7 @@ export function MomentCommentModal({
         onOpenChange={setCommentModerationOpen}
         scores={commentModerationScores}
         flagged={commentModerationFlagged}
-        onEdit={() => {}}
+        onEdit={() => { }}
         onConfirmAnyway={handleCommentModerationForceSubmit}
         confirmAnywayPending={commentModerationForcePending}
       />
@@ -2260,7 +2252,7 @@ export function MomentCommentModal({
         onOpenChange={setReplyModerationOpen}
         scores={replyModerationScores}
         flagged={replyModerationFlagged}
-        onEdit={() => {}}
+        onEdit={() => { }}
         onConfirmAnyway={handleReplyModerationForceSubmit}
         confirmAnywayPending={replyModerationForcePending}
       />

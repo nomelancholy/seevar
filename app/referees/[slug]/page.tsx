@@ -338,10 +338,10 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
   const formatCount = (n: number) => (n === 0 ? "—" : String(n))
 
   return (
-    <main className="py-8 md:py-12 max-w-4xl mx-auto">
+    <>
       <KakaoAdFit />
-
-      <div className="mb-6">
+      <main className="py-8 md:py-12 max-w-4xl mx-auto">
+        <div className="mb-6">
         <RefereeDetailBackLink fallbackHref={backHref} />
       </div>
 
@@ -433,8 +433,6 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           </div>
         </RefereeSectionWithTeamExpand>
       </section>
-
-      <KakaoAdFit />
 
       <section className="ledger-surface p-4 md:p-8 mb-6 md:mb-8">
         <RefereeSectionWithTeamExpand
@@ -534,6 +532,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           )}
         </RefereeSectionWithTeamExpand>
       </section>
-    </main>
+      </main>
+    </>
   )
 }
