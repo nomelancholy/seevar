@@ -17,6 +17,8 @@ import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/u
 import { shortNameFromSlug } from "@/lib/team-short-names"
 import { getYouTubeEmbedUrl, getInstagramEmbedUrl } from "@/lib/embed-urls"
 import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
+import { getIsAdmin } from "@/lib/auth"
+import { AdminMatchMediaSection } from "@/components/matches/AdminMatchMediaSection"
 
 type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string; matchNumber: string }>
 
@@ -177,6 +179,7 @@ export default async function MatchDetailBySlugPage({
 
   const matchPath = getMatchDetailPath(match)
   const backHref = sanitizeBackUrl(backParam ?? undefined) ?? "/matches"
+  const isAdmin = getIsAdmin(currentUser)
 
   const status = deriveMatchStatus(match.playedAt, { storedStatus: match.status })
   const isUpcoming = status === "SCHEDULED"
@@ -319,336 +322,344 @@ export default async function MatchDetailBySlugPage({
       <KakaoAdFit />
       <main className="py-8 md:py-12">
         <Suspense fallback={null}>
-        <ScrollToRefereeSection />
-      </Suspense>
-      <div className="mb-6">
-        <MatchDetailBackLink backHref={String(backHref)} />
-      </div>
-
-      <header className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-4xl font-black italic tracking-tighter uppercase mb-1">
-            {match.homeTeam.name} vs {match.awayTeam.name}
-          </h1>
-          {dateStr && (
-            <div className="font-mono text-[10px] md:text-xs text-muted-foreground">
-              <span className="opacity-90">
-                {dateStr}
-                {timeStr ? ` ${timeStr} KST` : ""}
-              </span>
-            </div>
-          )}
+          <ScrollToRefereeSection />
+        </Suspense>
+        <div className="mb-6">
+          <MatchDetailBackLink backHref={String(backHref)} />
         </div>
-      </header>
 
-      <section className="ledger-surface mb-6 md:mb-8 p-4 md:p-8 relative overflow-hidden">
-        <div className="grid grid-cols-3 items-start gap-3 sm:gap-6 md:gap-12">
-          <div className="flex flex-col items-center gap-2 md:gap-6 self-start">
-            <Link
-              href={teamDetailHref(match.homeTeam, matchPath)}
-              className="w-14 h-14 sm:w-20 sm:h-20 md:w-32 md:h-32 rounded-full border-2 md:border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors shrink-0"
-            >
-              {match.homeTeam.emblemPath && (
-                <img
-                  src={match.homeTeam.emblemPath}
-                  alt=""
-                  className="w-8 h-8 sm:w-12 sm:h-12 md:w-20 md:h-20"
-                />
-              )}
-              <span className="mt-0.5 md:mt-2 text-[7px] sm:text-[8px] md:text-[10px] font-black italic text-center text-foreground leading-tight px-0.5 line-clamp-2">
-                {match.homeTeam.name}
-              </span>
-            </Link>
-          </div>
-
-          <div className="text-center flex flex-col items-center min-w-0">
-            {isLive && (
-              <>
-                <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-4 md:gap-6">
-                  <span>{match.scoreHome ?? 0}</span>
-                  <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
-                  <span>{match.scoreAway ?? 0}</span>
-                </div>
-                {hasAnyCards && (
-                  <div className="font-mono text-[10px] md:text-xs text-muted-foreground flex items-center justify-center gap-4 md:gap-6">
-                    <span>🟨 {cardTotals.homeYellow} 🟥 {cardTotals.homeRed}</span>
-                    <span className="opacity-50">·</span>
-                    <span>🟨 {cardTotals.awayYellow} 🟥 {cardTotals.awayRed}</span>
-                  </div>
-                )}
-              </>
+        <header className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-4xl font-black italic tracking-tighter uppercase mb-1">
+              {match.homeTeam.name} vs {match.awayTeam.name}
+            </h1>
+            {dateStr && (
+              <div className="font-mono text-[10px] md:text-xs text-muted-foreground">
+                <span className="opacity-90">
+                  {dateStr}
+                  {timeStr ? ` ${timeStr} KST` : ""}
+                </span>
+              </div>
             )}
-            {isUpcoming && (
-              <>
-                <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4">
-                  VS
-                </div>
-                {match.venue?.trim() && (
-                  <p className="font-mono text-sm text-muted-foreground">{match.venue.trim()}</p>
+          </div>
+        </header>
+
+        <section className="ledger-surface mb-6 md:mb-8 p-4 md:p-8 relative overflow-hidden">
+          <div className="grid grid-cols-3 items-start gap-3 sm:gap-6 md:gap-12">
+            <div className="flex flex-col items-center gap-2 md:gap-6 self-start">
+              <Link
+                href={teamDetailHref(match.homeTeam, matchPath)}
+                className="w-14 h-14 sm:w-20 sm:h-20 md:w-32 md:h-32 rounded-full border-2 md:border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors shrink-0"
+              >
+                {match.homeTeam.emblemPath && (
+                  <img
+                    src={match.homeTeam.emblemPath}
+                    alt=""
+                    className="w-8 h-8 sm:w-12 sm:h-12 md:w-20 md:h-20"
+                  />
                 )}
-              </>
-            )}
-            {isFinished && (match.scoreHome != null && match.scoreAway != null ? (
-              <>
-                <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-4 md:gap-6">
-                  <span>{match.scoreHome}</span>
-                  <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
-                  <span>{match.scoreAway}</span>
-                </div>
-                {match.venue?.trim() && (
-                  <p className="font-mono text-sm text-muted-foreground">{match.venue.trim()}</p>
-                )}
-                {hasAnyCards && (
-                  <div className="font-mono text-[10px] md:text-xs text-muted-foreground mt-3 flex items-center justify-center gap-4 md:gap-6">
-                    <span>🟨 {cardTotals.homeYellow} 🟥 {cardTotals.homeRed}</span>
-                    <span className="opacity-50">·</span>
-                    <span>🟨 {cardTotals.awayYellow} 🟥 {cardTotals.awayRed}</span>
+                <span className="mt-0.5 md:mt-2 text-[7px] sm:text-[8px] md:text-[10px] font-black italic text-center text-foreground leading-tight px-0.5 line-clamp-2">
+                  {match.homeTeam.name}
+                </span>
+              </Link>
+            </div>
+
+            <div className="text-center flex flex-col items-center min-w-0">
+              {isLive && (
+                <>
+                  <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-4 md:gap-6">
+                    <span>{match.scoreHome ?? 0}</span>
+                    <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
+                    <span>{match.scoreAway ?? 0}</span>
                   </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-4 md:gap-6">
-                  <span className="text-muted-foreground">—</span>
-                  <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
-                  <span className="text-muted-foreground">—</span>
-                </div>
-                {match.venue?.trim() && (
-                  <p className="font-mono text-sm text-muted-foreground">{match.venue.trim()}</p>
-                )}
-              </>
-            ))}
-          </div>
-
-          <div className="flex flex-col items-center gap-2 md:gap-6 self-start">
-            <Link
-              href={teamDetailHref(match.awayTeam, matchPath)}
-              className="w-14 h-14 sm:w-20 sm:h-20 md:w-32 md:h-32 rounded-full border-2 md:border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors shrink-0"
-            >
-              {match.awayTeam.emblemPath && (
-                <img
-                  src={match.awayTeam.emblemPath}
-                  alt=""
-                  className="w-8 h-8 sm:w-12 sm:h-12 md:w-20 md:h-20"
-                />
+                  {hasAnyCards && (
+                    <div className="font-mono text-[10px] md:text-xs text-muted-foreground flex items-center justify-center gap-4 md:gap-6">
+                      <span>🟨 {cardTotals.homeYellow} 🟥 {cardTotals.homeRed}</span>
+                      <span className="opacity-50">·</span>
+                      <span>🟨 {cardTotals.awayYellow} 🟥 {cardTotals.awayRed}</span>
+                    </div>
+                  )}
+                </>
               )}
-              <span className="mt-0.5 md:mt-2 text-[7px] sm:text-[8px] md:text-[10px] font-black italic text-center text-foreground leading-tight px-0.5 line-clamp-2">
-                {match.awayTeam.name}
-              </span>
-            </Link>
-          </div>
+              {isUpcoming && (
+                <>
+                  <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4">
+                    VS
+                  </div>
+                  {match.venue?.trim() && (
+                    <p className="font-mono text-sm text-muted-foreground">{match.venue.trim()}</p>
+                  )}
+                </>
+              )}
+              {isFinished && (match.scoreHome != null && match.scoreAway != null ? (
+                <>
+                  <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-4 md:gap-6">
+                    <span>{match.scoreHome}</span>
+                    <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
+                    <span>{match.scoreAway}</span>
+                  </div>
+                  {match.venue?.trim() && (
+                    <p className="font-mono text-sm text-muted-foreground">{match.venue.trim()}</p>
+                  )}
+                  {hasAnyCards && (
+                    <div className="font-mono text-[10px] md:text-xs text-muted-foreground mt-3 flex items-center justify-center gap-4 md:gap-6">
+                      <span>🟨 {cardTotals.homeYellow} 🟥 {cardTotals.homeRed}</span>
+                      <span className="opacity-50">·</span>
+                      <span>🟨 {cardTotals.awayYellow} 🟥 {cardTotals.awayRed}</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 flex items-center gap-4 md:gap-6">
+                    <span className="text-muted-foreground">—</span>
+                    <span className="text-muted-foreground text-3xl md:text-4xl">:</span>
+                    <span className="text-muted-foreground">—</span>
+                  </div>
+                  {match.venue?.trim() && (
+                    <p className="font-mono text-sm text-muted-foreground">{match.venue.trim()}</p>
+                  )}
+                </>
+              ))}
+            </div>
 
-          <div className="col-span-3 w-full min-w-0">
-            <div className="w-full h-px bg-border my-6" />
+            <div className="flex flex-col items-center gap-2 md:gap-6 self-start">
+              <Link
+                href={teamDetailHref(match.awayTeam, matchPath)}
+                className="w-14 h-14 sm:w-20 sm:h-20 md:w-32 md:h-32 rounded-full border-2 md:border-4 border-border flex flex-col items-center justify-center bg-card hover:border-primary transition-colors shrink-0"
+              >
+                {match.awayTeam.emblemPath && (
+                  <img
+                    src={match.awayTeam.emblemPath}
+                    alt=""
+                    className="w-8 h-8 sm:w-12 sm:h-12 md:w-20 md:h-20"
+                  />
+                )}
+                <span className="mt-0.5 md:mt-2 text-[7px] sm:text-[8px] md:text-[10px] font-black italic text-center text-foreground leading-tight px-0.5 line-clamp-2">
+                  {match.awayTeam.name}
+                </span>
+              </Link>
+            </div>
 
-            <div className="grid grid-cols-4 sm:grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-3 sm:gap-x-3 md:gap-x-8 md:gap-y-4 font-mono text-left mb-6 md:mb-8 w-full">
-              {ROLE_DISPLAY_ORDER.map((role) => {
-                const refs = refereesByRole[role] ?? []
-                const label = ROLE_LABEL[role] ?? role
-                return (
-                  <div key={role} className="min-w-0">
-                    <p className="text-muted-foreground mb-0.5 sm:mb-1 uppercase tracking-tighter text-[10px] sm:text-xs font-semibold">
-                      {label}
-                    </p>
-                    {refs.length === 0 ? (
-                      <p className="text-muted-foreground text-xs sm:text-sm">—</p>
-                    ) : (
-                      <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
-                        {refs.map((ref, idx) => {
-                          const sep = idx > 0 ? <span className="text-muted-foreground text-xs">·</span> : null
-                          const slug = (ref as { slug?: string }).slug
-                          const refereeHref = slug
-                            ? `/referees/${slug}${matchPath ? `?back=${encodeURIComponent(matchPath)}` : ""}`
-                            : null
-                          if (refereeHref) {
+            <div className="col-span-3 w-full min-w-0">
+              <div className="w-full h-px bg-border my-6" />
+
+              <div className="grid grid-cols-4 sm:grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-3 sm:gap-x-3 md:gap-x-8 md:gap-y-4 font-mono text-left mb-6 md:mb-8 w-full">
+                {ROLE_DISPLAY_ORDER.map((role) => {
+                  const refs = refereesByRole[role] ?? []
+                  const label = ROLE_LABEL[role] ?? role
+                  return (
+                    <div key={role} className="min-w-0">
+                      <p className="text-muted-foreground mb-0.5 sm:mb-1 uppercase tracking-tighter text-[10px] sm:text-xs font-semibold">
+                        {label}
+                      </p>
+                      {refs.length === 0 ? (
+                        <p className="text-muted-foreground text-xs sm:text-sm">—</p>
+                      ) : (
+                        <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
+                          {refs.map((ref, idx) => {
+                            const sep = idx > 0 ? <span className="text-muted-foreground text-xs">·</span> : null
+                            const slug = (ref as { slug?: string }).slug
+                            const refereeHref = slug
+                              ? `/referees/${slug}${matchPath ? `?back=${encodeURIComponent(matchPath)}` : ""}`
+                              : null
+                            if (refereeHref) {
+                              return (
+                                <span key={ref.id} className="inline-flex items-center gap-0.5">
+                                  {sep}
+                                  <Link
+                                    href={refereeHref}
+                                    className="font-bold text-xs sm:text-sm hover:text-primary transition-colors inline-flex items-center gap-0.5 whitespace-nowrap"
+                                  >
+                                    {ref.name}
+                                    <ChevronRight className="size-3 sm:size-4 shrink-0" />
+                                  </Link>
+                                </span>
+                              )
+                            }
                             return (
-                              <span key={ref.id} className="inline-flex items-center gap-0.5">
+                              <span key={ref.id} className="inline-flex items-center gap-0.5 text-xs sm:text-sm font-bold whitespace-nowrap">
                                 {sep}
-                                <Link
-                                  href={refereeHref}
-                                  className="font-bold text-xs sm:text-sm hover:text-primary transition-colors inline-flex items-center gap-0.5 whitespace-nowrap"
-                                >
-                                  {ref.name}
-                                  <ChevronRight className="size-3 sm:size-4 shrink-0" />
-                                </Link>
+                                <span>{ref.name}</span>
                               </span>
                             )
-                          }
-                          return (
-                            <span key={ref.id} className="inline-flex items-center gap-0.5 text-xs sm:text-sm font-bold whitespace-nowrap">
-                              {sep}
-                              <span>{ref.name}</span>
-                            </span>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-
-            {canRateAndDiscuss && (
-              <div className="flex justify-center">
-                <SeeVarButtonWithModal
-                  matchId={match.id}
-                  variant={isLive ? "live" : "finished"}
-                  isLoggedIn={!!currentUser}
-                />
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
-            )}
-            {!canRateAndDiscuss && isCancelled && (
-              <div className="bg-card border border-border px-6 md:px-8 py-3 md:py-4 font-mono text-[10px] md:text-xs text-muted-foreground italic text-center">
-                취소된 경기에서는 판정 이의 제기를 남길 수 없습니다.
-              </div>
-            )}
-            {!canRateAndDiscuss && !isCancelled && !hasRefereeAssignments && (
-              <div className="bg-card border border-border px-6 md:px-8 py-3 md:py-4 font-mono text-[10px] md:text-xs text-muted-foreground italic text-center">
-                심판이 배정되면 판정 이의 제기를 남길 수 있습니다.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
 
-
-      {hotMomentsForSection.length > 0 && (
-        <HotMomentsSection
-          title="경기 쟁점 순간"
-          hotMoments={hotMomentsForSection}
-          initialOpenMomentId={openMomentId ?? undefined}
-        />
-      )}
-
-      <section id="referee-rating" className="scroll-mt-6">
-        {canRateAndDiscuss ? (
-          <MatchRefereeRatingSectionDynamic
-            matchId={match.id}
-            homeTeamId={match.homeTeam.id}
-            awayTeamId={match.awayTeam.id}
-            initialRefereeSlug={refereeSlug ?? null}
-            matchReferees={match.matchReferees.map((mr) => ({
-              id: mr.id,
-              role: mr.role,
-              referee: { id: mr.referee.id, name: mr.referee.name, slug: mr.referee.slug },
-            }))}
-            reviews={reviewsForRating.map((r) => ({
-              id: r.id,
-              refereeId: r.refereeId,
-              userId: r.userId,
-              rating: r.rating,
-              comment: r.comment,
-              status: r.status,
-              filterReason: r.filterReason,
-              user: {
-                id: r.user.id,
-                name: r.user.name,
-                image: r.user.image ?? null,
-                handle: r.user.handle ?? null,
-              },
-              fanTeamId: r.fanTeamId,
-              fanTeam: r.fanTeam
-                ? { name: r.fanTeam.name, emblemPath: r.fanTeam.emblemPath }
-                : null,
-              reactions: r.reactions ?? [],
-              createdAt: r.createdAt,
-              updatedAt: r.updatedAt,
-              replies:
-                r.replies?.map((rp: MatchReviewWithRelations["replies"][number]) => ({
-                  id: rp.id,
-                  userId: rp.userId,
-                  content: rp.content,
-                  createdAt: rp.createdAt,
-                  user: {
-                    id: rp.user.id,
-                    name: rp.user.name,
-                    image: rp.user.image ?? null,
-                    handle: rp.user.handle ?? null,
-                    supportingTeam: rp.user.supportingTeam
-                      ? {
-                        name: rp.user.supportingTeam.name,
-                        emblemPath: rp.user.supportingTeam.emblemPath,
-                      }
-                      : null,
-                  },
-                  reactions: "reactions" in rp && Array.isArray(rp.reactions) ? rp.reactions : [],
-                })) ?? [],
-            }))}
-            currentUserId={currentUser?.id ?? null}
-            currentUserName={currentUser?.name ?? null}
-            currentUserImage={currentUser?.image ?? null}
-            currentUserSupportingTeam={
-              currentUser?.supportingTeam
-                ? {
-                  name: currentUser.supportingTeam.name,
-                  emblemPath: currentUser.supportingTeam.emblemPath,
-                }
-                : null
-            }
-          />
-        ) : (
-          <div className="mb-8 border border-border bg-card/50">
-            <div className="flex items-stretch border-b border-border">
-              <button
-                type="button"
-                className="px-4 md:px-6 py-3 font-mono text-xs font-black tracking-widest text-muted-foreground opacity-50 cursor-default"
-                disabled
-              >
-                심판 평가 (잠김)
-              </button>
-            </div>
-            <div className="p-8 text-center font-mono text-xs text-muted-foreground">
-              {isCancelled
-                ? "취소된 경기에서는 심판 평가를 남길 수 없습니다."
-                : "심판이 배정되면 심판 평가와 한줄평을 남길 수 있습니다."}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* 경기 판정 리포트 - 경기별 유튜브·인스타 카드 (Round Media와 동일 패턴) */}
-      {((match as MatchWithMedia).youtubeUrl || (match as MatchWithMedia).instagramUrl) && (
-        <section className="mt-8 md:mt-12">
-          <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-4">
-            경기 판정 리포트
-          </h2>
-          <div className="flex flex-col gap-4 md:gap-6">
-            {getYouTubeEmbedUrl((match as MatchWithMedia).youtubeUrl) && (
-              <div className="border border-border bg-card/60 p-3 md:p-4">
-                <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
-                  Match Review · YouTube
-                </p>
-                <div className="relative w-full pt-[56.25%] bg-black border border-border overflow-hidden">
-                  <iframe
-                    src={getYouTubeEmbedUrl((match as MatchWithMedia).youtubeUrl)!}
-                    title="Match review video"
-                    className="absolute inset-0 w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    loading="lazy"
+              {canRateAndDiscuss && (
+                <div className="flex justify-center">
+                  <SeeVarButtonWithModal
+                    matchId={match.id}
+                    variant={isLive ? "live" : "finished"}
+                    isLoggedIn={!!currentUser}
                   />
                 </div>
-              </div>
-            )}
-            {getInstagramEmbedUrl((match as MatchWithMedia).instagramUrl) && (
-              <div className="border border-border bg-card/60 p-3 md:p-4">
-                <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
-                  Card News · Instagram
-                </p>
-                <div className="relative w-full pt-[125%] bg-black border border-border overflow-hidden">
-                  <iframe
-                    src={getInstagramEmbedUrl((match as MatchWithMedia).instagramUrl)!}
-                    title="Match card news"
-                    className="absolute inset-0 w-full h-full"
-                    allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
-                    loading="lazy"
-                  />
+              )}
+              {!canRateAndDiscuss && isCancelled && (
+                <div className="bg-card border border-border px-6 md:px-8 py-3 md:py-4 font-mono text-[10px] md:text-xs text-muted-foreground italic text-center">
+                  취소된 경기에서는 판정 이의 제기를 남길 수 없습니다.
                 </div>
-              </div>
-            )}
+              )}
+              {!canRateAndDiscuss && !isCancelled && !hasRefereeAssignments && (
+                <div className="bg-card border border-border px-6 md:px-8 py-3 md:py-4 font-mono text-[10px] md:text-xs text-muted-foreground italic text-center">
+                  심판이 배정되면 판정 이의 제기를 남길 수 있습니다.
+                </div>
+              )}
+            </div>
           </div>
         </section>
-      )}
+
+
+        {hotMomentsForSection.length > 0 && (
+          <HotMomentsSection
+            title="경기 쟁점 순간"
+            hotMoments={hotMomentsForSection}
+            initialOpenMomentId={openMomentId ?? undefined}
+          />
+        )}
+
+        <section id="referee-rating" className="scroll-mt-6">
+          {canRateAndDiscuss ? (
+            <MatchRefereeRatingSectionDynamic
+              matchId={match.id}
+              homeTeamId={match.homeTeam.id}
+              awayTeamId={match.awayTeam.id}
+              initialRefereeSlug={refereeSlug ?? null}
+              matchReferees={match.matchReferees.map((mr) => ({
+                id: mr.id,
+                role: mr.role,
+                referee: { id: mr.referee.id, name: mr.referee.name, slug: mr.referee.slug },
+              }))}
+              reviews={reviewsForRating.map((r) => ({
+                id: r.id,
+                refereeId: r.refereeId,
+                userId: r.userId,
+                rating: r.rating,
+                comment: r.comment,
+                status: r.status,
+                filterReason: r.filterReason,
+                user: {
+                  id: r.user.id,
+                  name: r.user.name,
+                  image: r.user.image ?? null,
+                  handle: r.user.handle ?? null,
+                },
+                fanTeamId: r.fanTeamId,
+                fanTeam: r.fanTeam
+                  ? { name: r.fanTeam.name, emblemPath: r.fanTeam.emblemPath }
+                  : null,
+                reactions: r.reactions ?? [],
+                createdAt: r.createdAt,
+                updatedAt: r.updatedAt,
+                replies:
+                  r.replies?.map((rp: MatchReviewWithRelations["replies"][number]) => ({
+                    id: rp.id,
+                    userId: rp.userId,
+                    content: rp.content,
+                    createdAt: rp.createdAt,
+                    user: {
+                      id: rp.user.id,
+                      name: rp.user.name,
+                      image: rp.user.image ?? null,
+                      handle: rp.user.handle ?? null,
+                      supportingTeam: rp.user.supportingTeam
+                        ? {
+                          name: rp.user.supportingTeam.name,
+                          emblemPath: rp.user.supportingTeam.emblemPath,
+                        }
+                        : null,
+                    },
+                    reactions: "reactions" in rp && Array.isArray(rp.reactions) ? rp.reactions : [],
+                  })) ?? [],
+              }))}
+              currentUserId={currentUser?.id ?? null}
+              currentUserName={currentUser?.name ?? null}
+              currentUserImage={currentUser?.image ?? null}
+              currentUserSupportingTeam={
+                currentUser?.supportingTeam
+                  ? {
+                    name: currentUser.supportingTeam.name,
+                    emblemPath: currentUser.supportingTeam.emblemPath,
+                  }
+                  : null
+              }
+            />
+          ) : (
+            <div className="mb-8 border border-border bg-card/50">
+              <div className="flex items-stretch border-b border-border">
+                <button
+                  type="button"
+                  className="px-4 md:px-6 py-3 font-mono text-xs font-black tracking-widest text-muted-foreground opacity-50 cursor-default"
+                  disabled
+                >
+                  심판 평가 (잠김)
+                </button>
+              </div>
+              <div className="p-8 text-center font-mono text-xs text-muted-foreground">
+                {isCancelled
+                  ? "취소된 경기에서는 심판 평가를 남길 수 없습니다."
+                  : "심판이 배정되면 심판 평가와 한줄평을 남길 수 있습니다."}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 경기 판정 리포트 - 경기별 유튜브·인스타 카드 (Round Media와 동일 패턴) */}
+        {((match as MatchWithMedia).youtubeUrl || (match as MatchWithMedia).instagramUrl || isAdmin) && (
+          <section className="mt-8 md:mt-12">
+            <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase mb-4">
+              경기 판정 리포트
+            </h2>
+            <div className="flex flex-col gap-4 md:gap-6">
+              {getYouTubeEmbedUrl((match as MatchWithMedia).youtubeUrl) && (
+                <div className="border border-border bg-card/60 p-3 md:p-4">
+                  <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
+                    Decision Review · YouTube
+                  </p>
+                  <div className="relative w-full pt-[56.25%] bg-black border border-border overflow-hidden">
+                    <iframe
+                      src={getYouTubeEmbedUrl((match as MatchWithMedia).youtubeUrl)!}
+                      title="Match review video"
+                      className="absolute inset-0 w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              )}
+              {getInstagramEmbedUrl((match as MatchWithMedia).instagramUrl) && (
+                <div className="border border-border bg-card/60 p-3 md:p-4">
+                  <p className="font-mono text-[9px] md:text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
+                    Decision Review · Instagram
+                  </p>
+                  <div className="relative w-full pt-[125%] bg-black border border-border overflow-hidden">
+                    <iframe
+                      src={getInstagramEmbedUrl((match as MatchWithMedia).instagramUrl)!}
+                      title="Match card news"
+                      className="absolute inset-0 w-full h-full"
+                      allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {isAdmin && (
+                <AdminMatchMediaSection
+                  matchId={match.id}
+                  initialYoutubeUrl={(match as MatchWithMedia).youtubeUrl}
+                  initialInstagramUrl={(match as MatchWithMedia).instagramUrl}
+                />
+              )}
+            </div>
+          </section>
+        )}
       </main>
     </>
   )
