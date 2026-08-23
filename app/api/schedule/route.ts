@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
         awayTeam: { select: { name: true } },
         round: {
           select: {
+            id: true,
             number: true,
             slug: true,
             league: { select: { name: true, slug: true, season: { select: { year: true } } } },
@@ -60,6 +61,7 @@ export async function GET(request: NextRequest) {
         const venueVal = m.venue ?? null
         return {
           id: m.id,
+          roundId: m.round.id,
           year: m.round.league.season.year,
           leagueSlug: m.round.league.slug,
           leagueName: m.round.league.name,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { checkCrawlerAuth } from "@/lib/auth"
 import { RefereeRole } from "@prisma/client"
-import { revalidatePath } from "next/cache"
+import { revalidateMatchViews } from "@/lib/revalidate-match-views"
 
 /**
  * 카드 부여 정보 업데이트 API.
@@ -52,8 +52,7 @@ export async function PATCH(
       },
     })
 
-    // 관련 페이지 캐시 무효화
-    revalidatePath(`/matches/${matchId}`)
+    await revalidateMatchViews(matchId)
 
     return NextResponse.json({
       ok: true,

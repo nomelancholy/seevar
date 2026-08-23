@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { checkCrawlerAuth } from "@/lib/auth"
 import { MatchStatus } from "@prisma/client"
-import { revalidatePath } from "next/cache"
+import { revalidateMatchViews } from "@/lib/revalidate-match-views"
 
 export async function PATCH(
   request: NextRequest,
@@ -30,9 +30,7 @@ export async function PATCH(
       data: { status: status as MatchStatus },
     })
 
-    // 관련 페이지 캐시 무효화
-    revalidatePath("/")
-    revalidatePath(`/matches/${matchId}`)
+    await revalidateMatchViews(matchId)
 
     return NextResponse.json({
       ok: true,

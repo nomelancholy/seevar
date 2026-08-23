@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { checkCrawlerAuth } from "@/lib/auth"
-import { revalidatePath } from "next/cache"
+import { revalidateMatchViews } from "@/lib/revalidate-match-views"
 
 export async function PATCH(
   request: NextRequest,
@@ -24,7 +25,7 @@ export async function PATCH(
       extraSecondHalfExtraTime,
     } = body
 
-    const updateData: any = {}
+    const updateData: Prisma.MatchUpdateInput = {}
     if (scoreHome !== undefined) updateData.scoreHome = scoreHome
     if (scoreAway !== undefined) updateData.scoreAway = scoreAway
     if (firstHalfExtraTime !== undefined) updateData.firstHalfExtraTime = firstHalfExtraTime
@@ -41,9 +42,7 @@ export async function PATCH(
       data: updateData,
     })
 
-    // 캐시 무효화
-    revalidatePath("/")
-    revalidatePath(`/matches/${matchId}`)
+    await revalidateMatchViews(matchId)
 
     return NextResponse.json({
       ok: true,
