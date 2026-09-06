@@ -4,29 +4,12 @@ import { useState } from "react"
 import Link from "next/link"
 import { ChevronDown } from "lucide-react"
 import { EmblemImage } from "@/components/ui/EmblemImage"
-import { RoundQuickActions } from "@/components/home/RoundQuickActions"
+import {
+  RoundQuickActions,
+  type RoundActionMatch,
+} from "@/components/home/RoundQuickActions"
 
-export type FocusMatchItem = {
-  id: string
-  matchPath: string
-  date: string
-  timeStr: string
-  venue: string
-  homeName: string
-  awayName: string
-  homeEmblem: string
-  awayEmblem: string
-  scoreHome: number | null
-  scoreAway: number | null
-  status: string
-  homeTeamId: string
-  awayTeamId: string
-  matchReferees: Array<{
-    id: string
-    role: string
-    referee: { id: string; name: string; slug: string }
-  }>
-}
+export type FocusMatchItem = RoundActionMatch
 
 function LeagueBlock({
   leagueName,

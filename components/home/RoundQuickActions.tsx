@@ -44,6 +44,14 @@ export type RoundActionMatch = {
   status: string
   homeTeamId: string
   awayTeamId: string
+  myReviews: Array<{
+    id: string
+    refereeId: string
+    role: string
+    rating: number
+    comment: string | null
+    status: string
+  }>
   matchReferees: Array<{
     id: string
     role: string
@@ -131,9 +139,17 @@ function QuickRatingForm({
 }) {
   const router = useRouter()
   const slots = useMemo(() => buildRatingSlots(match), [match])
+  const initialReviewsByRefereeId = useMemo(
+    () => Object.fromEntries(match.myReviews.map((review) => [review.refereeId, review])),
+    [match.myReviews],
+  )
+  const firstReview = slots[0]?.refereeIds
+    .map((refereeId) => initialReviewsByRefereeId[refereeId])
+    .find(Boolean)
   const [selectedSlotId, setSelectedSlotId] = useState(slots[0]?.id ?? "")
-  const [rating, setRating] = useState(0)
-  const [comment, setComment] = useState("")
+  const [myReviewsByRefereeId, setMyReviewsByRefereeId] = useState(initialReviewsByRefereeId)
+  const [rating, setRating] = useState(firstReview?.status === "HIDDEN" ? 0 : (firstReview?.rating ?? 0))
+  const [comment, setComment] = useState(firstReview?.status === "HIDDEN" ? "" : (firstReview?.comment ?? ""))
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -144,6 +160,10 @@ function QuickRatingForm({
   const [forcePending, setForcePending] = useState(false)
 
   const selected = slots.find((slot) => slot.id === selectedSlotId) ?? slots[0]
+  const currentReview = selected?.refereeIds
+    .map((refereeId) => myReviewsByRefereeId[refereeId])
+    .find(Boolean)
+  const isHiddenReview = currentReview?.status === "HIDDEN"
 
   const saveForSlot = async (forceSubmitAfterModeration: boolean) => {
     if (!selected || rating < 1) return
@@ -163,6 +183,22 @@ function QuickRatingForm({
   }
 
   const finishSave = () => {
+    if (selected) {
+      setMyReviewsByRefereeId((current) => {
+        const next = { ...current }
+        for (const refereeId of selected.refereeIds) {
+          next[refereeId] = {
+            id: current[refereeId]?.id ?? `saved-${match.id}-${refereeId}`,
+            refereeId,
+            role: selected.role,
+            rating,
+            comment: comment.trim() || null,
+            status: "VISIBLE",
+          }
+        }
+        return next
+      })
+    }
     setSaved(true)
     setError(null)
     startTransition(() => router.refresh())
@@ -207,9 +243,13 @@ function QuickRatingForm({
   }
 
   const selectSlot = (slotId: string) => {
+    const slot = slots.find((item) => item.id === slotId)
+    const review = slot?.refereeIds
+      .map((refereeId) => myReviewsByRefereeId[refereeId])
+      .find(Boolean)
     setSelectedSlotId(slotId)
-    setRating(0)
-    setComment("")
+    setRating(review?.status === "HIDDEN" ? 0 : (review?.rating ?? 0))
+    setComment(review?.status === "HIDDEN" ? "" : (review?.comment ?? ""))
     setError(null)
     setSaved(false)
   }
@@ -234,78 +274,104 @@ function QuickRatingForm({
           평가할 심판
         </p>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-          {slots.map((slot) => (
-            <button
-              key={slot.id}
-              type="button"
-              onClick={() => selectSlot(slot.id)}
-              className={`min-w-0 border p-3 text-left transition-colors ${
-                selected?.id === slot.id
-                  ? "border-primary bg-primary/10"
-                  : "border-border bg-card hover:border-muted-foreground/60"
-              }`}
-            >
-              <span className="block font-mono text-[9px] font-black uppercase text-primary">
-                {slot.roleLabel}
-              </span>
-              <span className="mt-1 block truncate text-xs font-bold md:text-sm">
-                {slot.names}
-              </span>
-            </button>
-          ))}
+          {slots.map((slot) => {
+            const review = slot.refereeIds
+              .map((refereeId) => myReviewsByRefereeId[refereeId])
+              .find(Boolean)
+            return (
+              <button
+                key={slot.id}
+                type="button"
+                onClick={() => selectSlot(slot.id)}
+                className={`min-w-0 border p-3 text-left transition-colors ${
+                  selected?.id === slot.id
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-card hover:border-muted-foreground/60"
+                }`}
+              >
+                <span className="flex items-center justify-between gap-2 font-mono text-[9px] font-black uppercase text-primary">
+                  <span>{slot.roleLabel}</span>
+                  {review ? (
+                    <span className="text-[8px] text-blue-500">
+                      {review.status === "HIDDEN" ? "숨김" : `내 평가 ${review.rating}점`}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="mt-1 block truncate text-xs font-bold md:text-sm">
+                  {slot.names}
+                </span>
+              </button>
+            )
+          })}
         </div>
       </div>
 
       {selected ? (
         <div className="space-y-4 border border-border bg-muted/20 p-4">
           <div>
-            <p className="mb-2 text-sm font-bold">
-              {selected.roleLabel} · {selected.names}
-            </p>
-            <div className="flex gap-1" aria-label="별점 선택">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => {
-                    setRating(value)
-                    setError(null)
-                    setSaved(false)
-                  }}
-                  className="rounded p-1 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  aria-label={`${value}점`}
-                >
-                  <Star
-                    className={`size-7 ${
-                      value <= rating
-                        ? "fill-primary text-primary"
-                        : "fill-transparent text-muted-foreground/50"
-                    }`}
-                    aria-hidden
-                  />
-                </button>
-              ))}
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-sm font-bold">
+                {selected.roleLabel} · {selected.names}
+              </p>
+              {currentReview && !isHiddenReview ? (
+                <span className="shrink-0 bg-blue-500/10 px-2 py-1 font-mono text-[9px] font-bold text-blue-500">
+                  등록된 내 평가
+                </span>
+              ) : null}
             </div>
+            {isHiddenReview ? (
+              <p className="border border-destructive/40 bg-destructive/10 p-3 text-xs text-muted-foreground">
+                관리자 검토로 숨김 처리된 평가입니다. 경기 상세 화면에서 상태를 확인해주세요.
+              </p>
+            ) : (
+              <div className="flex gap-1" aria-label="별점 선택">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setRating(value)
+                      setError(null)
+                      setSaved(false)
+                    }}
+                    className="rounded p-1 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    aria-label={`${value}점`}
+                    aria-pressed={value <= rating}
+                  >
+                    <Star
+                      className={`size-7 ${
+                        value <= rating
+                          ? "fill-primary text-primary"
+                          : "fill-transparent text-muted-foreground/50"
+                      }`}
+                      aria-hidden
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div>
-            <label htmlFor={`quick-review-${match.id}`} className="mb-1 flex justify-between font-mono text-[10px] text-muted-foreground">
-              <span>한줄평 (선택)</span>
-              <span>{comment.length}/{REFEREE_REVIEW_COMMENT_MAX_LENGTH}</span>
-            </label>
-            <textarea
-              id={`quick-review-${match.id}`}
-              value={comment}
-              onChange={(event) => {
-                setComment(event.target.value.slice(0, REFEREE_REVIEW_COMMENT_MAX_LENGTH))
-                setSaved(false)
-              }}
-              rows={3}
-              maxLength={REFEREE_REVIEW_COMMENT_MAX_LENGTH}
-              placeholder="이 경기의 심판 판정을 한줄로 남겨보세요."
-              className="w-full resize-none border border-border bg-background p-3 text-sm outline-none transition-colors focus:border-primary"
-            />
-          </div>
+          {!isHiddenReview ? (
+            <div>
+              <label htmlFor={`quick-review-${match.id}`} className="mb-1 flex justify-between font-mono text-[10px] text-muted-foreground">
+                <span>한줄평 (선택)</span>
+                <span>{comment.length}/{REFEREE_REVIEW_COMMENT_MAX_LENGTH}</span>
+              </label>
+              <textarea
+                id={`quick-review-${match.id}`}
+                value={comment}
+                onChange={(event) => {
+                  setComment(event.target.value.slice(0, REFEREE_REVIEW_COMMENT_MAX_LENGTH))
+                  setSaved(false)
+                }}
+                rows={3}
+                maxLength={REFEREE_REVIEW_COMMENT_MAX_LENGTH}
+                placeholder="이 경기의 심판 판정을 한줄로 남겨보세요."
+                className="w-full resize-none border border-border bg-background p-3 text-sm outline-none transition-colors focus:border-primary"
+              />
+            </div>
+          ) : null}
 
           {error ? (
             <p className="flex items-center gap-1.5 text-xs text-destructive" role="alert">
@@ -322,14 +388,16 @@ function QuickRatingForm({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={pending || rating < 1}
+            disabled={pending || rating < 1 || isHiddenReview}
             className="flex w-full items-center justify-center gap-2 bg-primary px-4 py-3 text-sm font-black italic text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Star className="size-4" aria-hidden />}
-            {pending ? "저장 중…" : "심판 평가 저장"}
+            {pending ? "저장 중…" : currentReview ? "심판 평가 수정" : "심판 평가 저장"}
           </button>
           <p className="text-center font-mono text-[9px] text-muted-foreground">
-            이미 평가했다면 같은 심판의 평가가 수정됩니다.
+            {currentReview && !isHiddenReview
+              ? "기존 평가가 표시되며, 저장하면 수정됩니다."
+              : "이미 평가했다면 같은 심판의 평가가 수정됩니다."}
           </p>
         </div>
       ) : (
@@ -365,13 +433,16 @@ function MatchPicker({
       {matches.map((match) => {
         const isCancelled = match.status === "CANCELLED"
         const hasReferees = match.matchReferees.length > 0
+        const hasMyReview = match.myReviews.length > 0
         const disabled = isCancelled || !hasReferees
         const reason = isCancelled
           ? "취소된 경기"
           : !hasReferees
             ? "심판 배정 전"
             : action === "rating"
-              ? "평가하기"
+              ? hasMyReview
+                ? "내 평가 있음 · 확인/수정"
+                : "평가하기"
               : "쟁점 만들기"
         return (
           <button

@@ -1,5 +1,7 @@
 import { unstable_cache } from "next/cache"
+import { getServerSession } from "next-auth"
 import { prisma } from "@/lib/prisma"
+import { authOptions } from "@/lib/auth-options"
 import { shortNameFromSlug } from "@/lib/team-short-names"
 import { getMatchDetailPath, getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
 import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
@@ -131,6 +133,7 @@ const getFocusRoundsCached = unstable_cache(
 )
 
 export default async function HomePage() {
+  const sessionPromise = getServerSession(authOptions)
   // 메인에는 isFocus === true 인 라운드만 표시 (없으면 Focus Round 섹션 비표시)
   let k1Round1: RoundWithMatches = null
   let k2Round1: RoundWithMatches = null
@@ -150,6 +153,37 @@ export default async function HomePage() {
     } else {
       throw e
     }
+  }
+
+  const focusMatchIds = [
+    ...(k1Round1?.matches?.map((m) => m.id) ?? []),
+    ...(k2Round1?.matches?.map((m) => m.id) ?? []),
+  ]
+  const currentUserId = (await sessionPromise)?.user?.id ?? null
+  const myReviewRows =
+    currentUserId && focusMatchIds.length > 0
+      ? await prisma.refereeReview.findMany({
+          where: {
+            userId: currentUserId,
+            matchId: { in: focusMatchIds },
+            status: { in: ["VISIBLE", "HIDDEN"] },
+          },
+          select: {
+            id: true,
+            matchId: true,
+            refereeId: true,
+            role: true,
+            rating: true,
+            comment: true,
+            status: true,
+          },
+        })
+      : []
+  const myReviewsByMatch = new Map<string, typeof myReviewRows>()
+  for (const review of myReviewRows) {
+    const reviews = myReviewsByMatch.get(review.matchId)
+    if (reviews) reviews.push(review)
+    else myReviewsByMatch.set(review.matchId, [review])
   }
 
   const toCard = (m: {
@@ -194,6 +228,14 @@ export default async function HomePage() {
       status: m.status,
       homeTeamId: m.homeTeam.id,
       awayTeamId: m.awayTeam.id,
+      myReviews: (myReviewsByMatch.get(m.id) ?? []).map((review) => ({
+        id: review.id,
+        refereeId: review.refereeId,
+        role: review.role,
+        rating: review.rating,
+        comment: review.comment,
+        status: review.status,
+      })),
       matchReferees: m.matchReferees.map((assignment) => ({
         id: assignment.id,
         role: assignment.role,
@@ -497,10 +539,6 @@ export default async function HomePage() {
   const [k1Highlight, k2Highlight] = await Promise.all([buildHighlight(k1Round1), buildHighlight(k2Round1)])
 
   // Hot moments: 포커스 라운드에 속한 경기의 모멘트만, seeVarCount 기준 상위
-  const focusMatchIds = [
-    ...(k1Round1?.matches?.map((m) => m.id) ?? []),
-    ...(k2Round1?.matches?.map((m) => m.id) ?? []),
-  ]
   let hotMoments: Array<{
     rank: number
     momentId: string
