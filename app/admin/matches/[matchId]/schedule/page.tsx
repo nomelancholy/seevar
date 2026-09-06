@@ -12,22 +12,28 @@ type Params = Promise<{ matchId: string }>
 
 export default async function AdminMatchScheduleEditPage({ params }: { params: Params }) {
   const { matchId } = await params
-  const [match, allReferees] = await Promise.all([
-    prisma.match.findUnique({
-      where: { id: matchId },
-      include: {
-        homeTeam: true,
-        awayTeam: true,
-        round: { include: { league: { include: { season: true } } } },
-        matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
-      },
-    }),
-    prisma.referee.findMany({
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, slug: true },
-    }),
-  ])
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    include: {
+      homeTeam: true,
+      awayTeam: true,
+      round: { include: { league: { include: { season: true } } } },
+      matchReferees: { include: { referee: true }, orderBy: { role: "asc" } },
+    },
+  })
   if (!match) notFound()
+
+  const assignedRefereeIds = match.matchReferees.map((assignment) => assignment.refereeId)
+  const allReferees = await prisma.referee.findMany({
+    where: {
+      OR: [
+        { seasons: { some: { seasonId: match.round.league.seasonId } } },
+        { id: { in: assignedRefereeIds } },
+      ],
+    },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, slug: true },
+  })
 
   const playedAt = match.playedAt ? new Date(match.playedAt) : null
   const KST = "Asia/Seoul"

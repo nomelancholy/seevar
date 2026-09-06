@@ -20,7 +20,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto py-8 md:py-12">
+      <div className="max-w-5xl mx-auto py-8 md:py-12">
         <div className="mb-6 md:mb-8">
           <Link
             href="/notice"

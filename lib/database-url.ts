@@ -1,9 +1,11 @@
+import { config as loadEnv } from "dotenv"
+
 /**
  * DATABASE_URL이 없고 DB_PASSWORD가 있으면 조합해서 설정.
  * .env에 DB_PASSWORD만 두고 쓰려면 시드/앱 로드 시 이 파일을 먼저 import.
  */
 try {
-  require("dotenv").config();
+  loadEnv();
 } catch {
   // dotenv 없으면 무시 (Next/Prisma가 이미 .env 로드한 경우)
 }

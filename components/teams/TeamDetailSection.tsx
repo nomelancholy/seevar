@@ -6,6 +6,7 @@ import { deriveMatchStatus } from "@/lib/utils/match-status"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { TeamMatchHistoryYearFilter } from "./TeamMatchHistoryYearFilter"
 import { TeamMatchHistorySortFilter } from "./TeamMatchHistorySortFilter"
+import { StatDimensionFilters } from "@/components/stats/StatDimensionFilters"
 
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "MAIN",
@@ -63,7 +64,6 @@ type MatchRow = {
 
 type Props = {
   teamName: string
-  teamId: string
   /** 심판 상세에서 BACK 시 돌아갈 URL (팀 상세 등) */
   refereeBackPath: string
   compatibility: { high: RefereeStat | null; low: RefereeStat | null }
@@ -74,6 +74,11 @@ type Props = {
   matches: MatchRow[]
   availableYears: number[]
   currentYear: number | null
+  statAvailableYears: number[]
+  statYear: number | null
+  statAvailableLeagues: Array<{ slug: string; name: string }>
+  statLeague: string | null
+  statRole: string | null
   /** "round" = 라운드 순(1라운드부터), "date" = 날짜 순(최신부터) */
   matchSortOrder?: "round" | "roundDesc"
 }
@@ -96,7 +101,6 @@ function formatMatchCount(n: number): string {
 
 export function TeamDetailSection({
   teamName,
-  teamId,
   refereeBackPath,
   compatibility,
   compatibilityList,
@@ -105,6 +109,11 @@ export function TeamDetailSection({
   matches,
   availableYears,
   currentYear,
+  statAvailableYears,
+  statYear,
+  statAvailableLeagues,
+  statLeague,
+  statRole,
   matchSortOrder = "round",
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
@@ -119,7 +128,20 @@ export function TeamDetailSection({
       : "—"
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+    <div>
+      <div className="ledger-surface border border-border p-3 md:p-4 mb-6 md:mb-8">
+        <p className="font-mono text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+          심판 상성 통계 필터
+        </p>
+        <StatDimensionFilters
+          availableYears={statAvailableYears}
+          currentYear={statYear}
+          availableLeagues={statAvailableLeagues}
+          currentLeague={statLeague}
+          currentRole={statRole}
+        />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
       {/* LEFT: REFEREE COMPATIBILITY & FREQUENT ASSIGNMENTS */}
       <div className="lg:col-span-4 space-y-6 md:space-y-8">
         {/* Referee Compatibility (Fan Choice) */}
@@ -572,6 +594,7 @@ export function TeamDetailSection({
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation"
-import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getMatchDetailPathWithBack } from "@/lib/match-url"
@@ -8,20 +7,34 @@ import { RefereeMatchRow } from "@/components/referees/RefereeMatchRow"
 import { RefereeSectionWithTeamExpand } from "@/components/referees/RefereeSectionWithTeamExpand"
 import { RefereeDetailBackLink } from "@/components/referees/RefereeDetailBackLink"
 import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
+import type { Prisma, RefereeRole } from "@prisma/client"
 
 type Props = {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ year?: string; stats?: string; back?: string }>
+  searchParams: Promise<{
+    year?: string
+    stats?: string
+    statsLeague?: string
+    statsRole?: string
+    back?: string
+  }>
 }
 
 async function resolveReferee(param: string) {
   const bySlug = await prisma.referee.findUnique({
     where: { slug: param },
     include: {
-      stats: { include: { season: { select: { year: true } } } },
+      stats: {
+        include: {
+          season: { select: { year: true } },
+          league: { select: { name: true, slug: true } },
+        },
+      },
       teamStats: {
         include: {
           team: true,
+          season: { select: { year: true } },
+          league: { select: { name: true, slug: true } },
         },
       },
       matchReferees: {
@@ -47,7 +60,21 @@ async function resolveReferee(param: string) {
       reviews: {
         where: { status: "VISIBLE" },
         include: {
-          match: { select: { id: true } },
+          match: {
+            select: {
+              id: true,
+              round: {
+                select: {
+                  league: {
+                    select: {
+                      slug: true,
+                      season: { select: { year: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
           fanTeam: true,
           user: { select: { name: true, image: true } },
         },
@@ -59,8 +86,19 @@ async function resolveReferee(param: string) {
   const byId = await prisma.referee.findUnique({
     where: { id: param },
     include: {
-      stats: { include: { season: { select: { year: true } } } },
-      teamStats: { include: { team: true } },
+      stats: {
+        include: {
+          season: { select: { year: true } },
+          league: { select: { name: true, slug: true } },
+        },
+      },
+      teamStats: {
+        include: {
+          team: true,
+          season: { select: { year: true } },
+          league: { select: { name: true, slug: true } },
+        },
+      },
       matchReferees: {
         take: 30,
         include: {
@@ -84,7 +122,21 @@ async function resolveReferee(param: string) {
       reviews: {
         where: { status: "VISIBLE" },
         include: {
-          match: { select: { id: true } },
+          match: {
+            select: {
+              id: true,
+              round: {
+                select: {
+                  league: {
+                    select: {
+                      slug: true,
+                      season: { select: { year: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
           fanTeam: true,
           user: { select: { name: true, image: true } },
         },
@@ -111,7 +163,13 @@ function sanitizeBackUrl(back: string | undefined): string | null {
 
 export default async function RefereeDetailPage({ params, searchParams }: Props) {
   const { slug: param } = await params
-  const { year: yearParam, stats: statsParam, back: backParam } = await searchParams
+  const {
+    year: yearParam,
+    stats: statsParam,
+    statsLeague: statsLeagueParam,
+    statsRole: statsRoleParam,
+    back: backParam,
+  } = await searchParams
   const backHref = sanitizeBackUrl(backParam ?? undefined) ?? "/referees"
   const resolved = await resolveReferee(param)
   if (!resolved) notFound()
@@ -119,10 +177,29 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
   const referee = rawReferee as typeof rawReferee & {
     id: string
     slug: string
-    stats: Array<{ season: { year: number }; role: string; matchCount: number; avgRating: number }>
-    teamStats: Array<{ team: { id: string; name: string; emblemPath: string | null }; fanAverageRating: number; totalAssignments: number }>
+    stats: Array<{ season: { year: number }; league: { name: string; slug: string }; role: string; matchCount: number; avgRating: number }>
+    teamStats: Array<{
+      team: { id: string; name: string; emblemPath: string | null }
+      season: { year: number }
+      league: { name: string; slug: string }
+      role: RefereeRole
+      roleCounts: unknown
+      fanAverageRating: number
+      fanRatingCount: number
+      totalAssignments: number
+      totalYellowCards: number
+      totalRedCards: number
+    }>
     matchReferees: Array<{ id: string; match: { id: string; playedAt: Date | null; roundOrder: number; homeTeam: { name: string; emblemPath: string | null }; awayTeam: { name: string; emblemPath: string | null }; round: { slug: string; league: { slug: string; season: { year: number } } } }; role: string }>
-    reviews: Array<{ matchId: string; user: { name: string | null; image: string | null }; fanTeam: { id: string; name: string; emblemPath: string | null } | null; rating: number; comment: string | null }>
+    reviews: Array<{
+      matchId: string
+      match: { round: { league: { slug: string; season: { year: number } } } }
+      user: { name: string | null; image: string | null }
+      fanTeam: { id: string; name: string; emblemPath: string | null } | null
+      rating: number
+      role: RefereeRole
+      comment: string | null
+    }>
   }
 
   if (byId) {
@@ -156,25 +233,71 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
         return Number.isInteger(n) && availableYears.includes(n) ? n : null
       })()
 
+  const availableLeagues = Array.from(
+    new Map(
+      [
+        ...referee.stats.map((stat) => stat.league),
+        ...referee.teamStats.map((stat) => stat.league),
+      ].map((league) => [league.slug, league])
+    ).values()
+  ).sort((a, b) => a.name.localeCompare(b.name, "ko"))
+  const statsLeague =
+    statsLeagueParam && statsLeagueParam !== "all" &&
+    availableLeagues.some((league) => league.slug === statsLeagueParam)
+      ? statsLeagueParam
+      : null
+  const validRoles: RefereeRole[] = ["MAIN", "ASSISTANT", "WAITING", "VAR"]
+  const statsRole = validRoles.includes(statsRoleParam as RefereeRole)
+    ? (statsRoleParam as RefereeRole)
+    : null
+
+  const filteredDimensionStats = referee.teamStats.filter((stat) =>
+    (statsYear == null || stat.season.year === statsYear) &&
+    (statsLeague == null || stat.league.slug === statsLeague) &&
+    (statsRole == null || stat.role === statsRole)
+  )
+  const filteredRefereeStats = referee.stats.filter((stat) =>
+    (statsYear == null || stat.season.year === statsYear) &&
+    (statsLeague == null || stat.league.slug === statsLeague) &&
+    (statsRole == null || stat.role === statsRole)
+  )
+  const filteredReviews = referee.reviews.filter((review) =>
+    (statsYear == null || review.match.round.league.season.year === statsYear) &&
+    (statsLeague == null || review.match.round.league.slug === statsLeague) &&
+    (statsRole == null || review.role === statsRole)
+  )
+
+  const statMatchWhere: Prisma.MatchRefereeWhereInput = {
+    refereeId: referee.id,
+    ...(statsRole ? { role: statsRole } : {}),
+    ...((statsYear != null || statsLeague != null)
+      ? {
+          match: {
+            round: {
+              league: {
+                ...(statsYear != null ? { season: { year: statsYear } } : {}),
+                ...(statsLeague != null ? { slug: statsLeague } : {}),
+              },
+            },
+          },
+        }
+      : {}),
+  }
+
   // Global Rating: 유저 제출 리뷰(RefereeReview) 기준으로 집계. 리뷰가 없을 때만 RefereeStats 사용
-  const reviews = referee.reviews as Array<{ rating: number; role: string }>
+  const reviews = filteredReviews
   const totalVotes = reviews.length
   const averageRatingFromReviews =
     totalVotes > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalVotes : null
-  const totalMatchesFromStats = referee.stats.reduce((sum, s) => sum + s.matchCount, 0)
-  const weightedSumFromStats = referee.stats.reduce((sum, s) => sum + s.avgRating * s.matchCount, 0)
+  const totalMatchesFromStats = filteredRefereeStats.reduce((sum, s) => sum + s.matchCount, 0)
+  const weightedSumFromStats = filteredRefereeStats.reduce((sum, s) => sum + s.avgRating * s.matchCount, 0)
   const averageRating =
     averageRatingFromReviews ??
     (totalMatchesFromStats > 0 ? weightedSumFromStats / totalMatchesFromStats : null)
 
   const roleCounts = await prisma.matchReferee.groupBy({
     by: ["role"],
-    where: {
-      refereeId: referee.id,
-      ...(statsYear != null
-        ? { match: { round: { league: { season: { year: statsYear } } } } }
-        : {}),
-    },
+    where: statMatchWhere,
     _count: { id: true },
   })
   const countByRole = Object.fromEntries(
@@ -184,7 +307,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
 
   // 팀별 배정: MatchReferee 기준으로 연도 필터 적용해 상단 카드·총 배정과 일치시킴
   const allAssignmentRows = await prisma.matchReferee.findMany({
-    where: { refereeId: referee.id },
+    where: statMatchWhere,
     select: {
       role: true,
       match: {
@@ -193,20 +316,17 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           awayTeamId: true,
           homeTeam: { select: { id: true, name: true, emblemPath: true } },
           awayTeam: { select: { id: true, name: true, emblemPath: true } },
-          round: { select: { league: { select: { season: { select: { year: true } } } } } },
         },
       },
     },
   })
-  function buildTeamStatsFromAssignments(year: number | null) {
+  function buildTeamStatsFromAssignments() {
     const byTeam = new Map<
       string,
       { teamName: string; emblemPath: string | null; roleCounts: Record<string, number>; total: number }
     >()
     const roleKey = (r: string) => r
     for (const mr of allAssignmentRows) {
-      const yearMatch = year == null || mr.match.round.league.season.year === year
-      if (!yearMatch) continue
       for (const team of [mr.match.homeTeam, mr.match.awayTeam]) {
         const cur = byTeam.get(team.id)
         const roleCounts = cur ? { ...cur.roleCounts } : ({} as Record<string, number>)
@@ -229,16 +349,52 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
       totalAssignments: t.total,
     }))
   }
-  const assignmentTeamStatsByStatsYear = buildTeamStatsFromAssignments(statsYear)
-  const assignmentTeamStatsByAssignmentYear = buildTeamStatsFromAssignments(assignmentYear)
+  const assignmentTeamStatsByStatsYear = buildTeamStatsFromAssignments()
+
+  const assignmentRowsForMatchYear = await prisma.matchReferee.findMany({
+        where: {
+          refereeId: referee.id,
+          ...(assignmentYear != null
+            ? { match: { round: { league: { season: { year: assignmentYear } } } } }
+            : {}),
+        },
+        select: {
+          role: true,
+          match: {
+            select: {
+              homeTeam: { select: { id: true, name: true, emblemPath: true } },
+              awayTeam: { select: { id: true, name: true, emblemPath: true } },
+            },
+          },
+        },
+      })
+  const assignmentTeamStatsByAssignmentYear = (() => {
+    const byTeam = new Map<string, { teamName: string; emblemPath: string | null; roleCounts: Record<string, number>; total: number }>()
+    for (const row of assignmentRowsForMatchYear) {
+      for (const team of [row.match.homeTeam, row.match.awayTeam]) {
+        const current = byTeam.get(team.id)
+        const nextRoleCounts = { ...(current?.roleCounts ?? {}) }
+        nextRoleCounts[row.role] = (nextRoleCounts[row.role] ?? 0) + 1
+        byTeam.set(team.id, {
+          teamName: team.name,
+          emblemPath: team.emblemPath,
+          roleCounts: nextRoleCounts,
+          total: (current?.total ?? 0) + 1,
+        })
+      }
+    }
+    return Array.from(byTeam.values()).map((team) => ({
+      teamName: team.teamName,
+      emblemPath: team.emblemPath,
+      roleCounts: team.roleCounts,
+      totalYellowCards: 0,
+      totalRedCards: 0,
+      totalAssignments: team.total,
+    }))
+  })()
 
   const cardAggregate = await prisma.matchReferee.aggregate({
-    where: {
-      refereeId: referee.id,
-      ...(statsYear != null
-        ? { match: { round: { league: { season: { year: statsYear } } } } }
-        : {}),
-    },
+    where: statMatchWhere,
     _sum: {
       homeYellowCards: true,
       awayYellowCards: true,
@@ -259,7 +415,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
     if (roleReviews.length > 0) {
       ratingByRole[role] = roleReviews.reduce((s, r) => s + r.rating, 0) / roleReviews.length
     } else {
-      const roleStats = referee.stats.filter((s) => s.role === role)
+      const roleStats = filteredRefereeStats.filter((s) => s.role === role)
       const total = roleStats.reduce((s, r) => s + r.matchCount, 0)
       if (total > 0) {
         const sum = roleStats.reduce((s, r) => s + r.avgRating * r.matchCount, 0)
@@ -273,7 +429,7 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
     string,
     { teamName: string; emblemPath: string | null; ratings: number[] }
   >()
-  for (const r of referee.reviews) {
+  for (const r of filteredReviews) {
     const teamId = r.fanTeam?.id ?? "_unknown"
     const cur = byTeamIdFromReviews.get(teamId)
     const name = r.fanTeam?.name ?? "알 수 없음"
@@ -290,11 +446,22 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
     fanAverageRating: v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length,
     totalAssignments: v.ratings.length,
   }))
-  const fromStats = referee.teamStats.map((ts) => ({
-    teamName: ts.team.name,
-    emblemPath: ts.team.emblemPath,
-    fanAverageRating: ts.fanAverageRating,
-    totalAssignments: ts.totalAssignments,
+  const ratingStatsByTeam = new Map<string, { teamName: string; emblemPath: string | null; weightedRating: number; ratingCount: number }>()
+  for (const stat of filteredDimensionStats) {
+    if (stat.fanRatingCount <= 0) continue
+    const current = ratingStatsByTeam.get(stat.team.id)
+    ratingStatsByTeam.set(stat.team.id, {
+      teamName: stat.team.name,
+      emblemPath: stat.team.emblemPath,
+      weightedRating: (current?.weightedRating ?? 0) + stat.fanAverageRating * stat.fanRatingCount,
+      ratingCount: (current?.ratingCount ?? 0) + stat.fanRatingCount,
+    })
+  }
+  const fromStats = Array.from(ratingStatsByTeam.values()).map((stat) => ({
+    teamName: stat.teamName,
+    emblemPath: stat.emblemPath,
+    fanAverageRating: stat.weightedRating / stat.ratingCount,
+    totalAssignments: stat.ratingCount,
   }))
   const statsByTeamName = new Map<string, { teamName: string; emblemPath: string | null; fanAverageRating: number; totalAssignments: number }>()
   for (const t of fromReviews) {
@@ -307,14 +474,28 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
     (a, b) => b.fanAverageRating - a.fanAverageRating
   )
 
-  const teamStatsForSections = referee.teamStats.map((ts) => ({
-    teamName: ts.team.name,
-    emblemPath: ts.team.emblemPath,
-    roleCounts: (ts.roleCounts as Record<string, number>) ?? null,
-    totalYellowCards: ts.totalYellowCards ?? 0,
-    totalRedCards: ts.totalRedCards ?? 0,
-    totalAssignments: ts.totalAssignments,
-  }))
+  const teamSectionMap = new Map<string, {
+    teamName: string
+    emblemPath: string | null
+    roleCounts: Record<string, number>
+    totalYellowCards: number
+    totalRedCards: number
+    totalAssignments: number
+  }>()
+  for (const stat of filteredDimensionStats) {
+    const current = teamSectionMap.get(stat.team.id)
+    const nextRoleCounts = { ...(current?.roleCounts ?? {}) }
+    nextRoleCounts[stat.role] = (nextRoleCounts[stat.role] ?? 0) + stat.totalAssignments
+    teamSectionMap.set(stat.team.id, {
+      teamName: stat.team.name,
+      emblemPath: stat.team.emblemPath,
+      roleCounts: nextRoleCounts,
+      totalYellowCards: (current?.totalYellowCards ?? 0) + stat.totalYellowCards,
+      totalRedCards: (current?.totalRedCards ?? 0) + stat.totalRedCards,
+      totalAssignments: (current?.totalAssignments ?? 0) + stat.totalAssignments,
+    })
+  }
+  const teamStatsForSections = Array.from(teamSectionMap.values())
 
   const reviewsByMatchId = new Map<string, typeof referee.reviews>()
   for (const r of referee.reviews) {
@@ -384,6 +565,9 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           currentYear={statsYear}
           paramKey="stats"
           showAllOption
+          availableLeagues={availableLeagues}
+          currentLeague={statsLeague}
+          currentRole={statsRole}
           teamStats={assignmentTeamStatsByStatsYear}
           variant="assignment"
         >
@@ -441,6 +625,9 @@ export default async function RefereeDetailPage({ params, searchParams }: Props)
           currentYear={statsYear}
           paramKey="stats"
           showAllOption
+          availableLeagues={availableLeagues}
+          currentLeague={statsLeague}
+          currentRole={statsRole}
           teamStats={teamStatsForSections}
           variant="cards"
         >

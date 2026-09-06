@@ -1,7 +1,7 @@
 /**
  * MatchReferee 생성/수정/삭제 시 RefereeStats, RefereeTeamStat 동기화.
  * - RefereeStats: referee별 시즌·리그·역할별 경기 수(matchCount)
- * - RefereeTeamStat: referee별 팀별 배정 횟수(totalAssignments), 역할별 횟수(roleCounts)
+ * - RefereeTeamStat: referee·팀·시즌·리그·역할별 배정/카드/팬 평점 파생 통계
  */
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
@@ -61,7 +61,15 @@ export async function syncRefereeStatsOnMatchRefereeCreate(
 
   for (const teamId of [match.homeTeamId, match.awayTeamId]) {
     const existing = await prisma.refereeTeamStat.findUnique({
-      where: { refereeId_teamId: { refereeId, teamId } },
+      where: {
+        refereeId_teamId_seasonId_leagueId_role: {
+          refereeId,
+          teamId,
+          seasonId,
+          leagueId,
+          role,
+        },
+      },
       select: { id: true, roleCounts: true, totalAssignments: true },
     })
     const roleCounts = roleCountsIncrement(
@@ -69,7 +77,15 @@ export async function syncRefereeStatsOnMatchRefereeCreate(
       role
     )
     await prisma.refereeTeamStat.upsert({
-      where: { refereeId_teamId: { refereeId, teamId } },
+      where: {
+        refereeId_teamId_seasonId_leagueId_role: {
+          refereeId,
+          teamId,
+          seasonId,
+          leagueId,
+          role,
+        },
+      },
       update: {
         totalAssignments: { increment: 1 },
         roleCounts: roleCounts as object,
@@ -77,6 +93,9 @@ export async function syncRefereeStatsOnMatchRefereeCreate(
       create: {
         refereeId,
         teamId,
+        seasonId,
+        leagueId,
+        role,
         totalAssignments: 1,
         roleCounts: roleCounts as object,
       },
@@ -116,7 +135,15 @@ export async function syncRefereeStatsOnMatchRefereeDelete(
 
   for (const teamId of [match.homeTeamId, match.awayTeamId]) {
     const existing = await prisma.refereeTeamStat.findUnique({
-      where: { refereeId_teamId: { refereeId, teamId } },
+      where: {
+        refereeId_teamId_seasonId_leagueId_role: {
+          refereeId,
+          teamId,
+          seasonId,
+          leagueId,
+          role,
+        },
+      },
       select: { roleCounts: true, totalAssignments: true },
     })
     if (!existing) continue
@@ -125,7 +152,15 @@ export async function syncRefereeStatsOnMatchRefereeDelete(
       role
     )
     await prisma.refereeTeamStat.update({
-      where: { refereeId_teamId: { refereeId, teamId } },
+      where: {
+        refereeId_teamId_seasonId_leagueId_role: {
+          refereeId,
+          teamId,
+          seasonId,
+          leagueId,
+          role,
+        },
+      },
       data: {
         totalAssignments: Math.max(0, existing.totalAssignments - 1),
         roleCounts: nextRoleCounts !== null ? (nextRoleCounts as object) : Prisma.JsonNull,
@@ -164,7 +199,14 @@ export async function syncRefereeTeamStatCardsForMatchReferee(
       homeRedCards: true,
       awayYellowCards: true,
       awayRedCards: true,
-      match: { select: { homeTeamId: true, awayTeamId: true } },
+      role: true,
+      match: {
+        select: {
+          homeTeamId: true,
+          awayTeamId: true,
+          round: { select: { leagueId: true, league: { select: { seasonId: true } } } },
+        },
+      },
     },
   })
   if (!mr) return
@@ -176,42 +218,54 @@ export async function syncRefereeTeamStatCardsForMatchReferee(
   if (dHomeY === 0 && dHomeR === 0 && dAwayY === 0 && dAwayR === 0) return
 
   if (dHomeY !== 0 || dHomeR !== 0) {
+    const homeKey = {
+      refereeId: mr.refereeId,
+      teamId: mr.match.homeTeamId,
+      seasonId: mr.match.round.league.seasonId,
+      leagueId: mr.match.round.leagueId,
+      role: mr.role,
+    }
     const existing = await prisma.refereeTeamStat.findUnique({
-      where: { refereeId_teamId: { refereeId: mr.refereeId, teamId: mr.match.homeTeamId } },
+      where: { refereeId_teamId_seasonId_leagueId_role: homeKey },
       select: { totalYellowCards: true, totalRedCards: true },
     })
     const newTotalY = (existing?.totalYellowCards ?? 0) + dHomeY
     const newTotalR = (existing?.totalRedCards ?? 0) + dHomeR
     await prisma.refereeTeamStat.upsert({
-      where: { refereeId_teamId: { refereeId: mr.refereeId, teamId: mr.match.homeTeamId } },
+      where: { refereeId_teamId_seasonId_leagueId_role: homeKey },
       update: {
         totalYellowCards: Math.max(0, newTotalY),
         totalRedCards: Math.max(0, newTotalR),
       },
       create: {
-        refereeId: mr.refereeId,
-        teamId: mr.match.homeTeamId,
+        ...homeKey,
         totalYellowCards: Math.max(0, newTotalY),
         totalRedCards: Math.max(0, newTotalR),
       },
     })
   }
   if (dAwayY !== 0 || dAwayR !== 0) {
+    const awayKey = {
+      refereeId: mr.refereeId,
+      teamId: mr.match.awayTeamId,
+      seasonId: mr.match.round.league.seasonId,
+      leagueId: mr.match.round.leagueId,
+      role: mr.role,
+    }
     const existing = await prisma.refereeTeamStat.findUnique({
-      where: { refereeId_teamId: { refereeId: mr.refereeId, teamId: mr.match.awayTeamId } },
+      where: { refereeId_teamId_seasonId_leagueId_role: awayKey },
       select: { totalYellowCards: true, totalRedCards: true },
     })
     const newTotalY = (existing?.totalYellowCards ?? 0) + dAwayY
     const newTotalR = (existing?.totalRedCards ?? 0) + dAwayR
     await prisma.refereeTeamStat.upsert({
-      where: { refereeId_teamId: { refereeId: mr.refereeId, teamId: mr.match.awayTeamId } },
+      where: { refereeId_teamId_seasonId_leagueId_role: awayKey },
       update: {
         totalYellowCards: Math.max(0, newTotalY),
         totalRedCards: Math.max(0, newTotalR),
       },
       create: {
-        refereeId: mr.refereeId,
-        teamId: mr.match.awayTeamId,
+        ...awayKey,
         totalYellowCards: Math.max(0, newTotalY),
         totalRedCards: Math.max(0, newTotalR),
       },

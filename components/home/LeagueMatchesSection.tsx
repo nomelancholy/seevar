@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { ChevronDown } from "lucide-react"
 import { EmblemImage } from "@/components/ui/EmblemImage"
+import { RoundQuickActions } from "@/components/home/RoundQuickActions"
 
 export type FocusMatchItem = {
   id: string
@@ -17,6 +18,14 @@ export type FocusMatchItem = {
   awayEmblem: string
   scoreHome: number | null
   scoreAway: number | null
+  status: string
+  homeTeamId: string
+  awayTeamId: string
+  matchReferees: Array<{
+    id: string
+    role: string
+    referee: { id: string; name: string; slug: string }
+  }>
 }
 
 function LeagueBlock({
@@ -34,30 +43,48 @@ function LeagueBlock({
 }) {
   return (
     <div className="league-container">
-      <button
-        type="button"
-        className="league-header w-full flex items-center"
-        onClick={onToggle}
-      >
-        <div className="bg-primary text-primary-foreground flex items-center px-3 md:px-4 py-1.5 md:py-2 gap-2">
-          <span className="text-xl md:text-2xl font-black italic tracking-tighter">
-            {roundNumber}
-          </span>
-          <span className="text-[8px] md:text-xs font-bold uppercase tracking-widest">
-            round
-          </span>
-        </div>
-        <div className="flex flex-1 items-center px-4 md:px-6">
-          <span className="text-xs md:text-sm font-black italic tracking-widest uppercase">
-            {leagueName}
-          </span>
-        </div>
-        <div className="flex items-center px-4 md:px-6 border-l border-border">
-          <ChevronDown
-            className={`size-4 md:size-5 league-arrow ${open ? "open" : ""}`}
+      <div className="league-header w-full items-stretch">
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 items-stretch text-left"
+          onClick={onToggle}
+          aria-expanded={open}
+          aria-label={`${leagueName} ${roundNumber}라운드 경기 ${open ? "접기" : "펼치기"}`}
+        >
+          <div className="bg-primary text-primary-foreground flex shrink-0 items-center px-3 md:px-4 py-1.5 md:py-2 gap-2">
+            <span className="text-xl md:text-2xl font-black italic tracking-tighter">
+              {roundNumber}
+            </span>
+            <span className="text-[8px] md:text-xs font-bold uppercase tracking-widest">
+              round
+            </span>
+          </div>
+          <div className="flex min-w-0 flex-1 items-center px-3 md:px-6">
+            <span className="truncate text-[10px] font-black italic tracking-widest uppercase md:text-sm">
+              {leagueName}
+            </span>
+          </div>
+        </button>
+        <div className="flex shrink-0 items-center gap-1 border-l border-border px-1.5 md:gap-2 md:px-3">
+          <RoundQuickActions
+            leagueName={leagueName}
+            roundNumber={roundNumber}
+            matches={matches}
+            placement="header"
           />
+          <button
+            type="button"
+            onClick={onToggle}
+            className="flex size-8 items-center justify-center border-l border-border pl-1.5 text-foreground transition-colors hover:text-primary md:size-9 md:pl-2"
+            aria-expanded={open}
+            aria-label={`${leagueName} ${roundNumber}라운드 경기 ${open ? "접기" : "펼치기"}`}
+          >
+            <ChevronDown
+              className={`size-4 md:size-5 league-arrow ${open ? "open" : ""}`}
+            />
+          </button>
         </div>
-      </button>
+      </div>
       <div className={`league-content ${open ? "open" : ""}`}>
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
           {matches.length === 0 ? (

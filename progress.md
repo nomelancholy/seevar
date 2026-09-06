@@ -69,7 +69,7 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
        Referee, MatchReferee, User 도메인 모델 추가. `MatchStatus`(SCHEDULED/LIVE/FINISHED), `RefereeRole` enum. Round `isFocus` (메인 노출 여부), Match `status` → enum 적용. `prisma generate` 완료.
 - [x] Docker Compose 활용해 PostgreSQL DB 생성
 - [x] **DB 시드**  
-       `prisma/seed.ts`: 리그(K1/K2), 라운드(5라운드 isFocus=true, 1라운드 isFocus=false), 팀(**TEAM_LIST.md** 순서·정확한 팀명+엠블럼), 경기 3건, 심판(**REFEREE_LINK.md** 파싱, name+**link** 나무위키), MatchReferee 샘플. Referee에 **link** 컬럼 추가. `npm run db:seed` (DB 연결 후 `npx prisma db push` 선행).
+       `prisma/seed.ts`: 팀(**TEAM_LIST.md** 순서·정확한 팀명+엠블럼)과 심판(**REFEREE_LINK.md** 파싱, name+**link**)을 멱등 upsert. 시즌·리그·라운드·경기는 관리자 화면 또는 외부 크롤러 API로 등록한다. `npm run db:seed` (DB 연결 후 `npm run db:migrate` 또는 `npm run db:push` 선행).
 - [x] **Shadcn UI 도입**  
        `components/ui` 원자 컴포넌트(Button, Input, Sheet), reference 디자인 토큰(ledger)을 Shadcn CSS 변수에 매핑.
 - [x] **공통 레이아웃**  
@@ -83,8 +83,8 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 - [x] **About** (`/about`) — `about.html` (OUR MISSION, manifesto, Contact, SUPPORT SEE VAR).
 - [x] **Login** (`/login`) — `login.html` (SEE VAR, Welcome Back, NAVER LOGIN).
 - [x] **Onboarding** (`/onboarding`) — `onboarding.html` (닉네임, Supporting Team 선택).
-- [x] **경기 목록** (`/matches`) — DB 연동 경기 목록, `/matches/[id]` 링크.
-- [x] **경기 상세** (`/matches/[id]`) — SCHEDULED/LIVE/FINISHED 상태별 표시, 점수·경기장.
+- [x] **경기 목록** (`/matches`) — 포커스 라운드 기준 `/matches/archive/[year]/[leagueSlug]/[roundSlug]` 리다이렉트.
+- [x] **경기 상세** (`/matches/game/[year]/[leagueSlug]/[roundSlug]/[matchNumber]`) — SCHEDULED/LIVE/FINISHED 상태별 표시, 점수·경기장.
 - [x] **심판 목록** (`/referees`) — DB 연동 심판 카드, 프로필 링크.
 - [x] **심판 상세** (`/referees/[id]`) — 이름, 링크, 경기 수·평점·경고·퇴장.
 - [x] **팀 목록** (`/teams`) — K1/K2 팀 그리드, DB 연동.
@@ -124,19 +124,19 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 
 외부 크롤러(K1/K2 일정·결과·심판 배정 등)가 DB에 직접 접근하지 않고 시스템 내 연계 작업을 포함하여 안전하게 업데이트할 수 있도록 전용 API 입구 개설.
 
-- [ ] **조회 및 매핑 API (Read/Mapping)**
-    - [ ] **경기 일정 확인**: `GET /api/schedule` — 시즌/리그별 전체 일정 및 매치 ID 정보 제공 (기존 보완)
-    - [ ] **심판 정보 조회**: `GET /api/referees` — 이름 기반 심판 ID/Slug 검색 대응
-    - [ ] **팀 정보 조회**: `GET /api/teams` — 이름 기반 팀 ID/Slug 검색 대응
-    - [ ] **심판 등록**: `POST /api/referees` — 신규 심판 정보(이름, 링크 등) 등록
-- [ ] **업데이트 및 동기화 API (Write/Update)**
-    - [ ] **포커스 라운드 변경**: `POST /api/rounds/focus` — 특정 라운드를 `isFocus=true`로 전환
-    - [ ] **심판 배정**: `POST /api/matches/[matchId]/referees` — 특정 경기에 심판(주/부/VAR/대기) 배정
-    - [ ] **경기 결과 업데이트**: `PATCH /api/matches/[matchId]/result` — 스코어 및 경기 종료 여부 반영
-    - [ ] **카드 정보 업데이트**: `PATCH /api/matches/[matchId]/cards` — MatchReferee별 경고/퇴장 수치 기록
-    - [ ] **경기 상태 관리**: `PATCH /api/matches/[matchId]/status` — SCHEDULED/LIVE/FINISHED 등 상태 전환
+- [x] **조회 및 매핑 API (Read/Mapping)**
+    - [x] **경기 일정 확인**: `GET /api/schedule` — 시즌/리그별 전체 일정 및 매치 ID 정보 제공
+    - [x] **심판 정보 조회**: `GET /api/referees/search` — 이름 기반 심판 ID/Slug 검색 대응
+    - [x] **팀 정보 조회**: `GET /api/teams/search` — 이름 기반 팀 ID/Slug 검색 대응
+    - [x] **심판 등록**: `POST /api/referees` — 신규 심판 정보(이름, 링크 등) 등록
+- [x] **업데이트 및 동기화 API (Write/Update)**
+    - [x] **포커스 라운드 변경**: `POST /api/rounds/focus` — 특정 라운드를 `isFocus=true`로 전환
+    - [x] **심판 배정**: `POST /api/matches/[matchId]/referees` — 특정 경기에 심판(주/부/VAR/대기) 배정
+    - [x] **경기 결과 업데이트**: `PATCH /api/matches/[matchId]/result` — 스코어 및 경기 종료 여부 반영
+    - [x] **카드 정보 업데이트**: `PATCH /api/matches/[matchId]/cards` — MatchReferee별 경고/퇴장 수치 기록
+    - [x] **경기 상태 관리**: `PATCH /api/matches/[matchId]/status` — SCHEDULED/LIVE/FINISHED 등 상태 전환
 - [ ] **데이터 무결성 및 보안 (Security)**
-    - [ ] `CRAWLER_API_KEY` 기반 보안 적용 (기존 schedule API 방식 확장)
+    - [x] `CRAWLER_API_KEY` 기반 보안 적용. 운영 환경에서 키가 없으면 요청 거부.
     - [ ] 텍스트 기반 매핑 로직 (Fuzzy Matching 또는 Alias 테이블 검토)
 
 ### F. 성능·운영
@@ -148,16 +148,16 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 
 ---
 
-## 6. 데이터 소스 (DB 시드 vs Fallback)
+## 6. 데이터 소스
 
 | 화면/섹션                                          | 데이터 출처 | 비고                                                                                                                                                                                  |
 | -------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **홈 — K1/K2 라운드 경기**                         | DB 시드     | `round number: 1` + matches. 시드에서 K1 1라운드 6경기, K2 1라운드 8경기 생성. **DB에 라운드/경기 없으면** → `LeagueMatchesSection`의 **K1_FALLBACK / K2_FALLBACK** 하드코딩 표시.    |
-| **홈 — HOT MOMENTS**                               | DB 시드     | `prisma.moment.findMany`. **Moment 테이블 없거나 비어 있으면** → `HotMomentsSection`의 **FALLBACK_MOMENTS** 하드코딩(서울vs울산 등, `matchId` 빈 문자열 → 클릭 시 `/matches`로 이동). |
-| **아카이브** (`/matches`)                          | DB 시드     | `prisma.match.findMany` + moments. 전부 DB.                                                                                                                                           |
-| **경기 상세** (`/matches/[id]`)                    | DB 시드     | `prisma.match.findUnique` + matchReferees, moments.                                                                                                                                   |
-| **모멘트 게시판** (`/matches/[id]/moments`)        | DB 시드     | 해당 경기의 `match.moments`.                                                                                                                                                          |
-| **심판 목록/상세** (`/referees`, `/referees/[id]`) | DB 시드     | `prisma.referee` (시드: REFEREE_LINK.md 파싱).                                                                                                                                        |
+| **홈 — K1/K2 라운드 경기**                         | DB/API      | `Round.isFocus=true` 라운드의 matches. 시즌·리그·라운드·경기는 관리자 화면 또는 크롤러 API로 등록.                                                                                  |
+| **홈 — HOT MOMENTS**                               | DB/Fallback | `prisma.moment.findMany`. **Moment 테이블 없거나 비어 있으면** → `HotMomentsSection`의 **FALLBACK_MOMENTS** 하드코딩(서울vs울산 등, `matchId` 빈 문자열 → 클릭 시 `/matches`로 이동). |
+| **아카이브** (`/matches`)                          | DB/API      | `/matches`는 포커스 라운드의 `/matches/archive/[year]/[leagueSlug]/[roundSlug]`로 리다이렉트.                                                                                        |
+| **경기 상세** (`/matches/game/...`)                | DB/API      | `roundOrder` 기반 상세 URL. matchReferees, moments, reviews를 함께 조회.                                                                                                             |
+| **모멘트 게시판**                                  | DB          | 해당 경기의 `match.moments`.                                                                                                                                                          |
+| **심판 목록/상세** (`/referees`, `/referees/[slug]`) | DB 시드/API | `prisma.referee` (시드: REFEREE_LINK.md 파싱, 또는 `POST /api/referees`).                                                                                                            |
 | **팀 목록** (`/teams`)                             | DB 시드     | `prisma.team.findMany`.                                                                                                                                                               |
 
 **인증(네이버 로그인) 설정**
@@ -169,7 +169,7 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 
 1. `.env`에 **DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME**만 있으면 됨. `DATABASE_URL`은 따로 넣을 필요 없고, `lib/database-url.ts`가 위 값들을 조합해 `DATABASE_URL`을 채움(앱·시드·`npm run db:push` 모두 이 경로 사용).
 2. 스키마 반영: **enum/테이블 구조 변경이 있고 기존 데이터가 있으면** `npm run db:migrate` 사용. (예: RefereeRole 6개→4개 변경 시 `db push`는 기존 enum 값 때문에 실패하므로 `db:migrate`로 마이그레이션 적용.) 단순 스키마 추가만이면 `npm run db:push` 가능.
-3. `npm run db:seed` → 리그, 팀, 라운드(1·5), 경기(K1/K2 1라운드 + K1 5라운드 샘플 3경기), 심판, MatchReferee, **Moments** 시드.
+3. `npm run db:seed` → 팀과 심판을 시드. 시즌·리그·라운드·경기는 관리자 화면 또는 크롤러 API로 등록.
 
 **Round `isFocus` 변경 방법** (메인 노출 ↔ 아카이브만)
 
@@ -177,7 +177,7 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 - **SQL**:  
   `UPDATE "Round" SET "isFocus" = true WHERE id = '라운드_id';`  
   메인에 둘 라운드만 `true`로 두고 나머지는 `false`로 두면 됨.
-- **시드**: `prisma/seed.ts`에서 K1/K2 5라운드 생성 시 `isFocus: true`, 1라운드·슈퍼컵은 `isFocus: false`로 설정돼 있음. 시드 다시 실행 시 기존 라운드는 `update`만 되므로 `isFocus`를 바꾸려면 DB에서 직접 수정하거나 시드 로직을 수정해야 함.
+- **API**: `POST /api/rounds/focus`로 특정 라운드를 포커스 라운드로 전환할 수 있음. 크롤러 API는 운영 환경에서 `CRAWLER_API_KEY`가 필요함.
 
 ---
 

@@ -93,7 +93,7 @@ export function NotificationModal({
                     <p className="text-sm text-foreground mb-1">{n.content}</p>
                     {n.replyContent && (
                       <p className="text-xs text-muted-foreground border-l-2 border-border pl-3 py-1 mb-2 line-clamp-2">
-                        "{n.replyContent}"
+                        &quot;{n.replyContent}&quot;
                       </p>
                     )}
                     {n.link && (

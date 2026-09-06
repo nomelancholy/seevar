@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { RefereeAssignmentYearFilter } from "./RefereeAssignmentYearFilter"
+import { StatDimensionFilters } from "@/components/stats/StatDimensionFilters"
 
 const ROLES = ["MAIN", "ASSISTANT", "WAITING", "VAR"] as const
 const ROLE_HEADER: Record<string, string> = {
@@ -28,6 +29,9 @@ type Props = {
   currentYear: number | null
   paramKey: "year" | "stats"
   showAllOption?: boolean
+  availableLeagues?: Array<{ slug: string; name: string }>
+  currentLeague?: string | null
+  currentRole?: string | null
   teamStats: TeamStatForExpand[]
   variant: "assignment" | "cards" | "match"
   children: React.ReactNode
@@ -45,6 +49,9 @@ export function RefereeSectionWithTeamExpand({
   currentYear,
   paramKey,
   showAllOption = false,
+  availableLeagues = [],
+  currentLeague = null,
+  currentRole = null,
   teamStats,
   variant,
   children,
@@ -70,7 +77,18 @@ export function RefereeSectionWithTeamExpand({
         </div>
       </button>
       {/* Filter on next line, left-aligned under title */}
-      {availableYears.length > 0 && (
+      {paramKey === "stats" && availableYears.length > 0 && (
+        <div className="mb-6 md:mb-8 flex justify-start">
+          <StatDimensionFilters
+            availableYears={availableYears}
+            currentYear={currentYear}
+            availableLeagues={availableLeagues}
+            currentLeague={currentLeague}
+            currentRole={currentRole}
+          />
+        </div>
+      )}
+      {paramKey === "year" && availableYears.length > 0 && (
         <div className="mb-6 md:mb-8 flex justify-start">
           <RefereeAssignmentYearFilter
             availableYears={availableYears}

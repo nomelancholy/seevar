@@ -38,7 +38,8 @@ export default async function AdminStructurePage() {
         시즌 · 리그 · 라운드 관리
       </h2>
       <p className="font-mono text-xs text-muted-foreground mb-6">
-        시즌(연도), 리그, 라운드를 추가합니다. 경기 일정은 경기 일정 메뉴에서, 팀 등록은 팀 정보 메뉴에서 관리하세요.
+        시즌(연도), 리그, 라운드를 추가합니다. 구조를 만든 뒤{" "}
+        <Link href="/admin/season-rosters" className="text-primary hover:underline">연도별 소속 관리</Link>에서 팀과 심판 명단을 구성하세요.
       </p>
 
       {/* 현재 등록된 시즌·리그·라운드 목록 (수정/삭제/포커스 설정) */}

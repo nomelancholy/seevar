@@ -52,7 +52,7 @@ export async function getAdminUserIds(): Promise<string[]> {
  */
 export function checkCrawlerAuth(headers: Headers): boolean {
   const apiKey = process.env.CRAWLER_API_KEY
-  if (!apiKey) return true // 키가 설정되지 않았으면 인증 패스 (개발 단계)
+  if (!apiKey) return process.env.NODE_ENV !== "production"
 
   const authHeader = headers.get("authorization")
   const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null

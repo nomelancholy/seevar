@@ -5,6 +5,7 @@
 ## 1. 인증 (Authentication)
 
 모든 API 요청은 환경변수 `CRAWLER_API_KEY`에 설정된 비밀키를 헤더에 포함해야 합니다.
+운영 환경(`NODE_ENV=production`)에서는 이 값이 없으면 크롤러 API 요청이 모두 거부됩니다.
 
 - **방법 1**: `Authorization: Bearer <YOUR_API_KEY>`
 - **방법 2**: `x-crawler-api-key: <YOUR_API_KEY>`

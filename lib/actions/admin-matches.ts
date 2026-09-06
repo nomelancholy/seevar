@@ -109,12 +109,25 @@ export async function createMatch(data: {
 
   const round = await prisma.round.findUnique({
     where: { id: data.roundId },
-    select: { id: true },
+    select: { id: true, leagueId: true },
   })
   if (!round) return { ok: false, error: "라운드를 찾을 수 없습니다." }
 
   if (data.homeTeamId === data.awayTeamId) {
     return { ok: false, error: "홈팀과 원정팀이 같을 수 없습니다." }
+  }
+
+  const leagueTeamCount = await prisma.team.count({
+    where: {
+      id: { in: [data.homeTeamId, data.awayTeamId] },
+      leagues: { some: { id: round.leagueId } },
+    },
+  })
+  if (leagueTeamCount !== 2) {
+    return {
+      ok: false,
+      error: "홈팀과 원정팀 모두 해당 연도·리그 소속이어야 합니다. 연도별 소속 관리를 확인해 주세요.",
+    }
   }
 
   try {
@@ -179,18 +192,10 @@ export async function importBulkMatchesFromJson(
     teamByEmblem.set(emblem, t.id)
   }
 
-  // 리그에 팀이 없거나 emblem 매칭이 안 되면 전역에서 slug(emblem)로 팀 조회 (시즌/리그별 팀 연결 없어도 일괄 등록 가능)
+  // 연도별 리그 소속팀 안에서만 찾는다. 다른 시즌의 동명 매치업이 섞이는 것을 방지한다.
   async function resolveTeamId(emblem: string): Promise<string | null> {
     const fromLeague = teamByEmblem.get(emblem)
     if (fromLeague) return fromLeague
-    const team = await prisma.team.findFirst({
-      where: { slug: emblem },
-      select: { id: true },
-    })
-    if (team) {
-      teamByEmblem.set(emblem, team.id)
-      return team.id
-    }
     return null
   }
 
@@ -213,8 +218,8 @@ export async function importBulkMatchesFromJson(
     if (!awayEmblem) return { ok: false, error: `${i + 1}번째 경기: 알 수 없는 원정팀 '${row.away}' (app/assets/docs/TEAM_LIST.md 표기 사용)` }
     const homeTeamId = await resolveTeamId(homeEmblem)
     const awayTeamId = await resolveTeamId(awayEmblem)
-    if (!homeTeamId) return { ok: false, error: `${i + 1}번째 경기: 홈팀 '${row.home}'에 해당하는 팀을 찾을 수 없습니다. (팀 slug: ${homeEmblem})` }
-    if (!awayTeamId) return { ok: false, error: `${i + 1}번째 경기: 원정팀 '${row.away}'에 해당하는 팀을 찾을 수 없습니다. (팀 slug: ${awayEmblem})` }
+    if (!homeTeamId) return { ok: false, error: `${i + 1}번째 경기: 홈팀 '${row.home}'이 이 연도·리그 소속이 아닙니다. 연도별 소속 관리를 확인해 주세요. (팀 slug: ${homeEmblem})` }
+    if (!awayTeamId) return { ok: false, error: `${i + 1}번째 경기: 원정팀 '${row.away}'이 이 연도·리그 소속이 아닙니다. 연도별 소속 관리를 확인해 주세요. (팀 slug: ${awayEmblem})` }
     if (homeTeamId === awayTeamId) {
       return { ok: false, error: `${i + 1}번째 경기: 홈팀과 원정팀이 같을 수 없습니다.` }
     }
@@ -828,7 +833,10 @@ export async function createMatchReferee(
 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
-    select: { id: true },
+    select: {
+      id: true,
+      round: { select: { league: { select: { seasonId: true } } } },
+    },
   })
   if (!match) return { ok: false, error: "경기를 찾을 수 없습니다." }
 
@@ -846,6 +854,16 @@ export async function createMatchReferee(
   if (existing) return { ok: false, error: "이미 해당 경기에 같은 역할로 배정된 심판입니다." }
 
   try {
+    await prisma.refereeSeason.upsert({
+      where: {
+        refereeId_seasonId: {
+          refereeId,
+          seasonId: match.round.league.seasonId,
+        },
+      },
+      update: {},
+      create: { refereeId, seasonId: match.round.league.seasonId },
+    })
     const mr = await prisma.matchReferee.create({
       data: { matchId, refereeId, role },
     })
@@ -877,7 +895,15 @@ export async function updateMatchReferee(
 
   const mr = await prisma.matchReferee.findUnique({
     where: { id: matchRefereeId },
-    select: { id: true, matchId: true, refereeId: true, role: true },
+    select: {
+      id: true,
+      matchId: true,
+      refereeId: true,
+      role: true,
+      match: {
+        select: { round: { select: { league: { select: { seasonId: true } } } } },
+      },
+    },
   })
   if (!mr) return { ok: false, error: "배정 정보를 찾을 수 없습니다." }
 
@@ -898,6 +924,19 @@ export async function updateMatchReferee(
   if (existing) return { ok: false, error: "이미 해당 경기에 같은 역할로 배정된 심판입니다." }
 
   try {
+    await prisma.refereeSeason.upsert({
+      where: {
+        refereeId_seasonId: {
+          refereeId: data.refereeId,
+          seasonId: mr.match.round.league.seasonId,
+        },
+      },
+      update: {},
+      create: {
+        refereeId: data.refereeId,
+        seasonId: mr.match.round.league.seasonId,
+      },
+    })
     await prisma.matchReferee.update({
       where: { id: matchRefereeId },
       data: { refereeId: data.refereeId, role: data.role },
@@ -1024,6 +1063,23 @@ export async function importBulkRefereeAssignmentsFromJson(
       continue
     }
     try {
+      const matchSeason = await prisma.match.findUnique({
+        where: { id: matchId },
+        select: { round: { select: { league: { select: { seasonId: true } } } } },
+      })
+      if (!matchSeason) {
+        return { ok: false, error: `${i + 1}번째: 경기를 찾을 수 없습니다.` }
+      }
+      await prisma.refereeSeason.upsert({
+        where: {
+          refereeId_seasonId: {
+            refereeId,
+            seasonId: matchSeason.round.league.seasonId,
+          },
+        },
+        update: {},
+        create: { refereeId, seasonId: matchSeason.round.league.seasonId },
+      })
       await prisma.matchReferee.create({ data: { matchId, refereeId, role } })
       await syncRefereeStatsOnMatchRefereeCreate(matchId, refereeId, role)
       created++

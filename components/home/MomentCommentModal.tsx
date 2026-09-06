@@ -496,7 +496,7 @@ export function MomentCommentModal({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       // IME(한글) 입력 중 Enter는 전송으로 처리하지 않음
-      if ((e as any).nativeEvent?.isComposing) return;
+      if (e.nativeEvent.isComposing) return;
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         if (e.repeat) return;

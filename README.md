@@ -38,6 +38,76 @@
 
 ---
 
+## 로컬 개발 실행
+
+이 프로젝트는 기본적으로 로컬 PostgreSQL(`localhost:5432`)을 사용합니다. Docker를 사용할 경우 Docker Desktop을 먼저 실행한 뒤 아래 순서로 진행합니다.
+
+### 최초 실행
+
+```bash
+npm install
+docker compose up -d db
+npm run db:push
+npm run db:seed:sample
+npm run dev
+```
+
+- `docker compose up -d db`: PostgreSQL 컨테이너만 백그라운드로 실행합니다.
+- `npm run db:push`: 현재 Prisma 스키마를 새 로컬 DB에 반영하고 Prisma Client를 생성합니다.
+- `npm run db:seed:sample`: 기본 팀·심판과 로컬 화면 검증용 샘플 데이터를 함께 넣습니다.
+- 앱은 [http://localhost:3000](http://localhost:3000)에서 확인할 수 있습니다.
+
+샘플 데이터는 2026년 운영 일정 형태를 참고한 K리그1 27라운드 6경기와 K리그2 25라운드 8경기입니다. 경기 결과, 경기당 심판 6명, 샘플 평가와 쟁점 순간도 포함하며 여러 번 실행해도 같은 샘플 데이터를 갱신합니다. 운영 DB에서 실행되지 않도록 로컬 주소 확인 장치가 들어 있습니다.
+
+팀·심판 기본 데이터만 필요하면 다음 명령을 사용합니다.
+
+```bash
+npm run db:seed
+```
+
+마이그레이션 파일을 새로 만들거나 검증하는 개발 작업에서는 `npm run db:migrate`를 사용합니다. 단순히 새 로컬 개발 DB를 준비할 때는 대화형 마이그레이션 생성을 요구하지 않는 `npm run db:push`가 편합니다.
+
+`.env`에는 아래 DB 설정이 필요합니다. `DATABASE_URL`을 직접 작성하지 않아도 앱이 이 값들로 자동 생성합니다.
+
+```dotenv
+DB_USER=postgres
+DB_PASSWORD=로컬_DB_비밀번호
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=seevar
+```
+
+### 평소 실행
+
+```bash
+docker compose up -d db
+npm run dev
+```
+
+DB 상태와 로그는 다음 명령으로 확인합니다.
+
+```bash
+docker compose ps db
+docker compose logs -f db
+```
+
+개발을 마친 뒤 DB를 중지하려면 다음을 실행합니다. 데이터는 Docker 볼륨에 유지됩니다.
+
+```bash
+docker compose stop db
+```
+
+### `Can't reach database server at localhost:5432` 오류
+
+1. Docker Desktop이 실행 중인지 확인합니다.
+2. 프로젝트 루트에서 `docker compose up -d db`를 실행합니다.
+3. `docker compose ps db`에서 상태가 `Up`인지 확인합니다.
+4. 계속 실패하면 `.env`의 `DB_PORT`가 다른 PostgreSQL과 충돌하지 않는지 확인합니다.
+
+> `docker compose down -v`는 로컬 DB 볼륨과 데이터를 삭제하므로 초기화가 꼭 필요한 경우에만 사용하세요.
+
+---
+
 ## 프로젝트 구조 (요약)
 
 ```
@@ -69,4 +139,4 @@ seevar/
 
 - 상세 작업 계획·진행: `progress.md`
 - 코딩 규칙·도메인 로직: `.cursorrules`
-- DB·시드·Round 포커스 등: `progress.md` §6 데이터 소스
+- DB·시드(팀·심판)·Round 포커스 등: `progress.md` §6 데이터 소스

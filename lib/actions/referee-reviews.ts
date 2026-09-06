@@ -149,6 +149,7 @@ export async function createRefereeReview(
     }
 
     revalidatePath("/matches")
+    revalidatePath("/")
     revalidatePath("/referees")
     revalidatePath("/teams")
     revalidateTag(`match-reviews-${matchId}`)
@@ -596,8 +597,8 @@ export async function reportRefereeReviewReply(
 }
 
 /**
- * (refereeId, teamId)에 대한 RefereeTeamStat을 해당 팀 팬들의 리뷰(RefereeReview) 기준으로 갱신.
- * 평점 제출/수정 시 호출하여 팀별 팬 평점·평가 수가 바로 반영되도록 함.
+ * (refereeId, teamId)의 팬 평점을 시즌·리그·역할 단위로 다시 집계한다.
+ * 배정 횟수와 평가 수를 분리하여 평점 저장이 배정 통계를 덮어쓰지 않게 한다.
  */
 async function syncRefereeTeamStatForRefereeAndTeam(
   refereeId: string,
@@ -605,25 +606,66 @@ async function syncRefereeTeamStatForRefereeAndTeam(
 ): Promise<void> {
   const reviews = await prisma.refereeReview.findMany({
     where: { refereeId, fanTeamId: teamId, status: "VISIBLE" },
-    select: { rating: true },
+    select: {
+      rating: true,
+      role: true,
+      match: {
+        select: {
+          round: { select: { leagueId: true, league: { select: { seasonId: true } } } },
+        },
+      },
+    },
   })
-  const count = reviews.length
-  const fanAverageRating =
-    count > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / count : 0
 
-  await prisma.refereeTeamStat.upsert({
-    where: {
-      refereeId_teamId: { refereeId, teamId },
-    },
-    update: {
-      fanAverageRating,
-      totalAssignments: count,
-    },
-    create: {
-      refereeId,
-      teamId,
-      fanAverageRating,
-      totalAssignments: count,
-    },
+  const grouped = new Map<
+    string,
+    {
+      seasonId: string
+      leagueId: string
+      role: (typeof reviews)[number]["role"]
+      ratings: number[]
+    }
+  >()
+  for (const review of reviews) {
+    const seasonId = review.match.round.league.seasonId
+    const leagueId = review.match.round.leagueId
+    const key = `${seasonId}:${leagueId}:${review.role}`
+    const current = grouped.get(key)
+    if (current) current.ratings.push(review.rating)
+    else grouped.set(key, { seasonId, leagueId, role: review.role, ratings: [review.rating] })
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.refereeTeamStat.updateMany({
+      where: { refereeId, teamId },
+      data: { fanAverageRating: 0, fanRatingCount: 0 },
+    })
+
+    for (const group of grouped.values()) {
+      const fanRatingCount = group.ratings.length
+      const fanAverageRating =
+        group.ratings.reduce((sum, rating) => sum + rating, 0) / fanRatingCount
+      await tx.refereeTeamStat.upsert({
+        where: {
+          refereeId_teamId_seasonId_leagueId_role: {
+            refereeId,
+            teamId,
+            seasonId: group.seasonId,
+            leagueId: group.leagueId,
+            role: group.role,
+          },
+        },
+        update: { fanAverageRating, fanRatingCount },
+        create: {
+          refereeId,
+          teamId,
+          seasonId: group.seasonId,
+          leagueId: group.leagueId,
+          role: group.role,
+          fanAverageRating,
+          fanRatingCount,
+        },
+      })
+    }
   })
 }

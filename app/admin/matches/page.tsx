@@ -88,13 +88,7 @@ export default async function AdminMatchesPage({
         select: { id: true, name: true },
       })
     : []
-  const teams =
-    leagueTeams.length > 0
-      ? leagueTeams
-      : await prisma.team.findMany({
-          orderBy: { name: "asc" },
-          select: { id: true, name: true },
-        })
+  const teams = leagueTeams
 
   const baseUrl = "/admin/matches"
 
@@ -144,6 +138,16 @@ export default async function AdminMatchesPage({
           baseUrl={baseUrl}
           leagueSlug={league.slug}
         />
+      )}
+
+      {league && teams.length === 0 && (
+        <div className="mt-6 border border-amber-500/50 bg-amber-500/10 p-4 font-mono text-xs text-amber-700 dark:text-amber-300">
+          {season!.year} {league.name} 소속팀이 없습니다.{" "}
+          <Link href="/admin/season-rosters" className="font-bold underline">
+            연도별 소속 관리
+          </Link>
+          에서 팀을 먼저 배정하세요.
+        </div>
       )}
 
       {round && (

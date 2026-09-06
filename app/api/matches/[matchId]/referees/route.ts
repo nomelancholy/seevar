@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma"
 import { checkCrawlerAuth } from "@/lib/auth"
 import { RefereeRole } from "@prisma/client"
 import { revalidateMatchViews } from "@/lib/revalidate-match-views"
+import {
+  syncRefereeStatsOnMatchRefereeCreate,
+  syncRefereeStatsOnMatchRefereeDelete,
+} from "@/lib/referee-stats-sync"
 
 export async function POST(
   request: NextRequest,
@@ -41,9 +45,28 @@ export async function POST(
       assignmentKeys.add(key)
     }
 
+    const match = await prisma.match.findUnique({
+      where: { id: matchId },
+      select: { round: { select: { league: { select: { seasonId: true } } } } },
+    })
+    if (!match) {
+      return NextResponse.json({ error: "Match not found" }, { status: 404 })
+    }
+
     // 동일한 배정 레코드는 유지하고 달라진 항목만 제거/추가한다.
     // RefereeReview는 MatchReferee와 독립된 matchId/refereeId 관계이므로 사용자 평점은 건드리지 않는다.
     const syncResult = await prisma.$transaction(async (tx) => {
+      const refereeIds = Array.from(new Set(referees.map((referee) => referee.id)))
+      if (refereeIds.length > 0) {
+        await tx.refereeSeason.createMany({
+          data: refereeIds.map((refereeId) => ({
+            refereeId,
+            seasonId: match.round.league.seasonId,
+          })),
+          skipDuplicates: true,
+        })
+      }
+
       const existing = await tx.matchReferee.findMany({
         where: { matchId },
         select: { id: true, refereeId: true, role: true },
@@ -73,15 +96,41 @@ export async function POST(
         kept: existing.length - removeIds.length,
         removed: removeIds.length,
         added: additions.length,
+        removedAssignments: existing.filter((assignment) => removeIds.includes(assignment.id)),
+        addedAssignments: additions.map((assignment) => ({
+          refereeId: assignment.id,
+          role: assignment.role as RefereeRole,
+        })),
       }
     })
 
+    for (const assignment of syncResult.removedAssignments) {
+      await syncRefereeStatsOnMatchRefereeDelete(
+        matchId,
+        assignment.refereeId,
+        assignment.role
+      )
+    }
+    for (const assignment of syncResult.addedAssignments) {
+      await syncRefereeStatsOnMatchRefereeCreate(
+        matchId,
+        assignment.refereeId,
+        assignment.role
+      )
+    }
+
     await revalidateMatchViews(matchId)
+
+    const syncSummary = {
+      kept: syncResult.kept,
+      removed: syncResult.removed,
+      added: syncResult.added,
+    }
 
     return NextResponse.json({
       ok: true,
       message: `Successfully assigned ${referees.length} referees to match ${matchId}.`,
-      sync: syncResult,
+      sync: syncSummary,
     })
   } catch (error) {
     console.error("[api/matches/[id]/referees]", error)

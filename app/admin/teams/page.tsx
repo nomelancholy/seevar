@@ -6,7 +6,7 @@ import { AdminTeamRow } from "./AdminTeamRow"
 
 export const metadata = {
   title: "팀 정보 | 관리자 | SEE VAR",
-  description: "팀 등록·수정·삭제, JSON 일괄 등록",
+  description: "팀 기본 정보 등록·수정·삭제",
 }
 
 export default async function AdminTeamsPage() {
@@ -33,7 +33,9 @@ export default async function AdminTeamsPage() {
         팀 정보
       </h2>
       <p className="font-mono text-xs text-muted-foreground mb-6">
-        팀을 등록·수정·삭제할 수 있습니다. JSON 파일로 일괄 등록도 가능합니다. 경기 배정이 있거나 응원팀으로 선택한 유저가 있는 팀은 삭제할 수 없습니다.
+        이름·슬러그·엠블럼 같은 팀 기본 정보를 관리합니다. 연도별 K리그1·K리그2 소속은{" "}
+        <Link href="/admin/season-rosters" className="text-primary hover:underline">연도별 소속 관리</Link>에서 설정하세요.
+        경기 배정이 있거나 응원팀으로 선택한 유저가 있는 팀은 삭제할 수 없습니다.
       </p>
 
       <div className="space-y-6">

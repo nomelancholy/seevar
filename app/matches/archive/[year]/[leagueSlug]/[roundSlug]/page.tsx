@@ -60,7 +60,7 @@ export default async function MatchesArchivePage({ params }: { params: Params })
 
   const seasonId = season.id
   const hasLeagueSlug = leagueSlug && leagueSlug !== "_"
-  let league = hasLeagueSlug
+  const league = hasLeagueSlug
     ? await prisma.league.findFirst({
       where: {
         seasonId,

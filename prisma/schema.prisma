@@ -22,30 +22,30 @@ enum MatchStatus {
 }
 
 enum RefereeRole {
-  MAIN      // 주심
+  MAIN // 주심
   ASSISTANT // 부심
-  VAR       // VAR
-  WAITING   // 대기심
+  VAR // VAR
+  WAITING // 대기심
 }
 
 enum ContentStatus {
-  VISIBLE            // 정상 노출
-  UNDER_REVIEW       // 클린봇/신고에 의해 가려짐 (심의 중)
+  VISIBLE // 정상 노출
+  UNDER_REVIEW // 클린봇/신고에 의해 가려짐 (심의 중)
   PENDING_REAPPROVAL // 사용자가 수정 후 재심의 요청
-  HIDDEN             // 영구 숨김
+  HIDDEN // 영구 숨김
 }
 
 enum ReportReason {
-  ABUSE         // 욕설 및 비하 (초성/변형 포함)
-  SPAM          // 도배 및 광고
+  ABUSE // 욕설 및 비하 (초성/변형 포함)
+  SPAM // 도배 및 광고
   INAPPROPRIATE // 부적절한 게시물 (정치/혐오 등)
-  FALSE_INFO    // 허위 사실 유포
+  FALSE_INFO // 허위 사실 유포
 }
 
 enum ReactionType {
   LIKE
   DISLIKE
-  SEE_VAR  // 모멘트 SEE VAR 버튼 (momentId만 사용, commentId null)
+  SEE_VAR // 모멘트 SEE VAR 버튼 (momentId만 사용, commentId null)
 }
 
 enum NotificationType {
@@ -60,42 +60,48 @@ enum NotificationType {
 // ---------------------------------------------------------------------------
 
 model User {
-  id                String    @id @default(cuid())
-  email             String?   @unique
-  emailVerified     DateTime?
-  name              String?
-  image             String?
-  /** 공개 프로필 URL용. 가입 이메일 @ 앞부분(네이버 아이디). 예: starmekey@naver.com → starmekey */
-  handle            String?   @unique
-  /** 경험치. 모멘트·평가 참여 시 증가, 신고 승인(숨김) 시 감소, 재심 통과 시 복구 */
-  xp                Int       @default(0)
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  /**
+   * 공개 프로필 URL용. 가입 이메일 @ 앞부분(네이버 아이디). 예: starmekey@naver.com → starmekey
+   */
+  handle        String?   @unique
+  /**
+   * 경험치. 모멘트·평가 참여 시 증가, 신고 승인(숨김) 시 감소, 재심 통과 시 복구
+   */
+  xp            Int       @default(0)
 
-  /** 접속 시 수집한 IP (관리자 유저 관리에서 확인) */
-  lastSeenIp        String?
+  /**
+   * 접속 시 수집한 IP (관리자 유저 관리에서 확인)
+   */
+  lastSeenIp String?
 
   // 응원 팀 및 변경 제한 (30일 로직용)
-  supportingTeamId  String?
-  supportingTeam    Team?     @relation(fields: [supportingTeamId], references: [id], onDelete: SetNull)
-  lastTeamChangeAt  DateTime?
+  supportingTeamId String?
+  supportingTeam   Team?     @relation(fields: [supportingTeamId], references: [id], onDelete: SetNull)
+  lastTeamChangeAt DateTime?
 
   // NextAuth
-  accounts          Account[]
-  sessions          Session[]
+  accounts Account[]
+  sessions Session[]
 
   // 관계 필드
-  moments           Moment[]
-  comments          Comment[]
-  reviews           RefereeReview[]
-  reports           Report[]        // 내가 한 신고들
-  notifications     Notification[]
-  reactions             Reaction[]
-  refereeReviewReplies  RefereeReviewReply[]
-  notices               Notice[]        // 운영자 공지 작성
-  noticeComments        NoticeComment[]
-  pollVotes             PollVote[]
+  moments              Moment[]
+  comments             Comment[]
+  reviews              RefereeReview[]
+  reports              Report[] // 내가 한 신고들
+  notifications        Notification[]
+  reactions            Reaction[]
+  refereeReviewReplies RefereeReviewReply[]
+  notices              Notice[] // 운영자 공지 작성
+  noticeComments       NoticeComment[]
+  pollVotes            PollVote[]
 
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([supportingTeamId])
 }
@@ -138,33 +144,36 @@ model VerificationToken {
 // ---------------------------------------------------------------------------
 
 model Season {
-  id        String   @id @default(cuid())
-  year      Int      @unique
-  leagues   League[]
-  stats     RefereeStats[]
+  id             String            @id @default(cuid())
+  year           Int               @unique
+  leagues        League[]
+  stats          RefereeStats[]
+  refereeSeasons RefereeSeason[]
+  teamStats      RefereeTeamStat[]
 }
 
 model League {
-  id        String   @id @default(cuid())
+  id        String            @id @default(cuid())
   name      String
   slug      String
   seasonId  String
-  season    Season   @relation(fields: [seasonId], references: [id])
+  season    Season            @relation(fields: [seasonId], references: [id])
   rounds    Round[]
   teams     Team[]
   stats     RefereeStats[]
+  teamStats RefereeTeamStat[]
 
   @@unique([seasonId, slug])
 }
 
 model Round {
-  id        String   @id @default(cuid())
-  number    Int
-  slug      String   // "round-1", "round-5" — URL용
-  leagueId  String
-  league    League   @relation(fields: [leagueId], references: [id])
-  isFocus   Boolean  @default(false)
-  matches   Match[]
+  id       String  @id @default(cuid())
+  number   Int
+  slug     String // "round-1", "round-5" — URL용
+  leagueId String
+  league   League  @relation(fields: [leagueId], references: [id])
+  isFocus  Boolean @default(false)
+  matches  Match[]
 
   // 라운드별 외부 컨텐츠 링크 (리뷰 영상, 카드 뉴스 등)
   youtubeUrl   String?
@@ -175,53 +184,56 @@ model Round {
 }
 
 model Team {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String?
-  emblemPath  String?
-  leagues     League[]
+  id         String   @id @default(cuid())
+  name       String   @unique
+  slug       String?
+  emblemPath String?
+  /**
+   * 시즌에 속한 League와 연결하므로 팀의 연도별 소속 이력이 된다.
+   */
+  leagues    League[]
 
-  homeMatches Match[]  @relation("HomeTeam")
-  awayMatches Match[]  @relation("AwayTeam")
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
 
-  users       User[]
+  users        User[]
   refereeStats RefereeTeamStat[]
-  reviews     RefereeReview[] // 팀 팬 시점의 리뷰 히스토리
+  reviews      RefereeReview[] // 팀 팬 시점의 리뷰 히스토리
 }
 
 model Match {
-  id              String      @id @default(cuid())
-  roundId         String
-  round           Round       @relation(fields: [roundId], references: [id])
-  roundOrder      Int         // 라운드 내 경기 순서 (1-based, URL용: /matches/2026/kleague1/round-1/3)
+  id         String @id @default(cuid())
+  roundId    String
+  round      Round  @relation(fields: [roundId], references: [id])
+  roundOrder Int // 라운드 내 경기 순서 (1-based, URL용: /matches/2026/kleague1/round-1/3)
 
-  homeTeamId      String
-  homeTeam        Team        @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  awayTeamId      String
-  awayTeam        Team        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  homeTeamId String
+  homeTeam   Team   @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId String
+  awayTeam   Team   @relation("AwayTeam", fields: [awayTeamId], references: [id])
 
-  playedAt        DateTime?
-  venue           String?
-  status          MatchStatus @default(SCHEDULED)
-  kleagueDataUrl  String?     // 연맹 데이터 포털 링크
-  youtubeUrl      String?     // 경기 리뷰·하이라이트 유튜브
-  instagramUrl    String?     // 경기 카드 뉴스 인스타
+  playedAt       DateTime?
+  venue          String?
+  status         MatchStatus @default(SCHEDULED)
+  kleagueDataUrl String? // 연맹 데이터 포털 링크
+  youtubeUrl     String? // 경기 리뷰·하이라이트 유튜브
+  instagramUrl   String? // 경기 카드 뉴스 인스타
 
   // 스코어 및 시간
-  scoreHome       Int?        @default(0)
-  scoreAway       Int?        @default(0)
-  firstHalfExtraTime        Int? @default(0)
-  secondHalfExtraTime       Int? @default(0)
-  extraFirstHalfExtraTime   Int? @default(0)
-  extraSecondHalfExtraTime  Int? @default(0)
+  scoreHome                Int? @default(0)
+  scoreAway                Int? @default(0)
+  firstHalfExtraTime       Int? @default(0)
+  secondHalfExtraTime      Int? @default(0)
+  extraFirstHalfExtraTime  Int? @default(0)
+  extraSecondHalfExtraTime Int? @default(0)
 
   // 관계
-  matchReferees   MatchReferee[]
-  moments         Moment[]
-  reviews         RefereeReview[]
+  matchReferees MatchReferee[]
+  moments       Moment[]
+  reviews       RefereeReview[]
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([roundId, roundOrder])
 }
@@ -231,64 +243,90 @@ model Match {
 // ---------------------------------------------------------------------------
 
 model Referee {
-  id            String          @id @default(cuid())
-  name          String
-  slug          String          @unique // URL용 (e.g. go-hyeongjin)
-  link          String?         // 외부 프로필 링크
+  id   String  @id @default(cuid())
+  name String
+  slug String  @unique // URL용 (e.g. go-hyeongjin)
+  link String? // 외부 프로필 링크
 
   matchReferees MatchReferee[]
   stats         RefereeStats[]
   teamStats     RefereeTeamStat[]
   reviews       RefereeReview[]
+  seasons       RefereeSeason[]
+}
+
+/**
+ * 시즌별 활동 심판 명단.
+ * 심판 기본 정보와 과거 배정은 유지하면서, 새 시즌의 배정 후보만 별도로 관리한다.
+ */
+model RefereeSeason {
+  id        String   @id @default(cuid())
+  refereeId String
+  referee   Referee  @relation(fields: [refereeId], references: [id], onDelete: Cascade)
+  seasonId  String
+  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([refereeId, seasonId])
+  @@index([seasonId])
 }
 
 model MatchReferee {
-  id              String      @id @default(cuid())
-  matchId         String
-  match           Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  refereeId       String
-  referee         Referee     @relation(fields: [refereeId], references: [id], onDelete: Cascade)
-  role            RefereeRole
+  id        String      @id @default(cuid())
+  matchId   String
+  match     Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  refereeId String
+  referee   Referee     @relation(fields: [refereeId], references: [id], onDelete: Cascade)
+  role      RefereeRole
 
   // 홈/어웨이별 카드 부여 기록 (수동/API 입력용)
-  homeYellowCards Int         @default(0)
-  homeRedCards    Int         @default(0)
-  awayYellowCards Int         @default(0)
-  awayRedCards    Int         @default(0)
+  homeYellowCards Int @default(0)
+  homeRedCards    Int @default(0)
+  awayYellowCards Int @default(0)
+  awayRedCards    Int @default(0)
 
   @@unique([matchId, refereeId, role])
 }
 
 model RefereeStats {
-  id          String      @id @default(cuid())
-  refereeId   String
-  referee     Referee     @relation(fields: [refereeId], references: [id])
-  seasonId    String
-  season      Season      @relation(fields: [seasonId], references: [id])
-  leagueId    String
-  league      League      @relation(fields: [leagueId], references: [id])
-  role        RefereeRole
+  id        String      @id @default(cuid())
+  refereeId String
+  referee   Referee     @relation(fields: [refereeId], references: [id])
+  seasonId  String
+  season    Season      @relation(fields: [seasonId], references: [id])
+  leagueId  String
+  league    League      @relation(fields: [leagueId], references: [id])
+  role      RefereeRole
 
-  matchCount  Int         @default(0)
-  avgRating   Float       @default(0.0)
-  
+  matchCount Int   @default(0)
+  avgRating  Float @default(0.0)
+
   @@unique([refereeId, seasonId, leagueId, role])
 }
 
 model RefereeTeamStat {
-  id                String      @id @default(cuid())
-  refereeId         String
-  referee           Referee     @relation(fields: [refereeId], references: [id])
-  teamId            String
-  team              Team        @relation(fields: [teamId], references: [id])
+  id        String      @id @default(cuid())
+  refereeId String
+  referee   Referee     @relation(fields: [refereeId], references: [id])
+  teamId    String
+  team      Team        @relation(fields: [teamId], references: [id])
+  seasonId  String
+  season    Season      @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  leagueId  String
+  league    League      @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  role      RefereeRole
 
-  totalAssignments  Int         @default(0)
-  roleCounts        Json?       // { "MAIN": 5, "VAR": 2 }
-  totalYellowCards  Int         @default(0) // 해당 팀이 받은 총 카드
-  totalRedCards     Int         @default(0)
-  fanAverageRating  Float       @default(0.0)
+  totalAssignments Int   @default(0)
+  roleCounts       Json? // 해당 role의 배정 수. 기존 UI 집계 호환용
+  totalYellowCards Int   @default(0) // 해당 팀이 받은 총 카드
+  totalRedCards    Int   @default(0)
+  fanAverageRating Float @default(0.0)
+  fanRatingCount   Int   @default(0)
 
-  @@unique([refereeId, teamId])
+  @@unique([refereeId, teamId, seasonId, leagueId, role])
+  @@index([teamId, seasonId, leagueId, role])
+  @@index([refereeId, seasonId, leagueId, role])
 }
 
 // ---------------------------------------------------------------------------
@@ -296,117 +334,131 @@ model RefereeTeamStat {
 // ---------------------------------------------------------------------------
 
 model RefereeReview {
-  id            String         @id @default(cuid())
-  matchId       String
-  match         Match          @relation(fields: [matchId], references: [id])
-  refereeId     String
-  referee       Referee        @relation(fields: [refereeId], references: [id])
-  userId        String
-  user          User           @relation(fields: [userId], references: [id])
-  fanTeamId     String?        // 작성 시점의 응원팀 스냅샷
-  fanTeam       Team?          @relation(fields: [fanTeamId], references: [id])
+  id        String  @id @default(cuid())
+  matchId   String
+  match     Match   @relation(fields: [matchId], references: [id])
+  refereeId String
+  referee   Referee @relation(fields: [refereeId], references: [id])
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  fanTeamId String? // 작성 시점의 응원팀 스냅샷
+  fanTeam   Team?   @relation(fields: [fanTeamId], references: [id])
 
-  rating        Float
-  comment       String?        @db.VarChar(200)
-  role          RefereeRole    // 평점 당시 심판의 역할
+  rating  Float
+  comment String?     @db.VarChar(200)
+  role    RefereeRole // 평점 당시 심판의 역할
 
   // 클린봇 & 신고 필드
-  status            ContentStatus  @default(VISIBLE)
-  filterReason      String?        // 클린봇이 감지한 위반 내용
-  reportCount       Int            @default(0)
+  status            ContentStatus        @default(VISIBLE)
+  filterReason      String? // 클린봇이 감지한 위반 내용
+  reportCount       Int                  @default(0)
   reports           Report[]
-  /** 신고 승인(숨김) 시 유저에게 차감한 XP. 재노출 시 이만큼 복구 */
+  /**
+   * 신고 승인(숨김) 시 유저에게 차감한 XP. 재노출 시 이만큼 복구
+   */
   xpDeductedOnHide  Int?
   reactions         Reaction[]
   replies           RefereeReviewReply[]
-  /** OpenAI Moderation API: 위반 여부 (작성 시 기록, 관리자 페이지 노출) */
+  /**
+   * OpenAI Moderation API: 위반 여부 (작성 시 기록, 관리자 페이지 노출)
+   */
   moderationFlagged Boolean?
-  /** OpenAI Moderation API: category_scores JSON (작성 시 기록) */
+  /**
+   * OpenAI Moderation API: category_scores JSON (작성 시 기록)
+   */
   moderationScores  Json?
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([matchId, refereeId, userId])
 }
 
 model RefereeReviewReply {
-  id         String       @id @default(cuid())
-  reviewId   String
-  review     RefereeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  userId     String
-  user       User          @relation(fields: [userId], references: [id])
-  content    String        @db.VarChar(500)
-  reactions  Reaction[]
-  reports    Report[]
-  createdAt  DateTime      @default(now())
+  id        String        @id @default(cuid())
+  reviewId  String
+  review    RefereeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  content   String        @db.VarChar(500)
+  reactions Reaction[]
+  reports   Report[]
+  createdAt DateTime      @default(now())
 }
 
 model Moment {
-  id            String         @id @default(cuid())
-  matchId       String
-  match         Match          @relation(fields: [matchId], references: [id])
-  userId        String?
-  author        User?          @relation(fields: [userId], references: [id])
-  
-  title         String?
-  description   String?        @db.Text
-  startMinute   Int?
-  /** 구간(전반/후반/연장 전반/연장 후반). 후반 47분 vs 연장 전반 2분 구분용 */
-  startPeriod       String?    // "first" | "second" | "et_first" | "et_second"
-  /** 구간 내 분(1~50 전반·후반, 1~60 연장). startPeriod와 함께 표기 시 사용 */
+  id      String  @id @default(cuid())
+  matchId String
+  match   Match   @relation(fields: [matchId], references: [id])
+  userId  String?
+  author  User?   @relation(fields: [userId], references: [id])
+
+  title               String?
+  description         String? @db.Text
+  startMinute         Int?
+  /**
+   * 구간(전반/후반/연장 전반/연장 후반). 후반 47분 vs 연장 전반 2분 구분용
+   */
+  startPeriod         String? // "first" | "second" | "et_first" | "et_second"
+  /**
+   * 구간 내 분(1~50 전반·후반, 1~60 연장). startPeriod와 함께 표기 시 사용
+   */
   startMinuteInPeriod Int?
-  endMinute     Int?
-  /** 구간 길이(분). 정렬·검증용. endMinute - startMinute, 최대 15 */
-  duration      Int            @default(0)
-  mediaUrl      String?
+  endMinute           Int?
+  /**
+   * 구간 길이(분). 정렬·검증용. endMinute - startMinute, 최대 15
+   */
+  duration            Int     @default(0)
+  mediaUrl            String?
 
-  comments      Comment[]
-  reactions     Reaction[]
-  
-  seeVarCount   Int            @default(0)
-  commentCount  Int            @default(0)
+  comments  Comment[]
+  reactions Reaction[]
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  seeVarCount  Int @default(0)
+  commentCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Comment {
-  id            String         @id @default(cuid())
-  content       String         @db.Text
-  mediaUrl      String?        // 첨부 사진·영상 URL (첫 댓글 등)
-  momentId      String
-  moment        Moment         @relation(fields: [momentId], references: [id], onDelete: Cascade)
-  userId        String
-  author        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id       String  @id @default(cuid())
+  content  String  @db.Text
+  mediaUrl String? // 첨부 사진·영상 URL (첫 댓글 등)
+  momentId String
+  moment   Moment  @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  userId   String
+  author   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // 대댓글 구조
-  parentId      String?
-  parent        Comment?       @relation("ReplyTo", fields: [parentId], references: [id], onDelete: Cascade)
-  replies       Comment[]      @relation("ReplyTo")
+  parentId String?
+  parent   Comment?  @relation("ReplyTo", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("ReplyTo")
 
   // 클린봇 & 신고 필드
-  status            ContentStatus  @default(VISIBLE)
+  status            ContentStatus @default(VISIBLE)
   filterReason      String?
-  reportCount       Int            @default(0)
+  reportCount       Int           @default(0)
   reports           Report[]
-  /** 신고 승인(숨김) 시 유저에게 차감한 XP. 재노출 시 이만큼 복구 */
+  /**
+   * 신고 승인(숨김) 시 유저에게 차감한 XP. 재노출 시 이만큼 복구
+   */
   xpDeductedOnHide  Int?
   reactions         Reaction[]
   moderationFlagged Boolean?
   moderationScores  Json?
 
   // 투표 (댓글 1개당 최대 1개)
-  poll           Poll?
+  poll Poll?
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Poll {
-  id        String   @id @default(cuid())
-  commentId String   @unique
-  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  id        String       @id @default(cuid())
+  commentId String       @unique
+  comment   Comment      @relation(fields: [commentId], references: [id], onDelete: Cascade)
   title     String
   options   PollOption[]
   votes     PollVote[]
@@ -415,57 +467,57 @@ model Poll {
 }
 
 model PollOption {
-  id      String    @id @default(cuid())
-  pollId  String
-  poll    Poll      @relation(fields: [pollId], references: [id], onDelete: Cascade)
-  label   String
-  order   Int
-  votes   PollVote[]
+  id     String     @id @default(cuid())
+  pollId String
+  poll   Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  label  String
+  order  Int
+  votes  PollVote[]
 }
 
 model PollVote {
-  id        String      @id @default(cuid())
+  id        String     @id @default(cuid())
   pollId    String
-  poll      Poll        @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
   optionId  String
-  option    PollOption  @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  option    PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
   userId    String
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime    @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
 
   @@unique([pollId, userId])
 }
 
 model Report {
-  id            String         @id @default(cuid())
-  reporterId    String
-  reporter      User           @relation(fields: [reporterId], references: [id])
-  
-  reason        ReportReason
-  description   String?        @db.Text
+  id         String @id @default(cuid())
+  reporterId String
+  reporter   User   @relation(fields: [reporterId], references: [id])
+
+  reason      ReportReason
+  description String?      @db.Text
 
   reviewId      String?
-  review        RefereeReview? @relation(fields: [reviewId], references: [id])
+  review        RefereeReview?      @relation(fields: [reviewId], references: [id])
   reviewReplyId String?
   reviewReply   RefereeReviewReply? @relation(fields: [reviewReplyId], references: [id], onDelete: Cascade)
   commentId     String?
-  comment       Comment?       @relation(fields: [commentId], references: [id])
+  comment       Comment?            @relation(fields: [commentId], references: [id])
 
-  createdAt     DateTime       @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Reaction {
-  id        String       @id @default(cuid())
-  userId    String
-  user      User         @relation(fields: [userId], references: [id])
-  type      ReactionType
+  id     String       @id @default(cuid())
+  userId String
+  user   User         @relation(fields: [userId], references: [id])
+  type   ReactionType
 
-  momentId  String?
-  moment    Moment?      @relation(fields: [momentId], references: [id])
+  momentId      String?
+  moment        Moment?             @relation(fields: [momentId], references: [id])
   commentId     String?
-  comment       Comment?     @relation(fields: [commentId], references: [id])
+  comment       Comment?            @relation(fields: [commentId], references: [id])
   reviewId      String?
-  review        RefereeReview? @relation(fields: [reviewId], references: [id])
+  review        RefereeReview?      @relation(fields: [reviewId], references: [id])
   reviewReplyId String?
   reviewReply   RefereeReviewReply? @relation(fields: [reviewReplyId], references: [id], onDelete: Cascade)
 
@@ -475,47 +527,55 @@ model Reaction {
 }
 
 model Notification {
-  id            String             @id @default(cuid())
-  userId        String
-  user          User               @relation(fields: [userId], references: [id])
-  type          NotificationType
-  content       String
-  link          String?
-  /** 답글 알림일 때 달린 답글 내용 미리보기 */
-  replyContent  String?            @db.Text
-  /** 해당 모멘트로 바로 열기용 (link에 openMoment 쿼리와 함께 사용) */
-  momentId      String?
-  isRead        Boolean            @default(false)
-  createdAt     DateTime          @default(now())
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id])
+  type         NotificationType
+  content      String
+  link         String?
+  /**
+   * 답글 알림일 때 달린 답글 내용 미리보기
+   */
+  replyContent String?          @db.Text
+  /**
+   * 해당 모멘트로 바로 열기용 (link에 openMoment 쿼리와 함께 사용)
+   */
+  momentId     String?
+  isRead       Boolean          @default(false)
+  createdAt    DateTime         @default(now())
 }
 
 model Notice {
-  id            String           @id @default(cuid())
-  number        Int              @unique // URL용 순번 (1, 2, 3, ...)
+  id            String          @id @default(cuid())
+  number        Int             @unique // URL용 순번 (1, 2, 3, ...)
   title         String
-  content       String           @db.Text
-  /** 첨부파일: [{ name: string, url: string }] */
+  content       String          @db.Text
+  /**
+   * 첨부파일: [{ name: string, url: string }]
+   */
   attachments   Json?
-  /** 유튜브 링크 순서: [url1, url2, ...] → 본문 [유튜브1], [유튜브2] */
+  /**
+   * 유튜브 링크 순서: [url1, url2, ...] → 본문 [유튜브1], [유튜브2]
+   */
   youtubeUrls   Json?
   authorId      String
-  author        User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  allowComments Boolean          @default(true)
-  isPinned      Boolean          @default(false) // 상단 고정 여부
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  author        User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  allowComments Boolean         @default(true)
+  isPinned      Boolean         @default(false) // 상단 고정 여부
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   comments      NoticeComment[]
 }
 
 model NoticeComment {
-  id        String   @id @default(cuid())
+  id        String          @id @default(cuid())
   noticeId  String
-  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  notice    Notice          @relation(fields: [noticeId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content   String   @db.Text
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String          @db.Text
   parentId  String?
   parent    NoticeComment?  @relation("NoticeCommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   NoticeComment[] @relation("NoticeCommentReplies")
-  createdAt DateTime @default(now())
+  createdAt DateTime        @default(now())
 }

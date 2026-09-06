@@ -1,10 +1,8 @@
-import Link from "next/link"
 import { unstable_cache } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { shortNameFromSlug } from "@/lib/team-short-names"
 import { getMatchDetailPath, getMatchDetailPathWithBack, type MatchForPath } from "@/lib/match-url"
 import { formatMatchMinuteForDisplay, formatMomentTimeFromPeriod } from "@/lib/utils/format-match-minute"
-import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview"
 import { HotMomentsSection } from "@/components/home/HotMomentsSection"
 import { LeagueMatchesSection } from "@/components/home/LeagueMatchesSection"
 import { RoundRefereeBestWorstSection } from "@/components/home/RoundRefereeBestWorstSection"
@@ -21,6 +19,9 @@ type RoundWithMatches = Awaited<
           include: {
             homeTeam: true
             awayTeam: true
+            matchReferees: {
+              include: { referee: true }
+            }
             round: { include: { league: { include: { season: true } } } }
           }
           orderBy: [{ playedAt: "asc" }, { roundOrder: "asc" }]
@@ -116,6 +117,9 @@ const getFocusRoundsCached = unstable_cache(
           include: {
             homeTeam: true,
             awayTeam: true,
+            matchReferees: {
+              include: { referee: true },
+            },
             round: { include: { league: { include: { season: true } } } },
           },
           orderBy: { playedAt: "asc" },
@@ -155,9 +159,15 @@ export default async function HomePage() {
     roundOrder: number
     scoreHome: number | null
     scoreAway: number | null
+    status: string
     round: { slug: string; league: { slug: string; season: { year: number } } }
-    homeTeam: { slug: string | null; emblemPath: string | null }
-    awayTeam: { slug: string | null; emblemPath: string | null }
+    homeTeam: { id: string; slug: string | null; emblemPath: string | null }
+    awayTeam: { id: string; slug: string | null; emblemPath: string | null }
+    matchReferees: Array<{
+      id: string
+      role: string
+      referee: { id: string; name: string; slug: string }
+    }>
   }) => {
     const d = m.playedAt ? new Date(m.playedAt) : null
     const tz = "Asia/Seoul"
@@ -181,6 +191,18 @@ export default async function HomePage() {
       awayEmblem: m.awayTeam.emblemPath ?? "",
       scoreHome: m.scoreHome ?? null,
       scoreAway: m.scoreAway ?? null,
+      status: m.status,
+      homeTeamId: m.homeTeam.id,
+      awayTeamId: m.awayTeam.id,
+      matchReferees: m.matchReferees.map((assignment) => ({
+        id: assignment.id,
+        role: assignment.role,
+        referee: {
+          id: assignment.referee.id,
+          name: assignment.referee.name,
+          slug: assignment.referee.slug,
+        },
+      })),
     }
   }
 
@@ -255,8 +277,8 @@ export default async function HomePage() {
     })
 
     const ROLES_FOR_BEST_WORST = ["MAIN", "VAR", "ASSISTANT", "WAITING"] as const
-    let bestByRole: RoundHighlight["bestByRole"] = {}
-    let worstByRole: RoundHighlight["worstByRole"] = {}
+    const bestByRole: RoundHighlight["bestByRole"] = {}
+    const worstByRole: RoundHighlight["worstByRole"] = {}
 
     if (reviews.length > 0) {
       const byRef = new Map<

@@ -81,10 +81,13 @@ export default async function AdminRefereeAssignmentsPage({
     })
   }
 
-  const allReferees = await prisma.referee.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, slug: true },
-  })
+  const allReferees = season
+    ? await prisma.referee.findMany({
+        where: { seasons: { some: { seasonId: season.id } } },
+        orderBy: { name: "asc" },
+        select: { id: true, name: true, slug: true },
+      })
+    : []
 
   const baseUrl = "/admin/referee-assignments"
 
@@ -118,6 +121,16 @@ export default async function AdminRefereeAssignmentsPage({
       )}
 
       <AdminBulkRefereeAssignmentUpload />
+
+      {season && allReferees.length === 0 && (
+        <div className="mt-6 border border-amber-500/50 bg-amber-500/10 p-4 font-mono text-xs text-amber-700 dark:text-amber-300">
+          {season.year} 시즌 활동 심판이 없습니다.{" "}
+          <Link href="/admin/season-rosters" className="font-bold underline">
+            연도별 소속 관리
+          </Link>
+          에서 심판 명단을 먼저 구성하세요.
+        </div>
+      )}
 
       {round && (
         <AdminRefereeAssignmentList

@@ -47,7 +47,7 @@ export function NotificationList({ items }: Props) {
           <p className="text-sm md:text-base text-foreground mb-2">{n.content}</p>
           {n.replyContent && (
             <p className="text-xs text-muted-foreground border-l-2 border-border pl-3 py-1 mb-2 line-clamp-2">
-              "{n.replyContent}"
+              &quot;{n.replyContent}&quot;
             </p>
           )}
           {n.link && (
@@ -67,4 +67,3 @@ export function NotificationList({ items }: Props) {
     </div>
   )
 }
-
