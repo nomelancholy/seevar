@@ -508,7 +508,7 @@ export function RoundQuickActions({
       <div
         className={
           placement === "header"
-            ? "flex items-center gap-1 md:gap-2"
+            ? "grid w-full grid-cols-2 gap-2 md:flex md:w-auto"
             : "grid grid-cols-2 gap-2 border-x border-b border-border bg-card/40 p-3 md:flex md:justify-end md:p-4"
         }
       >
@@ -518,16 +518,21 @@ export function RoundQuickActions({
           disabled={sessionStatus === "loading" || matches.length === 0}
           className={`inline-flex items-center justify-center gap-1.5 border border-primary bg-primary font-black italic text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 ${
             placement === "header"
-              ? "size-8 px-0 text-[10px] sm:w-auto sm:px-2.5 md:h-9 md:px-3 md:text-xs"
+              ? "h-10 w-full px-3 text-[11px] md:h-9 md:w-auto md:text-xs"
               : "px-3 py-2.5 text-[10px] md:text-xs"
           }`}
           aria-label="이 라운드 심판 평가"
           title="이 라운드 심판 평가"
         >
           <Star className="size-3.5" aria-hidden />
-          <span className={placement === "header" ? "hidden sm:inline" : undefined}>
-            이 라운드 심판 평가
-          </span>
+          {placement === "header" ? (
+            <>
+              <span className="md:hidden">평점 주기</span>
+              <span className="hidden md:inline">이 라운드 심판 평가</span>
+            </>
+          ) : (
+            <span>이 라운드 심판 평가</span>
+          )}
         </button>
         <button
           type="button"
@@ -535,16 +540,21 @@ export function RoundQuickActions({
           disabled={sessionStatus === "loading" || matches.length === 0}
           className={`inline-flex items-center justify-center gap-1.5 border border-border bg-background font-black italic transition-colors hover:border-primary hover:text-primary disabled:opacity-40 ${
             placement === "header"
-              ? "size-8 px-0 text-[10px] sm:w-auto sm:px-2.5 md:h-9 md:px-3 md:text-xs"
+              ? "h-10 w-full px-3 text-[11px] md:h-9 md:w-auto md:text-xs"
               : "px-3 py-2.5 text-[10px] md:text-xs"
           }`}
           aria-label="쟁점 순간 만들기"
           title="쟁점 순간 만들기"
         >
           <MessageSquarePlus className="size-3.5" aria-hidden />
-          <span className={placement === "header" ? "hidden sm:inline" : undefined}>
-            쟁점 순간 만들기
-          </span>
+          {placement === "header" ? (
+            <>
+              <span className="md:hidden">순간 생성</span>
+              <span className="hidden md:inline">쟁점 순간 만들기</span>
+            </>
+          ) : (
+            <span>쟁점 순간 만들기</span>
+          )}
         </button>
       </div>
 

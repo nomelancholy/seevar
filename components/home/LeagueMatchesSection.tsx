@@ -26,10 +26,10 @@ function LeagueBlock({
 }) {
   return (
     <div className="league-container">
-      <div className="league-header w-full items-stretch">
+      <div className="league-header w-full flex-wrap items-stretch md:flex-nowrap">
         <button
           type="button"
-          className="flex min-w-0 flex-1 items-stretch text-left"
+          className="order-1 flex min-w-0 flex-1 items-stretch text-left"
           onClick={onToggle}
           aria-expanded={open}
           aria-label={`${leagueName} ${roundNumber}라운드 경기 ${open ? "접기" : "펼치기"}`}
@@ -48,25 +48,25 @@ function LeagueBlock({
             </span>
           </div>
         </button>
-        <div className="flex shrink-0 items-center gap-1 border-l border-border px-1.5 md:gap-2 md:px-3">
+        <div className="order-3 w-full border-t border-border p-2 md:order-2 md:w-auto md:border-l md:border-t-0 md:px-3 md:py-0">
           <RoundQuickActions
             leagueName={leagueName}
             roundNumber={roundNumber}
             matches={matches}
             placement="header"
           />
-          <button
-            type="button"
-            onClick={onToggle}
-            className="flex size-8 items-center justify-center border-l border-border pl-1.5 text-foreground transition-colors hover:text-primary md:size-9 md:pl-2"
-            aria-expanded={open}
-            aria-label={`${leagueName} ${roundNumber}라운드 경기 ${open ? "접기" : "펼치기"}`}
-          >
-            <ChevronDown
-              className={`size-4 md:size-5 league-arrow ${open ? "open" : ""}`}
-            />
-          </button>
         </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="order-2 flex w-11 shrink-0 items-center justify-center border-l border-border text-foreground transition-colors hover:text-primary md:order-3 md:w-12"
+          aria-expanded={open}
+          aria-label={`${leagueName} ${roundNumber}라운드 경기 ${open ? "접기" : "펼치기"}`}
+        >
+          <ChevronDown
+            className={`size-4 md:size-5 league-arrow ${open ? "open" : ""}`}
+          />
+        </button>
       </div>
       <div className={`league-content ${open ? "open" : ""}`}>
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
