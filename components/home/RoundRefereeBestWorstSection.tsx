@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { EmblemImage } from "@/components/ui/EmblemImage";
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview";
 import { UserProfileLink } from "@/components/user/UserProfileLink";
+import { HomeReviewFeedback } from "@/components/home/HomeReviewFeedback";
 
 /** 아카이브 페이지에서 전달하는 심판 통계 (RoundRefereeRatingsFolder와 동일한 구조) */
 type RoundRefereeStat = {
@@ -60,6 +61,13 @@ export type RefereeCardData = {
     teamSlug: string | null;
     teamEmblem: string | null;
     likeCount: number;
+    likedByMe?: boolean;
+    replies?: {
+      id: string;
+      content: string;
+      userName: string;
+      userHandle: string | null;
+    }[];
     comment: string;
     matchLabel: string;
     rating: number;
@@ -72,6 +80,7 @@ type Props = {
   allRoundReferees: RoundRefereeStat[];
   leagueName: string;
   roundNumber: number;
+  currentUserId?: string | null;
 };
 
 export function RoundRefereeBestWorstSection({
@@ -80,6 +89,7 @@ export function RoundRefereeBestWorstSection({
   allRoundReferees = [],
   leagueName,
   roundNumber,
+  currentUserId = null,
 }: Props) {
   const [bestWorstOpen, setBestWorstOpen] = useState<Set<string>>(
     () => new Set(ROLE_ORDER.filter((r) => DEFAULT_OPEN_BEST_WORST.has(r))),
@@ -211,24 +221,20 @@ export function RoundRefereeBestWorstSection({
                     <span className="font-mono text-[10px] md:text-xs text-zinc-400">
                       {fb.rating.toFixed(1)} / 5.0
                     </span>
-                    <div className="flex items-center gap-1 text-blue-400">
-                      <svg
-                        width="10"
-                        height="10"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                      </svg>
-                      <span className="font-mono text-xs md:text-sm font-black">
-                        {fb.likeCount}
-                      </span>
-                    </div>
+                    {fb.replies === undefined && (
+                      <span className="font-mono text-xs text-blue-400">♥ {fb.likeCount}</span>
+                    )}
                   </div>
                 </div>
                 <div className="text-xs md:text-sm text-zinc-300 not-italic">
                   <TextWithEmbedPreview text={fb.comment} />
                 </div>
+                {fb.replies !== undefined && fb.likedByMe !== undefined && (
+                  <HomeReviewFeedback
+                    review={{ ...fb, replies: fb.replies, likedByMe: fb.likedByMe }}
+                    currentUserId={currentUserId}
+                  />
+                )}
               </div>
             ))}
           </div>

@@ -42,6 +42,13 @@ type RefFeedback = {
   teamSlug: string | null
   teamEmblem: string | null
   likeCount: number
+  likedByMe: boolean
+  replies: {
+    id: string
+    content: string
+    userName: string
+    userHandle: string | null
+  }[]
   comment: string
   matchLabel: string
   /** 이 한줄평 작성자가 부여한 평점 (1~5) */
@@ -93,6 +100,8 @@ type RefereeCardPayload = {
     teamSlug: string | null
     teamEmblem: string | null
     likeCount: number
+    likedByMe: boolean
+    replies: RefFeedback["replies"]
     comment: string
     matchLabel: string
     rating: number
@@ -313,7 +322,15 @@ export default async function HomePage() {
           select: { name: true, image: true, handle: true },
         },
         reactions: {
-          select: { type: true },
+          select: { type: true, userId: true },
+        },
+        replies: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            content: true,
+            user: { select: { name: true, handle: true } },
+          },
         },
       },
     })
@@ -363,6 +380,13 @@ export default async function HomePage() {
             teamSlug: r.fanTeam?.slug ?? null,
             teamEmblem: r.fanTeam?.emblemPath ?? null,
             likeCount,
+            likedByMe: currentUserId != null && r.reactions.some((rx) => rx.type === "LIKE" && rx.userId === currentUserId),
+            replies: r.replies.map((reply) => ({
+              id: reply.id,
+              content: reply.content,
+              userName: reply.user.name || "Supporter",
+              userHandle: reply.user.handle,
+            })),
             comment: r.comment,
             matchLabel,
             rating: r.rating,
@@ -460,6 +484,8 @@ export default async function HomePage() {
               teamSlug: fb.teamSlug,
               teamEmblem: fb.teamEmblem,
               likeCount: fb.likeCount,
+              likedByMe: fb.likedByMe,
+              replies: fb.replies,
               comment: fb.comment,
               matchLabel: fb.matchLabel,
               rating: fb.rating,
@@ -635,6 +661,7 @@ export default async function HomePage() {
                           allRoundReferees={h.allRoundReferees}
                           leagueName={h.leagueName}
                           roundNumber={h.roundNumber}
+                          currentUserId={currentUserId}
                         />
                       </div>
                     )
