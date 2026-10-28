@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { ArrowUpRight } from "lucide-react"
 
 export function SiteFooter() {
   return (
@@ -9,7 +10,7 @@ export function SiteFooter() {
             SEE VAR 후원하기
           </span>
           <a
-            href="https://link.kakaopay.com/__/9RJDI7L"
+            href="https://link.kakaopay.com/__/ffe10Qe"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:opacity-80 transition-opacity inline-flex items-center"
@@ -51,10 +52,20 @@ export function SiteFooter() {
               takeknowledge@naver.com
             </a>
           </span>
-          <span className="text-border shrink-0" aria-hidden>
-            |
-          </span>
-          <span className="shrink-0">© 코디드바이 All rights reserved.</span>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-mono text-sm text-muted-foreground">
+          <p className="text-center">© Take Knowledge. All rights reserved.</p>
+          <a
+            href="https://takeknowledge-dev.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
+            aria-label="Take Knowledge 개발자 포트폴리오 (새 탭에서 열림)"
+          >
+            개발자 포트폴리오
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </a>
         </div>
       </div>
     </footer>
