@@ -11,6 +11,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 서버 빌드에서는 타입 검사를 건너뛰므로 여기서 막는다
+      - name: Typecheck
+        run: |
+          npm ci
+          npx prisma generate
+          npm run typecheck
+
       - name: Set target server
         id: target
         run: |
@@ -29,8 +36,14 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          command_timeout: 30m
+          command_timeout: 60m
           script: |
+            echo "--- server state before deploy ---"
+            free -m || true
+            uptime || true
+            docker ps -a --format '{{.Names}} {{.Status}}' || true
+            docker compose -f ~/seevar/docker-compose.yml logs --tail=30 app || true
+
             # 1. 프로젝트 폴더 존재 여부 확인 및 이동
             if [ ! -d "~/seevar/.git" ]; then
               echo "Repository not found. Removing folder and cloning..."
@@ -70,3 +83,8 @@ jobs:
 
             # 4. 컨테이너 빌드 및 실행
             docker compose up -d --build
+
+            echo "--- server state after deploy ---"
+            sleep 20
+            docker compose ps
+            docker compose logs --tail=30 app

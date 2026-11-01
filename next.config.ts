@@ -3,6 +3,9 @@ import path from "path"
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // 작은 서버에서는 타입 검사가 15분 넘게 걸려 사이트까지 멈춘다. 검사는 배포 워크플로의 러너에서 먼저 한다.
+  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
   // NextAuth(JWT)가 사용하는 jose를 번들에서 제외 → vendor-chunks/jose.js MODULE_NOT_FOUND 방지
   serverExternalPackages: ["jose"],
   // 상위 폴더 lockfile 대신 이 프로젝트를 루트로 사용 (vendor-chunks 경로 등 안정화)
