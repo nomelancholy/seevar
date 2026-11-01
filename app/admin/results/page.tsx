@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { AdminResultsFilter } from "./AdminResultsFilter"
 import { AdminResultsMatchList } from "./AdminResultsMatchList"
 import { AdminBulkResultUpload } from "./AdminBulkResultUpload"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "경기 결과 | 관리자 | SEE VAR",
@@ -17,6 +18,7 @@ export default async function AdminResultsPage({
 }: {
   searchParams: SearchParams
 }) {
+  await requireAdmin()
   const params = await searchParams
   const yearStr = params.year
   const leagueSlug = params.league

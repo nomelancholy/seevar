@@ -1,3 +1,5 @@
+import type { Metadata } from "next"
+import { cache } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -6,6 +8,15 @@ import { EmblemImage } from "@/components/ui/EmblemImage"
 import { TeamDetailSection } from "@/components/teams/TeamDetailSection"
 import { ChevronLeft } from "lucide-react"
 import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
+import { buildPageMetadata } from "@/lib/site"
+import { getTeamDetailPath } from "@/lib/team-url"
+import {
+  TEAM_MIN_VOTES,
+  TEAM_PRIOR_WEIGHT,
+  adjustedRating,
+  compareBest,
+  isLowSample,
+} from "@/lib/utils/stats"
 import type { RefereeRole } from "@prisma/client"
 
 type Params = Promise<{ slug: string }>
@@ -30,23 +41,22 @@ function paramToDbSlug(param: string): string {
   return param.replace(/-/g, "_")
 }
 
-async function findTeamForSlug(slug: string) {
+const findTeamForSlug = cache(async (slug: string) => {
   const bySlug = slug.includes("-")
   const team = await prisma.team.findFirst({
     where: bySlug ? { slug: paramToDbSlug(slug) } : { id: slug },
     include: { leagues: true },
   })
   return team ?? null
-}
+})
 
-export async function generateMetadata({ params }: { params: Params }) {
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params
-  const team = await findTeamForSlug(slug).then((t) => (t ? { name: t.name } : null))
+  const team = await findTeamForSlug(slug)
   if (!team) return { title: "팀 정보 | SEE VAR" }
-  return {
-    title: `${team.name} | 팀 정보 | SEE VAR`,
-    description: `${team.name} 팀 경기 데이터와 심판 상성`,
-  }
+  const title = `${team.name} | 팀 정보 | SEE VAR`
+  const description = `${team.name} 경기 기록과 팬들이 평가한 심판 상성, 자주 만난 심판·카드 통계를 확인하세요.`
+  return buildPageMetadata({ title, description, path: getTeamDetailPath(team) })
 }
 
 export default async function TeamDetailPage({
@@ -157,6 +167,11 @@ export default async function TeamDetailPage({
     })
   }
 
+  // 상성 순위는 보정 평점 기준: 평가가 적은 심판은 이 팀 팬 전체 평균 쪽으로 당겨서 비교한다
+  const teamRatingSum = Array.from(byReferee.values()).reduce((sum, stat) => sum + stat.weightedRating, 0)
+  const teamRatingCount = Array.from(byReferee.values()).reduce((sum, stat) => sum + stat.fanRatingCount, 0)
+  const teamPriorMean = teamRatingCount > 0 ? teamRatingSum / teamRatingCount : 0
+
   const aggregatedStats = Array.from(byReferee.values()).map((stat) => ({
     id: stat.id,
     slug: stat.slug,
@@ -164,6 +179,9 @@ export default async function TeamDetailPage({
     fanAverageRating:
       stat.fanRatingCount > 0 ? stat.weightedRating / stat.fanRatingCount : 0,
     fanRatingCount: stat.fanRatingCount,
+    adjustedRating:
+      adjustedRating({ count: stat.fanRatingCount, sum: stat.weightedRating }, teamPriorMean, TEAM_PRIOR_WEIGHT) ?? 0,
+    lowSample: isLowSample(stat.fanRatingCount, TEAM_MIN_VOTES),
     totalAssignments: stat.totalAssignments,
     roleCounts: stat.roleCounts,
     totalYellowCards: stat.totalYellowCards,
@@ -175,33 +193,18 @@ export default async function TeamDetailPage({
     .sort((a, b) => b.totalAssignments - a.totalAssignments)
   const combinedForCompatibility = aggregatedStats
     .filter((stat) => stat.fanRatingCount > 0)
-    .sort((a, b) => b.fanAverageRating - a.fanAverageRating)
-  const sortedByRating = [...combinedForCompatibility].sort(
-    (a, b) => b.fanAverageRating - a.fanAverageRating
-  )
-  const compatibility = {
-    high: sortedByRating[0]
-      ? {
-        id: sortedByRating[0].id,
-        slug: sortedByRating[0].slug,
-        name: sortedByRating[0].name,
-        fanAverageRating: sortedByRating[0].fanAverageRating,
-        totalAssignments: sortedByRating[0].totalAssignments,
-        roleCounts: sortedByRating[0].roleCounts,
-      }
-      : null,
-    low:
-      sortedByRating.length >= 2
-        ? {
-          id: sortedByRating[sortedByRating.length - 1].id,
-          slug: sortedByRating[sortedByRating.length - 1].slug,
-          name: sortedByRating[sortedByRating.length - 1].name,
-          fanAverageRating: sortedByRating[sortedByRating.length - 1].fanAverageRating,
-          totalAssignments: sortedByRating[sortedByRating.length - 1].totalAssignments,
-          roleCounts: sortedByRating[sortedByRating.length - 1].roleCounts,
-        }
-        : null,
-  }
+    .sort((a, b) =>
+      compareBest(
+        { adjusted: a.adjustedRating, count: a.fanRatingCount, name: a.name },
+        { adjusted: b.adjustedRating, count: b.fanRatingCount, name: b.name }
+      )
+    )
+  const highest = combinedForCompatibility[0] ?? null
+  const lowest =
+    combinedForCompatibility.length >= 2
+      ? combinedForCompatibility[combinedForCompatibility.length - 1]
+      : null
+  const compatibility = { high: highest, low: lowest }
 
   const seenFixture = new Set<string>()
   const uniqueMatchList = matchList.filter((m) => {

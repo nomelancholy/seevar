@@ -6,37 +6,25 @@ import { getUnreadNotificationCount } from "@/lib/notifications";
 import { recordUserIpIfNeeded } from "@/lib/record-user-ip";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SessionProvider } from "@/components/auth/SessionProvider";
+import { DEFAULT_OPEN_GRAPH, DEFAULT_TWITTER, SITE_NAME, SITE_URL } from "@/lib/site";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://seevar.online";
+const siteDescription =
+  "K리그 심판 판정을 평가하고 논란의 순간을 기록합니다. 논의한 내용을 바탕으로 IFAB 규정에 기반한 미디어 리포트도 발행합니다.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: "SEE VAR",
-  description:
-    "K리그 심판 판정을 평가하고 논란의 순간을 기록합니다. 논의한 내용을 바탕으로 IFAB 규정에 기반한 미디어 리포트도 발행합니다.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_NAME,
+  description: siteDescription,
   openGraph: {
-    type: "website",
-    locale: "ko_KR",
-    url: siteUrl,
-    siteName: "SEE VAR",
-    title: "SEE VAR",
-    description:
-      "K리그 심판 판정을 평가하고 논란의 순간을 기록합니다. 논의한 내용을 바탕으로 IFAB 규정에 기반한 미디어 리포트도 발행합니다.",
-    images: [
-      {
-        url: "/assets/preview_image.png",
-        width: 1200,
-        height: 630,
-        alt: "SEE VAR",
-      },
-    ],
+    ...DEFAULT_OPEN_GRAPH,
+    url: SITE_URL,
+    title: SITE_NAME,
+    description: siteDescription,
   },
   twitter: {
-    card: "summary_large_image",
-    title: "SEE VAR",
-    description:
-      "K리그 심판 판정을 평가하고 논란의 순간을 기록합니다. 논의한 내용을 바탕으로 IFAB 규정에 기반한 미디어 리포트도 발행합니다.",
-    images: ["/assets/preview_image.png"],
+    ...DEFAULT_TWITTER,
+    title: SITE_NAME,
+    description: siteDescription,
   },
 };
 

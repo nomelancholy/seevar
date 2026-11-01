@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AdminMatchScheduleEditForm } from "./AdminMatchScheduleEditForm"
 import { AdminMatchRefereesSection } from "./AdminMatchRefereesSection"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "경기 수정 | 관리자 | SEE VAR",
@@ -11,6 +12,7 @@ export const metadata = {
 type Params = Promise<{ matchId: string }>
 
 export default async function AdminMatchScheduleEditPage({ params }: { params: Params }) {
+  await requireAdmin()
   const { matchId } = await params
   const match = await prisma.match.findUnique({
     where: { id: matchId },

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AdminRefereeList } from "./AdminRefereeList"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "심판 정보 | 관리자 | SEE VAR",
@@ -8,6 +9,7 @@ export const metadata = {
 }
 
 export default async function AdminRefereesPage() {
+  await requireAdmin()
   const referees = await prisma.referee.findMany({
     orderBy: { name: "asc" },
     include: {

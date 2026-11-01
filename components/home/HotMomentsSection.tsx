@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { MessageCircle, ChevronDown, ChevronRight } from "lucide-react"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { MomentCommentModal } from "./MomentCommentModal"
+import { getDecisionCategory } from "@/lib/decision-categories"
 
 export type HotMomentItem = {
   rank: number
@@ -15,6 +16,8 @@ export type HotMomentItem = {
   homeEmblem: string
   awayEmblem: string
   time: string
+  /** 판정 유형 key (lib/decision-categories.ts). 미분류면 null */
+  category?: string | null
   varCount: number
   commentCount: number
   /** 첫 댓글 내용 일부 (카드 미리보기용) */
@@ -138,8 +141,13 @@ function MomentCard({
         <EmblemImage src={m.awayEmblem} width={16} height={16} className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
         <span className="truncate">{m.awayName}</span>
       </div>
-      <div className="text-primary font-bold font-mono text-[10px] md:text-xs mb-2 md:mb-3">
-        {m.time}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] md:text-xs mb-2 md:mb-3">
+        <span className="text-primary font-bold">{m.time}</span>
+        {getDecisionCategory(m.category) && (
+          <span className="border border-border px-1.5 py-0.5 text-muted-foreground not-italic">
+            {getDecisionCategory(m.category)?.label}
+          </span>
+        )}
       </div>
       {m.firstCommentPreview && (
         <p className="text-xs md:text-sm text-white line-clamp-2 mb-2 not-italic">

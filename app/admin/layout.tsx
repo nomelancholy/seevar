@@ -1,7 +1,5 @@
 import Link from "next/link"
-import { redirect } from "next/navigation"
-import { getCurrentUser } from "@/lib/auth"
-import { getIsAdmin } from "@/lib/auth"
+import { requireAdmin } from "@/lib/auth"
 import { ChevronLeft } from "lucide-react"
 
 export const metadata = {
@@ -14,9 +12,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = await getCurrentUser()
-  if (!user) redirect("/login")
-  if (!getIsAdmin(user)) redirect("/notice")
+  // 화면 보호용. 데이터 보호는 각 페이지의 requireAdmin()이 맡는다 (lib/auth.ts 참고)
+  await requireAdmin()
 
   return (
     <div className="min-h-screen">

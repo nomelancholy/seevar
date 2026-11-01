@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { unstable_cache } from "next/cache"
 import Link from "next/link"
@@ -19,6 +20,8 @@ import { getYouTubeEmbedUrl, getInstagramEmbedUrl } from "@/lib/embed-urls"
 import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
 import { getIsAdmin } from "@/lib/auth"
 import { AdminMatchMediaSection } from "@/components/matches/AdminMatchMediaSection"
+import { buildPageMetadata } from "@/lib/site"
+import { getTeamDetailPath } from "@/lib/team-url"
 
 type Params = Promise<{ year: string; leagueSlug: string; roundSlug: string; matchNumber: string }>
 
@@ -66,13 +69,18 @@ const ROLE_LABEL: Record<string, string> = {
 /** 표시 순서: 주심 → 부심 → 대기심 → VAR */
 const ROLE_DISPLAY_ORDER: (keyof typeof ROLE_LABEL)[] = ["MAIN", "ASSISTANT", "WAITING", "VAR"]
 
-export async function generateMetadata({ params }: { params: Params }) {
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { year, leagueSlug, roundSlug, matchNumber } = await params
-  const match = await resolveMatchBySlug(year, leagueSlug, roundSlug, matchNumber)
+  const match = await getCachedMatch(year, leagueSlug, roundSlug, matchNumber)
   if (!match) return { title: "경기 없음 | SEE VAR" }
-  return {
-    title: `${match.homeTeam.name} vs ${match.awayTeam.name} | SEE VAR`,
-  }
+  const title = `${match.homeTeam.name} vs ${match.awayTeam.name} | SEE VAR`
+  const round = match.round
+  const mainReferee = match.matchReferees.find((mr) => mr.role === "MAIN")?.referee.name
+  const description =
+    `${round.league.season.year} ${round.league.name} ${round.number}라운드 ` +
+    `${match.homeTeam.name} vs ${match.awayTeam.name}` +
+    `${mainReferee ? ` (주심 ${mainReferee})` : ""}. 팬들이 매긴 심판 평점과 한줄평, 판정 쟁점 순간을 확인하세요.`
+  return buildPageMetadata({ title, description, path: getMatchDetailPath(match) })
 }
 
 async function resolveMatchBySlug(
@@ -156,8 +164,7 @@ function sanitizeBackUrl(back: string | undefined): string {
 
 /** 팀 상세 URL: slug가 있으면 _ → - 로, 없으면 id. back 있으면 쿼리로 붙여 진입 전 경로로 복귀 가능 */
 function teamDetailHref(team: { id: string; slug?: string | null }, backPath: string): string {
-  const segment = team.slug ? team.slug.replace(/_/g, "-") : team.id
-  const base = `/teams/${segment}`
+  const base = getTeamDetailPath(team)
   if (!backPath.startsWith("/") || backPath.includes("//")) return base
   return `${base}?back=${encodeURIComponent(backPath)}`
 }
@@ -251,6 +258,7 @@ export default async function MatchDetailBySlugPage({
       startPeriod: m.startPeriod ?? null,
       startMinuteInPeriod: m.startMinuteInPeriod ?? null,
       endMinute: m.endMinute,
+      category: m.category ?? null,
       seeVarCount: m.seeVarCount,
       commentCount: m.commentCount,
       firstCommentPreview,
@@ -274,6 +282,7 @@ export default async function MatchDetailBySlugPage({
       homeEmblem: match.homeTeam.emblemPath ?? "",
       awayEmblem: match.awayTeam.emblemPath ?? "",
       time,
+      category: m.category,
       varCount: m.seeVarCount,
       commentCount: m.commentCount,
       firstCommentPreview: m.firstCommentPreview ?? undefined,

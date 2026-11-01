@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
 import { uploadToSpaces } from "@/lib/spaces"
 import { validateDisplayName } from "@/lib/filters/profanity"
+import { deleteUserAndContent } from "@/lib/services/delete-user"
 
 export type UpdateProfileResult = { ok: true } | { ok: false; error: string }
 
@@ -154,8 +155,31 @@ export async function deleteAccount(): Promise<DeleteAccountResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "로그인이 필요합니다." }
 
-  await prisma.user.delete({ where: { id: user.id } })
-  revalidatePath("/my")
-  revalidatePath("/")
-  return { ok: true }
+  try {
+    const result = await deleteUserAndContent(user.id)
+    if (!result.ok) {
+      return {
+        ok: false,
+        error:
+          result.reason === "HAS_NOTICES"
+            ? "공지를 작성한 운영자 계정은 여기서 삭제할 수 없습니다. 공지를 먼저 정리해 주세요."
+            : "사용자 정보를 찾을 수 없습니다.",
+      }
+    }
+    for (const matchId of result.reviewedMatchIds) {
+      revalidateTag(`match-reviews-${matchId}`)
+    }
+    revalidateTag("match-details")
+    revalidateTag("archive-rounds")
+    revalidateTag("referee-rankings")
+    revalidatePath("/my")
+    revalidatePath("/")
+    revalidatePath("/matches")
+    revalidatePath("/referees")
+    revalidatePath("/teams")
+    return { ok: true }
+  } catch (e) {
+    console.error("deleteAccount:", e)
+    return { ok: false, error: "계정 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요." }
+  }
 }

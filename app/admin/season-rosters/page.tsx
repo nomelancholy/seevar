@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AdminSeasonRosterManager } from "./AdminSeasonRosterManager"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "연도별 소속 관리 | 관리자 | SEE VAR",
@@ -8,6 +9,7 @@ export const metadata = {
 }
 
 export default async function AdminSeasonRostersPage() {
+  await requireAdmin()
   const [seasons, teams, referees] = await Promise.all([
     prisma.season.findMany({
       orderBy: { year: "desc" },

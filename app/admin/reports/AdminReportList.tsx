@@ -16,7 +16,8 @@ type Report = {
   reason: string
   description: string | null
   createdAt: Date
-  reporter: { id: string; name: string | null; email: string | null }
+  /** 신고자가 탈퇴했으면 null */
+  reporter: { id: string; name: string | null; email: string | null } | null
   review: {
     id: string
     rating: number
@@ -102,7 +103,9 @@ export function AdminReportList({ reports }: Props) {
               <span>·</span>
               <span>신고 사유: {REASON_LABEL[r.reason] ?? r.reason}</span>
               <span>·</span>
-              <span>신고자: {r.reporter.name ?? r.reporter.email ?? r.reporter.id}</span>
+              <span>
+                신고자: {r.reporter ? (r.reporter.name ?? r.reporter.email ?? r.reporter.id) : "탈퇴한 회원"}
+              </span>
             </div>
             {r.description && (
               <p className="font-mono text-xs text-muted-foreground italic">

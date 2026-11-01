@@ -14,6 +14,7 @@ import {
   X,
   Share2,
   BarChart3,
+  BookOpen,
 } from "lucide-react";
 import {
   createComment,
@@ -49,6 +50,7 @@ import { votePoll } from "@/lib/actions/polls";
 import { PollEditorDialog } from "@/components/poll/PollEditorDialog";
 import { UserProfileLink } from "@/components/user/UserProfileLink";
 import { AdaptiveVideo } from "@/components/media/AdaptiveVideo";
+import { getDecisionCategory } from "@/lib/decision-categories";
 
 type HotMomentItem = {
   momentId?: string;
@@ -59,6 +61,7 @@ type HotMomentItem = {
   homeEmblem: string;
   awayEmblem: string;
   time: string;
+  category?: string | null;
   varCount: number;
   commentCount: number;
 };
@@ -139,6 +142,7 @@ type MomentDetail = {
   description: string | null;
   startMinute: number | null;
   endMinute: number | null;
+  category?: string | null;
   seeVarCount: number;
   commentCount: number;
   currentUserId?: string | null;
@@ -767,6 +771,7 @@ export function MomentCommentModal({
 
   const title = moment ? `${moment.homeName} vs ${moment.awayName}` : "";
   const time = moment?.time ?? "";
+  const decisionCategory = getDecisionCategory(detail?.category ?? moment?.category);
   const varCount = detail?.seeVarCount ?? moment?.varCount ?? 0;
   const comments = detail?.comments ?? [];
   const isSeeVarByMe = Boolean(
@@ -811,6 +816,11 @@ export function MomentCommentModal({
                 <div className="flex items-center gap-2 mt-1 font-mono text-[10px] text-muted-foreground">
                   <span>{moment?.league ?? ""}</span>
                   <span className="bg-muted px-2 py-0.5 rounded">{time}</span>
+                  {decisionCategory && (
+                    <span className="border border-border px-2 py-0.5 rounded">
+                      {decisionCategory.label}
+                    </span>
+                  )}
                 </div>
               </Link>
             ) : (
@@ -821,6 +831,11 @@ export function MomentCommentModal({
                 <div className="flex items-center gap-2 mt-1 font-mono text-[10px] text-muted-foreground">
                   <span>{moment?.league ?? ""}</span>
                   <span className="bg-muted px-2 py-0.5 rounded">{time}</span>
+                  {decisionCategory && (
+                    <span className="border border-border px-2 py-0.5 rounded">
+                      {decisionCategory.label}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -861,6 +876,17 @@ export function MomentCommentModal({
               </button>
             </div>
           </div>
+          {decisionCategory?.law && decisionCategory.lawUrl && (
+            <a
+              href={decisionCategory.lawUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center gap-1 font-mono text-[10px] text-muted-foreground hover:text-primary transition-colors"
+            >
+              <BookOpen className="size-3" />
+              관련 규정: IFAB 경기규칙 {decisionCategory.law}
+            </a>
+          )}
           <div className="mt-3 flex items-stretch justify-between gap-4">
             <div className="flex flex-col gap-1.5 min-w-0">
               <div className="flex items-center gap-2">

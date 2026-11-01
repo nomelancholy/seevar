@@ -9,6 +9,9 @@ type Referee = {
   slug: string
   name: string
   averageRating: number | null
+  /** 정렬용 보정 평점 (평가 수가 적을수록 전체 평균 쪽으로 당긴 값). 평가가 없으면 null */
+  rankScore: number | null
+  lowSample: boolean
   totalVotes: number
   matchesCount: number
   totalYellowCards: number
@@ -39,16 +42,17 @@ export function RefereeListWithSearch({ referees }: Props) {
     const q = query.trim().toLowerCase()
     let result = q ? referees.filter((r) => r.name.toLowerCase().includes(q)) : referees
 
+    // 평점 정렬은 보정 평점 기준 (1명이 준 5점이 맨 위로 오지 않게). 평가 없는 심판은 항상 뒤로.
     result = [...result].sort((a, b) => {
       if (sort === "RATING_DESC") {
-        const ratingA = a.averageRating ?? -1
-        const ratingB = b.averageRating ?? -1
+        const ratingA = a.rankScore ?? -1
+        const ratingB = b.rankScore ?? -1
         if (ratingA !== ratingB) return ratingB - ratingA
         return a.name.localeCompare(b.name)
       }
       if (sort === "RATING_ASC") {
-        const ratingA = a.averageRating ?? 999
-        const ratingB = b.averageRating ?? 999
+        const ratingA = a.rankScore ?? 999
+        const ratingB = b.rankScore ?? 999
         if (ratingA !== ratingB) return ratingA - ratingB
         return a.name.localeCompare(b.name)
       }
@@ -150,6 +154,11 @@ export function RefereeListWithSearch({ referees }: Props) {
                       </span>
                     )}
                   </div>
+                  {r.lowSample && (
+                    <div className="font-mono text-[10px] md:text-xs text-amber-400 mt-0.5">
+                      표본 적음
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3 md:gap-4 border-t border-border pt-3 md:pt-4">

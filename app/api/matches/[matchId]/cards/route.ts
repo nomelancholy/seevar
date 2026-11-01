@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma"
 import { checkCrawlerAuth } from "@/lib/auth"
 import { RefereeRole } from "@prisma/client"
 import { revalidateMatchViews } from "@/lib/revalidate-match-views"
+import { syncRefereeTeamStatCardsForMatchReferee } from "@/lib/referee-stats-sync"
 
 /**
  * 카드 부여 정보 업데이트 API.
  * 사용자 요청에 따라 주심(MAIN)의 레코드에만 기록합니다.
+ * 바뀐 만큼만 RefereeTeamStat 카드 합계에 반영하므로 크롤러가 같은 값을 여러 번 보내도 합계는 그대로입니다.
  */
 export async function PATCH(
   request: NextRequest,
@@ -27,6 +29,15 @@ export async function PATCH(
       awayRedCards,
     } = body
 
+    for (const value of [homeYellowCards, homeRedCards, awayYellowCards, awayRedCards]) {
+      if (value != null && (!Number.isInteger(value) || value < 0)) {
+        return NextResponse.json(
+          { error: "Card counts must be non-negative integers" },
+          { status: 400 }
+        )
+      }
+    }
+
     // 해당 경기의 주심(MAIN) 찾기
     const mainReferee = await prisma.matchReferee.findFirst({
       where: {
@@ -42,14 +53,19 @@ export async function PATCH(
       )
     }
 
+    const cards = {
+      homeYellowCards: homeYellowCards ?? mainReferee.homeYellowCards,
+      homeRedCards: homeRedCards ?? mainReferee.homeRedCards,
+      awayYellowCards: awayYellowCards ?? mainReferee.awayYellowCards,
+      awayRedCards: awayRedCards ?? mainReferee.awayRedCards,
+    }
+
+    // 증감은 DB에 남아 있는 이전 카드 수를 기준으로 계산하므로 MatchReferee를 고치기 전에 반영한다.
+    await syncRefereeTeamStatCardsForMatchReferee(mainReferee.id, cards)
+
     const updatedMatchReferee = await prisma.matchReferee.update({
       where: { id: mainReferee.id },
-      data: {
-        homeYellowCards: homeYellowCards ?? mainReferee.homeYellowCards,
-        homeRedCards: homeRedCards ?? mainReferee.homeRedCards,
-        awayYellowCards: awayYellowCards ?? mainReferee.awayYellowCards,
-        awayRedCards: awayRedCards ?? mainReferee.awayRedCards,
-      },
+      data: cards,
     })
 
     await revalidateMatchViews(matchId)

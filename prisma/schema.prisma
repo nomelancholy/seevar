@@ -410,6 +410,10 @@ model Moment {
    */
   duration            Int     @default(0)
   mediaUrl            String?
+  /**
+   * 판정 유형 key (lib/decision-categories.ts). 선택 항목이며 미분류는 null
+   */
+  category            String?
 
   comments  Comment[]
   reactions Reaction[]
@@ -489,9 +493,12 @@ model PollVote {
 }
 
 model Report {
-  id         String @id @default(cuid())
-  reporterId String
-  reporter   User   @relation(fields: [reporterId], references: [id])
+  id         String  @id @default(cuid())
+  /**
+   * 신고자. 탈퇴하면 비워지고(SET NULL) 신고 기록은 운영 검토용으로 남는다
+   */
+  reporterId String?
+  reporter   User?   @relation(fields: [reporterId], references: [id], onDelete: SetNull)
 
   reason      ReportReason
   description String?      @db.Text

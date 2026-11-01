@@ -2,15 +2,11 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { EmblemImage } from "@/components/ui/EmblemImage"
 import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
+import { getTeamDetailPath } from "@/lib/team-url"
 
 export const metadata = {
   title: "팀 정보 | SEE VAR",
   description: "팀별 경기 데이터와 심판 상성 데이터",
-}
-
-/** URL 쿼리/경로용: slug의 _ 를 - 로 (e.g. kleague1_incheon_united_fc → kleague1-incheon-united-fc) */
-function slugToParam(slug: string | null): string {
-  return slug ? slug.replace(/_/g, "-") : ""
 }
 
 export default async function TeamsPage() {
@@ -38,11 +34,10 @@ export default async function TeamsPage() {
         </h3>
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
           {teams.map((t) => {
-            const teamPath = t.slug ? slugToParam(t.slug) : t.id
             return (
               <Link
                 key={t.id}
-                href={`/teams/${teamPath}`}
+                href={getTeamDetailPath(t)}
                 className="team-btn flex flex-col items-center gap-2 md:gap-3 group border rounded-md p-3 md:p-4 transition-all duration-300 hover:-translate-y-0.5 opacity-60 hover:opacity-100 border-border hover:border-primary"
               >
                 <div className="w-20 h-20 md:w-24 md:h-24 bg-card border border-border flex items-center justify-center overflow-hidden rounded">

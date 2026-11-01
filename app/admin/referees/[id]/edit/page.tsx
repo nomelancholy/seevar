@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AdminRefereeEditForm } from "./AdminRefereeEditForm"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "심판 수정 | 관리자 | SEE VAR",
@@ -10,6 +11,7 @@ export const metadata = {
 type Params = Promise<{ id: string }>
 
 export default async function AdminRefereeEditPage({ params }: { params: Params }) {
+  await requireAdmin()
   const { id } = await params
   const referee = await prisma.referee.findUnique({
     where: { id },

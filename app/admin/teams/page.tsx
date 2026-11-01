@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { AdminTeamAddForm } from "./AdminTeamAddForm"
 import { AdminBulkTeamUpload } from "../structure/AdminBulkTeamUpload"
 import { AdminTeamRow } from "./AdminTeamRow"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "팀 정보 | 관리자 | SEE VAR",
@@ -10,6 +11,7 @@ export const metadata = {
 }
 
 export default async function AdminTeamsPage() {
+  await requireAdmin()
   const teams = await prisma.team.findMany({
     orderBy: { name: "asc" },
     include: {

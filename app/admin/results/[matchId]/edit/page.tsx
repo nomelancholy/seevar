@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AdminResultEditForm } from "./AdminResultEditForm"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "경기 결과 수정 | 관리자 | SEE VAR",
@@ -26,6 +27,7 @@ export default async function AdminResultEditPage({
   params: Params
   searchParams: SearchParams
 }) {
+  await requireAdmin()
   const { matchId } = await params
   const query = await searchParams
   const returnTo = buildResultsListUrl(query)

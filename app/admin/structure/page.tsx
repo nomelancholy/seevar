@@ -2,6 +2,7 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AdminStructureForms } from "../matches/AdminStructureForms"
 import { AdminStructureList } from "./AdminStructureList"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "시즌·리그·라운드 관리 | 관리자 | SEE VAR",
@@ -9,6 +10,7 @@ export const metadata = {
 }
 
 export default async function AdminStructurePage() {
+  await requireAdmin()
   const seasonsWithStructure = await prisma.season.findMany({
     orderBy: { year: "desc" },
     include: {

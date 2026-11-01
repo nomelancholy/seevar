@@ -7,6 +7,7 @@ import { EmblemImage } from "@/components/ui/EmblemImage"
 import { TeamMatchHistoryYearFilter } from "./TeamMatchHistoryYearFilter"
 import { TeamMatchHistorySortFilter } from "./TeamMatchHistorySortFilter"
 import { StatDimensionFilters } from "@/components/stats/StatDimensionFilters"
+import { TEAM_MIN_VOTES } from "@/lib/utils/stats"
 
 const ROLE_LABEL: Record<string, string> = {
   MAIN: "MAIN",
@@ -34,6 +35,9 @@ type RefereeStat = {
   slug: string
   name: string
   fanAverageRating: number
+  /** 이 팀 팬이 남긴 평가 수 */
+  fanRatingCount: number
+  lowSample: boolean
   totalAssignments: number
   roleCounts: Record<string, number> | null
 }
@@ -185,7 +189,13 @@ export function TeamDetailSection({
                     <span className="font-mono text-[10px] md:text-xs font-bold text-primary">
                       {compatibility.high.fanAverageRating.toFixed(1)}
                     </span>
+                    <span className="font-mono text-[10px] md:text-xs text-muted-foreground">
+                      ({compatibility.high.fanRatingCount}건)
+                    </span>
                   </div>
+                  {compatibility.high.lowSample && (
+                    <p className="mt-1.5 font-mono text-[10px] text-amber-400">표본 적음 · 참고용</p>
+                  )}
                 </div>
               ) : (
                 <p className="font-mono text-[10px] text-muted-foreground py-2">—</p>
@@ -214,7 +224,13 @@ export function TeamDetailSection({
                     <span className="font-mono text-[10px] md:text-xs font-bold text-destructive">
                       {compatibility.low.fanAverageRating.toFixed(1)}
                     </span>
+                    <span className="font-mono text-[10px] md:text-xs text-muted-foreground">
+                      ({compatibility.low.fanRatingCount}건)
+                    </span>
                   </div>
+                  {compatibility.low.lowSample && (
+                    <p className="mt-1.5 font-mono text-[10px] text-amber-400">표본 적음 · 참고용</p>
+                  )}
                 </div>
               ) : (
                 <p className="font-mono text-[10px] text-muted-foreground py-2">—</p>
@@ -497,10 +513,12 @@ export function TeamDetailSection({
                     이 팀 팬 평점 데이터가 없습니다.
                   </p>
                 ) : (
-                  compatibilityList
-                    .slice()
-                    .sort((a, b) => b.fanAverageRating - a.fanAverageRating)
-                    .map((ref, idx) => (
+                  <>
+                  <p className="font-mono text-[10px] md:text-xs text-muted-foreground">
+                    순서는 평가 수를 반영한 보정 평점 기준입니다. 평가 {TEAM_MIN_VOTES}건 미만은 표본
+                    적음(노란색)으로 표시합니다.
+                  </p>
+                  {compatibilityList.map((ref, idx) => (
                       <div
                         key={ref.id}
                         className="flex items-center justify-between border border-border bg-card/40 px-3 py-2 md:px-4 md:py-3"
@@ -532,9 +550,16 @@ export function TeamDetailSection({
                           <span className="font-mono text-[10px] md:text-xs font-bold text-primary">
                             {ref.fanAverageRating.toFixed(1)}
                           </span>
+                          <span
+                            className={`font-mono text-[10px] md:text-xs w-10 text-right ${ref.lowSample ? "text-amber-400" : "text-muted-foreground"}`}
+                            title={ref.lowSample ? "표본 적음" : undefined}
+                          >
+                            {ref.fanRatingCount}건
+                          </span>
                         </div>
                       </div>
-                    ))
+                    ))}
+                  </>
                 )
               ) : modalTab === "assignments" && assignments.length === 0 ? (
                 <p className="font-mono text-[10px] text-muted-foreground">

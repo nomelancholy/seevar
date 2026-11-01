@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AdminReportList } from "./AdminReportList"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "신고 관리 | 관리자 | SEE VAR",
@@ -8,6 +9,7 @@ export const metadata = {
 }
 
 export default async function AdminReportsPage() {
+  await requireAdmin()
   const reports = await prisma.report.findMany({
     orderBy: { createdAt: "desc" },
     take: 200,

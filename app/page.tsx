@@ -10,6 +10,11 @@ import { LeagueMatchesSection } from "@/components/home/LeagueMatchesSection"
 import { RoundRefereeBestWorstSection } from "@/components/home/RoundRefereeBestWorstSection"
 import { HomeEmptyState } from "@/components/home/HomeEmptyState"
 import { KakaoAdFit } from "@/components/ads/KakaoAdFit"
+import {
+  buildRoundRefereeHighlights,
+  type RoundRefereeCard,
+  type RoundRefereeStat,
+} from "@/lib/services/round-referee-highlights"
 
 type RoundWithMatches = Awaited<
   ReturnType<
@@ -55,64 +60,11 @@ type RefFeedback = {
   rating: number
 }
 
-type RoundRefereeStat = {
-  id: string
-  slug: string
-  name: string
-  role: string
-  matchId: string
-  avg: number
-  voteCount: number
-  matchForDisplay?: {
-    homeName: string
-    awayName: string
-    matchPath: string
-    homeEmblemPath?: string | null
-    awayEmblemPath?: string | null
-  }
-  homeAvg?: number
-  awayAvg?: number
-}
-
-/** 역할별 베스트/워스트 카드용 (RoundRefereeBestWorstSection과 동일한 구조) */
-type RefereeCardPayload = {
-  refereeId: string
-  slug: string
-  name: string
-  role: string
-  avg: number
-  voteCount: number
-  /** 같은 경기·같은 역할·동일 평점인 다른 심판 (이름, 슬러그) */
-  peerRefs?: { name: string; slug: string }[]
-  matchForDisplay?: {
-    homeName: string
-    awayName: string
-    matchPath: string
-    homeEmblemPath?: string | null
-    awayEmblemPath?: string | null
-  }
-  reviews: {
-    id: string
-    userName: string
-    userHandle?: string | null
-    userImage: string | null
-    teamName: string | null
-    teamSlug: string | null
-    teamEmblem: string | null
-    likeCount: number
-    likedByMe: boolean
-    replies: RefFeedback["replies"]
-    comment: string
-    matchLabel: string
-    rating: number
-  }[]
-}
-
 type RoundHighlight = {
   leagueName: string
   roundNumber: number
-  bestByRole: Partial<Record<string, RefereeCardPayload>>
-  worstByRole: Partial<Record<string, RefereeCardPayload>>
+  bestByRole: Partial<Record<string, RoundRefereeCard<RefFeedback>>>
+  worstByRole: Partial<Record<string, RoundRefereeCard<RefFeedback>>>
   allRoundReferees: RoundRefereeStat[]
   youtubeEmbedUrl: string | null
   instagramEmbedUrl: string | null
@@ -297,8 +249,6 @@ export default async function HomePage() {
   async function buildHighlight(round: RoundWithMatches | null): Promise<RoundHighlight | null> {
     if (!round) return null
 
-    let allRoundReferees: RoundRefereeStat[] = []
-
     const reviews = await prisma.refereeReview.findMany({
       where: {
         status: "VISIBLE",
@@ -335,208 +285,57 @@ export default async function HomePage() {
       },
     })
 
-    const ROLES_FOR_BEST_WORST = ["MAIN", "VAR", "ASSISTANT", "WAITING"] as const
-    const bestByRole: RoundHighlight["bestByRole"] = {}
-    const worstByRole: RoundHighlight["worstByRole"] = {}
-
-    if (reviews.length > 0) {
-      const byRef = new Map<
-        string,
-        {
-          id: string
-          slug: string
-          name: string
-          role: string
-          matchId: string
-          sum: number
-          count: number
-          homeSum: number
-          homeCount: number
-          awaySum: number
-          awayCount: number
-          feedbacks: RefFeedback[]
-          matchForDisplay: { homeName: string; awayName: string; matchPath: string }
-        }
-      >()
-
-      for (const r of reviews) {
-        const key = `${r.refereeId}:${r.role}`
-        const cur = byRef.get(key)
-        const likeCount = r.reactions.filter((rx) => rx.type === "LIKE").length
+    const { bestByRole, worstByRole, allRoundReferees } = buildRoundRefereeHighlights<RefFeedback>(
+      reviews.map((r) => {
         const homeName = r.match.homeTeam.name
         const awayName = r.match.awayTeam.name
-        const matchLabel = `${homeName} vs ${awayName}`
-        const match = r.match as { homeTeamId: string; awayTeamId: string }
-        const isHomeFan = r.fanTeamId != null && r.fanTeamId === match.homeTeamId
-        const isAwayFan = r.fanTeamId != null && r.fanTeamId === match.awayTeamId
-
-        const baseFeedback: RefFeedback | null = r.comment
-          ? {
-            id: r.id,
-            userName: r.user?.name || "Supporter",
-            userHandle: (r.user as { handle?: string | null })?.handle ?? null,
-            userImage: r.user?.image ?? null,
-            teamName: r.fanTeam?.name ?? null,
-            teamSlug: r.fanTeam?.slug ?? null,
-            teamEmblem: r.fanTeam?.emblemPath ?? null,
-            likeCount,
-            likedByMe: currentUserId != null && r.reactions.some((rx) => rx.type === "LIKE" && rx.userId === currentUserId),
-            replies: r.replies.map((reply) => ({
-              id: reply.id,
-              content: reply.content,
-              userName: reply.user.name || "Supporter",
-              userHandle: reply.user.handle,
-            })),
-            comment: r.comment,
-            matchLabel,
-            rating: r.rating,
-          }
-          : null
-
-        const matchForDisplay = {
-          homeName: r.match.homeTeam.name,
-          awayName: r.match.awayTeam.name,
-          matchPath:
-            getMatchDetailPathWithBack(r.match as unknown as MatchForPath, "/") +
-            "&scroll=referee-rating&referee=" +
-            encodeURIComponent((r.referee as { slug: string }).slug),
-          homeEmblemPath: (r.match.homeTeam as { emblemPath: string | null }).emblemPath ?? null,
-          awayEmblemPath: (r.match.awayTeam as { emblemPath: string | null }).emblemPath ?? null,
-        }
-
-        if (cur) {
-          cur.sum += r.rating
-          cur.count += 1
-          if (isHomeFan) {
-            cur.homeSum += r.rating
-            cur.homeCount += 1
-          }
-          if (isAwayFan) {
-            cur.awaySum += r.rating
-            cur.awayCount += 1
-          }
-          if (baseFeedback) cur.feedbacks.push(baseFeedback)
-        } else {
-          byRef.set(key, {
-            id: r.refereeId,
-            slug: (r.referee as { slug: string }).slug,
-            name: r.referee.name,
-            role: r.role,
-            matchId: r.matchId,
-            sum: r.rating,
-            count: 1,
-            homeSum: isHomeFan ? r.rating : 0,
-            homeCount: isHomeFan ? 1 : 0,
-            awaySum: isAwayFan ? r.rating : 0,
-            awayCount: isAwayFan ? 1 : 0,
-            feedbacks: baseFeedback ? [baseFeedback] : [],
-            matchForDisplay,
-          })
-        }
-      }
-
-      const stats: RoundRefereeStat[] = [...byRef.values()].map((v) => ({
-        id: v.id,
-        slug: v.slug,
-        name: v.name,
-        role: v.role,
-        matchId: v.matchId,
-        avg: v.count > 0 ? v.sum / v.count : 0,
-        voteCount: v.count,
-        matchForDisplay: v.matchForDisplay,
-        homeAvg: v.homeCount > 0 ? v.homeSum / v.homeCount : undefined,
-        awayAvg: v.awayCount > 0 ? v.awaySum / v.awayCount : undefined,
-      }))
-      allRoundReferees = [...stats].sort((a, b) => b.avg - a.avg)
-
-      const statsWithFeedbacks = stats.map((s) => {
-        const v = byRef.get(`${s.id}:${s.role}`)!
         return {
-          ...s,
-          feedbacks: v.feedbacks.sort((a, b) => b.likeCount - a.likeCount).slice(0, 3),
+          refereeId: r.refereeId,
+          refereeSlug: r.referee.slug,
+          refereeName: r.referee.name,
+          role: r.role,
+          matchId: r.matchId,
+          rating: r.rating,
+          fanTeamId: r.fanTeamId,
+          homeTeamId: r.match.homeTeamId,
+          awayTeamId: r.match.awayTeamId,
+          matchForDisplay: {
+            homeName,
+            awayName,
+            matchPath:
+              getMatchDetailPathWithBack(r.match as unknown as MatchForPath, "/") +
+              "&scroll=referee-rating&referee=" +
+              encodeURIComponent(r.referee.slug),
+            homeEmblemPath: r.match.homeTeam.emblemPath ?? null,
+            awayEmblemPath: r.match.awayTeam.emblemPath ?? null,
+          },
+          feedback: r.comment
+            ? {
+                id: r.id,
+                userName: r.user?.name || "Supporter",
+                userHandle: r.user?.handle ?? null,
+                userImage: r.user?.image ?? null,
+                teamName: r.fanTeam?.name ?? null,
+                teamSlug: r.fanTeam?.slug ?? null,
+                teamEmblem: r.fanTeam?.emblemPath ?? null,
+                likeCount: r.reactions.filter((rx) => rx.type === "LIKE").length,
+                likedByMe:
+                  currentUserId != null &&
+                  r.reactions.some((rx) => rx.type === "LIKE" && rx.userId === currentUserId),
+                replies: r.replies.map((reply) => ({
+                  id: reply.id,
+                  content: reply.content,
+                  userName: reply.user.name || "Supporter",
+                  userHandle: reply.user.handle,
+                })),
+                comment: r.comment,
+                matchLabel: `${homeName} vs ${awayName}`,
+                rating: r.rating,
+              }
+            : null,
         }
       })
-
-      if (statsWithFeedbacks.length > 0) {
-        for (const role of ROLES_FOR_BEST_WORST) {
-          const byRole = statsWithFeedbacks.filter((s) => s.role === role)
-          const byBest = [...byRole].sort((a, b) => {
-            const diff = b.avg - a.avg
-            if (Math.abs(diff) > 1e-6) return diff
-            // 동일 평균이면 투표 수 많은 심판이 베스트
-            return b.voteCount - a.voteCount
-          })
-          const byWorst = [...byRole].sort((a, b) => {
-            const diff = a.avg - b.avg
-            if (Math.abs(diff) > 1e-6) return diff
-            // 동일 평균이면 투표 수 많은 심판이 워스트
-            return b.voteCount - a.voteCount
-          })
-          const best = byBest[0]
-          const worst = byWorst[0]
-          const toReviews = (fbs: RefFeedback[]) =>
-            fbs.map((fb) => ({
-              id: fb.id,
-              userName: fb.userName,
-              userHandle: fb.userHandle ?? null,
-              userImage: fb.userImage ?? null,
-              teamName: fb.teamName,
-              teamSlug: fb.teamSlug,
-              teamEmblem: fb.teamEmblem,
-              likeCount: fb.likeCount,
-              likedByMe: fb.likedByMe,
-              replies: fb.replies,
-              comment: fb.comment,
-              matchLabel: fb.matchLabel,
-              rating: fb.rating,
-            }))
-          if (best) {
-            const bestPeers = byRole.filter(
-              (s) =>
-                s.id !== best.id &&
-                s.matchId === best.matchId &&
-                Math.abs(s.avg - best.avg) < 1e-6,
-            )
-            bestByRole[role] = {
-              refereeId: best.id,
-              slug: best.slug,
-              name: best.name,
-              role: best.role,
-              avg: best.avg,
-              voteCount: best.voteCount,
-              peerRefs:
-                bestPeers.length > 0
-                  ? bestPeers.map((p) => ({ name: p.name, slug: p.slug }))
-                  : undefined,
-              matchForDisplay: best.matchForDisplay,
-              reviews: toReviews(best.feedbacks),
-            }
-          }
-          if (worst) {
-            const worstPeers = byRole.filter(
-              (s) =>
-                s.id !== worst.id &&
-                s.matchId === worst.matchId &&
-                Math.abs(s.avg - worst.avg) < 1e-6,
-            )
-            worstByRole[role] = {
-              refereeId: worst.id,
-              slug: worst.slug,
-              name: worst.name,
-              role: worst.role,
-              avg: worst.avg,
-              voteCount: worst.voteCount,
-              peerRefs:
-                worstPeers.length > 0
-                  ? worstPeers.map((p) => ({ name: p.name, slug: p.slug }))
-                  : undefined,
-              matchForDisplay: worst.matchForDisplay,
-              reviews: toReviews(worst.feedbacks),
-            }
-          }
-        }
-      }
-    }
+    )
 
     const youtubeEmbedUrl = getYouTubeEmbedUrl((round as { youtubeUrl?: string | null }).youtubeUrl ?? null)
     const instagramEmbedUrl = getInstagramEmbedUrl(
@@ -575,6 +374,7 @@ export default async function HomePage() {
     homeEmblem: string
     awayEmblem: string
     time: string
+    category: string | null
     varCount: number
     commentCount: number
     firstCommentPreview?: string
@@ -625,6 +425,7 @@ export default async function HomePage() {
             : mom.startMinute != null
               ? formatMatchMinuteForDisplay(mom.startMinute)
               : (mom.title ?? "—"),
+          category: mom.category,
           varCount: mom.seeVarCount,
           commentCount: mom.commentCount,
           firstCommentPreview: firstCommentPreview ?? undefined,

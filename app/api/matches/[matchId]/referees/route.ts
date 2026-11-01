@@ -69,7 +69,15 @@ export async function POST(
 
       const existing = await tx.matchReferee.findMany({
         where: { matchId },
-        select: { id: true, refereeId: true, role: true },
+        select: {
+          id: true,
+          refereeId: true,
+          role: true,
+          homeYellowCards: true,
+          homeRedCards: true,
+          awayYellowCards: true,
+          awayRedCards: true,
+        },
       })
       const existingKeys = new Set(existing.map((r) => `${r.refereeId}:${r.role}`))
       const removeIds = existing
@@ -104,11 +112,13 @@ export async function POST(
       }
     })
 
+    // 경기 후 주심이 정정되면 지워진 배정에 쌓여 있던 카드도 팀별 카드 합계에서 빠져야 한다.
     for (const assignment of syncResult.removedAssignments) {
       await syncRefereeStatsOnMatchRefereeDelete(
         matchId,
         assignment.refereeId,
-        assignment.role
+        assignment.role,
+        assignment
       )
     }
     for (const assignment of syncResult.addedAssignments) {

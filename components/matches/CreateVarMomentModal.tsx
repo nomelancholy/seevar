@@ -7,6 +7,7 @@ import { createMoment } from "@/lib/actions/moments"
 import { uploadMomentMedia } from "@/lib/actions/upload-moment-media"
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from "@/lib/constants/upload"
 import { PollEditorDialog } from "@/components/poll/PollEditorDialog"
+import { DECISION_CATEGORIES, getDecisionCategory } from "@/lib/decision-categories"
 
 type Props = {
   open: boolean
@@ -82,6 +83,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
   const [startPeriod, setStartPeriod] = useState<Period>("first")
   const [startMinute, setStartMinute] = useState<string>("")
   const [description, setDescription] = useState("")
+  const [category, setCategory] = useState<string | null>(null)
   const [attachedFile, setAttachedFile] = useState<File | null>(null)
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -231,6 +233,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
         startMinuteInPeriod: startMinuteNum ?? null,
         endMinute: null,
         mediaUrl,
+        category,
         poll: hasPollData
           ? {
               title: pollTitle,
@@ -242,6 +245,7 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
         setStartMinute("")
         setStartPeriod("first")
         setDescription("")
+        setCategory(null)
         clearAttachment()
         setPollTitle("")
         setPollOptions([])
@@ -360,6 +364,37 @@ export function CreateVarMomentModal({ open, onClose, matchId }: Props) {
             {timeError && (
               <p className="text-[9px] font-mono text-destructive mt-0.5">
                 {timeError}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <p className="block text-[10px] font-mono text-muted-foreground mb-1 uppercase">
+              판정 유형 <span className="normal-case">(선택)</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="판정 유형">
+              {DECISION_CATEGORIES.map((option) => {
+                const selected = category === option.key
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setCategory(selected ? null : option.key)}
+                    className={`border px-2.5 py-1.5 font-mono text-xs transition-colors ${
+                      selected
+                        ? "border-primary bg-primary/20 text-primary"
+                        : "border-border bg-[#1c1f24] text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+            {getDecisionCategory(category)?.law && (
+              <p className="mt-1.5 font-mono text-[10px] text-muted-foreground">
+                관련 규정: IFAB 경기규칙 {getDecisionCategory(category)?.law}
               </p>
             )}
           </div>

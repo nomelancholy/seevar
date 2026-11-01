@@ -7,6 +7,7 @@ import { AdminMatchList } from "./AdminMatchList"
 import { AdminBulkMatchUpload } from "./AdminBulkMatchUpload"
 import { RoundFocusToggle } from "./RoundFocusToggle"
 import { AdminAddRoundInline } from "./AdminAddRoundInline"
+import { requireAdmin } from "@/lib/auth"
 
 const AdminBulkMatchUploadMulti = dynamic(
   () => import("./AdminBulkMatchUploadMulti"),
@@ -25,6 +26,7 @@ export default async function AdminMatchesPage({
 }: {
   searchParams: SearchParams
 }) {
+  await requireAdmin()
   const params = await searchParams
   const yearStr = params.year
   const leagueSlug = params.league

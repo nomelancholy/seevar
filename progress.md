@@ -95,7 +95,7 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 - [x] **경기 상태**  
        SCHEDULED / LIVE / FINISHED — `playedAt` 기준: 경기 일시 전=SCHEDULED, 일시~+3시간=LIVE, 이후=FINISHED. `lib/utils/match-status.ts` 도출 + 배치(cron)로 DB 동기화. 크론 설정은 호스트 무관하게 `docs/CRON.md` 참고 (스크립트+crontab 또는 HTTP 호출).
 - [x] **심판 통계**  
-       평점·통계는 심판 상세(RefereeStats·reviews 기반 평균/역할별), 팀 상세(RefereeTeamStat 또는 경기 기반 배정 집계)에서 Prisma 연동으로 표시. (`lib/utils/stats.ts` 분리는 추후 선택)
+       평점·통계는 심판 상세(reviews 기반 평균/역할별), 팀 상세(RefereeTeamStat 또는 경기 기반 배정 집계)에서 Prisma 연동으로 표시. 평점 집계 규칙은 `lib/utils/stats.ts`로 분리(`docs/RATING_RULES.md`).
 - [x] **Server Actions (모멘트 CRUD)**  
        판정 토론 글 작성/수정/삭제 — 모멘트 생성·수정·삭제 완료. **호각 사용** mutation은 후순위.
 - [x] ** 코멘트 CRUD **  
@@ -117,6 +117,12 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
        `lib/schemas/common.ts`, `comment.ts`, `profile.ts` 추가. 댓글 생성/수정/신고, 프로필 수정 서버 액션에 `safeParse` 검증 적용.
 - [x] **에러 처리**  
        `app/error.tsx` 추가(오류 메시지 + 다시 시도/홈으로). 서버 액션은 try-catch + 검증 실패 시 사용자 메시지 반환.
+- [x] **관리자 페이지 가드**  
+       각 관리자 페이지에서 `requireAdmin()` 호출. 레이아웃 검사만으로는 클라이언트 이동용 요청(RSC)에서 건너뛸 수 있음.
+- [x] **회원 탈퇴**  
+       `lib/services/delete-user.ts`. 한줄평·좋아요·알림 정리 후 계정 삭제, 집계 재계산. 본인이 만든 쟁점 순간과 접수한 신고는 작성자·직접 쓴 글만 비우고 유지. 공지 작성 이력이 있는 운영자 계정은 차단.
+- [x] **검색 노출**  
+       `app/sitemap.ts`, `app/robots.ts`(운영 도메인만 허용), 상세 페이지 description·canonical·공유 미리보기(`lib/site.ts`).
 - [x] **이미지**  
        `components/ui/EmblemImage.tsx`(next/image 래퍼) 추가. 홈·경기·팀·심판 영역 팀 로고/엠블럼을 `next/image`로 통일.
 
@@ -138,6 +144,16 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 - [ ] **데이터 무결성 및 보안 (Security)**
     - [x] `CRAWLER_API_KEY` 기반 보안 적용. 운영 환경에서 키가 없으면 요청 거부.
     - [ ] 텍스트 기반 매핑 로직 (Fuzzy Matching 또는 Alias 테이블 검토)
+
+### H. 평점 신뢰도·판정 데이터 구조화
+
+- [x] **평점 집계 규칙 단일화** — `lib/utils/stats.ts`. 순위는 평가 수를 반영한 보정 평점, 화면 평점은 실제 평균, 표본 적음 표시. 홈·경기 기록·심판 목록·팀 상성에 공통 적용. 단위 테스트 `npm test`.
+- [x] **팬 시점별 평점** — 홈팀 팬/원정팀 팬/제3자 팬 평균과 균형 평점, 평점 분포, 시즌별 추이(심판 상세).
+- [x] **시즌 심판 랭킹** — `/referees/rankings` (연도·리그·역할별).
+- [x] **판정 유형** — 쟁점 순간에 판정 유형(선택)과 관련 IFAB 조항 표시. `lib/decision-categories.ts`, `Moment.category`.
+- [x] **라운드 리포트 자료** — `/admin/round-report`. 라운드 평점·쟁점 순간·한줄평 집계와 복사용 텍스트.
+- [x] **파생 통계 정합성** — 숨김·재노출·탈퇴 시 팬 평점 재집계, `npm run db:rebuild-referee-stats`.
+- [ ] **양방향 판정 투표(정심/오심)** — 현재 이의 제기(SEE VAR)는 한쪽 의견만 셈. `docs/FUTURE_UPDATES.md` 참고.
 
 ### F. 성능·운영
 
@@ -209,6 +225,7 @@ Reference UI의 `:root` / `body` 스타일을 Tailwind 또는 CSS 변수로 유�
 | 2026-02-20 | DB 시드: prisma/seed.ts 작성. K League 1/2, 팀(엠블럼 경로), 라운드 5, 경기 3종, 심판 3명·MatchReferee. Team.slug 추가. package.json에 db:seed, prisma.seed 설정.                 |
 | 2026-02-20 | 시드·스키마 정리: 팀명 TEAM_LIST.md 기준으로 수정(전북 현대 모터스, 제주 SK FC, 충북 청주 FC 등). Referee.link(나무위키) 추가, REFEREE_LINK.md 파싱으로 심판 전원 name+link 시드. |
 | 2026-02-06 | 데이터 소스 정리: 홈 K1/K2·HOT MOMENTS는 DB 비었을 때 Fallback 하드코딩 사용. progress.md §6 데이터 소스 표 추가.                                                                 |
+| 2026-10-05 | 평점 집계 규칙 단일화(보정·균형 평점), 시즌 심판 랭킹, 판정 유형, 라운드 리포트 자료, 관리자 페이지 가드, 회원 탈퇴 수정, 파생 통계 재집계, sitemap/robots. §5-H 참고.                |
 
 ---
 

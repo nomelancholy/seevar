@@ -43,6 +43,8 @@ export async function generateMetadata({ params }: { params: Params }) {
   return {
     title: `${displayName} 회원정보 | SEE VAR`,
     description: `${displayName} 님의 참여 이력을 확인하세요.`,
+    // 주소에 가입 아이디(handle)가 들어가므로 개인 프로필은 검색에 노출하지 않는다
+    robots: { index: false, follow: false },
   }
 }
 

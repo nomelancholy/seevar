@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AdminReviewList } from "./AdminReviewList"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "한줄평 관리 | 관리자 | SEE VAR",
@@ -8,6 +9,7 @@ export const metadata = {
 }
 
 export default async function AdminReviewsPage() {
+  await requireAdmin()
   const reviews = await prisma.refereeReview.findMany({
     orderBy: { createdAt: "desc" },
     take: 300,

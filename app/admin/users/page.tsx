@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AdminUserList } from "./AdminUserList"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "유저 관리 | 관리자 | SEE VAR",
@@ -8,6 +9,7 @@ export const metadata = {
 }
 
 export default async function AdminUsersPage() {
+  await requireAdmin()
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     select: {

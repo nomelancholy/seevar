@@ -3,6 +3,7 @@
  */
 import { prisma } from "@/lib/prisma"
 import { checkProfanity, validateDisplayName } from "@/lib/filters/profanity"
+import { syncRefereeRatingStats } from "@/lib/referee-stats-sync"
 
 const NICKNAME_THROTTLE_MS = 400
 
@@ -136,7 +137,15 @@ export async function runAuditContent(options: RunAuditOptions = {}): Promise<Au
   if (!skipContent) {
     const reviews = await prisma.refereeReview.findMany({
       where: { comment: { not: null } },
-      select: { id: true, comment: true, status: true, matchId: true },
+      select: {
+        id: true,
+        comment: true,
+        status: true,
+        matchId: true,
+        refereeId: true,
+        role: true,
+        fanTeamId: true,
+      },
     })
     for (const r of reviews) {
       const comment = r.comment ?? ""
@@ -152,6 +161,12 @@ export async function runAuditContent(options: RunAuditOptions = {}): Promise<Au
           await prisma.refereeReview.update({
             where: { id: r.id },
             data: { status: "UNDER_REVIEW", filterReason: check.reason ?? undefined },
+          })
+          await syncRefereeRatingStats({
+            refereeId: r.refereeId,
+            matchId: r.matchId,
+            role: r.role,
+            fanTeamIds: [r.fanTeamId],
           })
         }
       }

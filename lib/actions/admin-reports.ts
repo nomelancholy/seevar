@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
 import { REFEREE_REVIEW_COMMENT_MAX_LENGTH } from "@/lib/constants"
 import { XP_PENALTY_ON_HIDE } from "@/lib/utils/xp"
+import { syncRefereeRatingStats } from "@/lib/referee-stats-sync"
 import type { ContentStatus } from "@prisma/client"
 
 export type SetContentStatusResult = { ok: true } | { ok: false; error: string }
@@ -149,6 +150,10 @@ export async function setReviewStatus(
       userId: true,
       xpDeductedOnHide: true,
       matchId: true,
+      refereeId: true,
+      role: true,
+      fanTeamId: true,
+      status: true,
       match: {
         select: {
           roundOrder: true,
@@ -205,6 +210,16 @@ export async function setReviewStatus(
       data,
     })
 
+    // 평점 집계는 노출 중인 평가만 대상이므로 노출 여부가 바뀌면 파생 통계도 다시 맞춘다
+    if ((review.status === "VISIBLE") !== (status === "VISIBLE")) {
+      await syncRefereeRatingStats({
+        refereeId: review.refereeId,
+        matchId: review.matchId,
+        role: review.role,
+        fanTeamIds: [review.fanTeamId],
+      })
+    }
+
     if (status === "HIDDEN" && review.userId) {
       const reasonLabel = (filterReason ?? "").trim() || "커뮤니티 가이드라인 위반"
       const link = review.match
@@ -230,9 +245,13 @@ export async function setReviewStatus(
     revalidatePath("/admin/reports")
     revalidatePath("/admin/reviews")
     revalidatePath("/referees")
+    revalidatePath("/teams")
     revalidatePath("/matches")
     revalidatePath("/my")
+    revalidatePath("/")
     revalidateTag(`match-reviews-${review.matchId}`)
+    revalidateTag("archive-rounds")
+    revalidateTag("referee-rankings")
     return { ok: true }
   } catch (e) {
     console.error("setReviewStatus:", e)

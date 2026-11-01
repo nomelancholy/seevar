@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AdminCommentList } from "./AdminCommentList"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "댓글 관리 | 관리자 | SEE VAR",
@@ -8,6 +9,7 @@ export const metadata = {
 }
 
 export default async function AdminCommentsPage() {
+  await requireAdmin()
   const comments = await prisma.comment.findMany({
     orderBy: { createdAt: "desc" },
     take: 300,

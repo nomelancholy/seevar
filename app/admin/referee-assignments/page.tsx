@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { AdminMatchScheduleForm } from "../matches/AdminMatchScheduleForm"
 import { AdminRefereeAssignmentList } from "./AdminRefereeAssignmentList"
 import { AdminBulkRefereeAssignmentUpload } from "./AdminBulkRefereeAssignmentUpload"
+import { requireAdmin } from "@/lib/auth"
 
 export const metadata = {
   title: "심판 배정 정보 | 관리자 | SEE VAR",
@@ -17,6 +18,7 @@ export default async function AdminRefereeAssignmentsPage({
 }: {
   searchParams: SearchParams
 }) {
+  await requireAdmin()
   const params = await searchParams
   const yearStr = params.year
   const leagueSlug = params.league

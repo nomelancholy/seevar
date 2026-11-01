@@ -7,12 +7,12 @@
 ## 주요 기능
 
 - **홈** — 포커스 라운드 경기, Hot Moments, Round Best/Worst 심판, 유튜브/인스타 라운드 미디어
-- **경기 아카이브** — 시즌/리그/라운드별 경기 목록·상세, 모멘트·댓글·심판 한줄평
-- **심판** — 목록/상세, 경기 배정·평점·통계
+- **경기 아카이브** — 시즌/리그/라운드별 경기 목록·상세, 모멘트(판정 유형·관련 IFAB 조항)·댓글·심판 한줄평
+- **심판** — 목록/상세, 경기 배정·평점·통계, 평점 분포·팬 시점별 평점, 시즌 심판 랭킹(`/referees/rankings`)
 - **팀** — 팀 목록/상세, 경기 이력·심판 배정 통계
 - **마이** — 프로필, 응원팀(6개월 변경 제한), 내 VAR 모멘트·심판 평점
 - **공지** — 공지 목록/상세, 상단 고정·댓글 허용 옵션
-- **관리자** — 시즌/리그/라운드 구조, 경기 일정, 신고 처리, 라운드 미디어 링크
+- **관리자** — 시즌/리그/라운드 구조, 경기 일정, 신고 처리, 라운드 미디어 링크, 라운드 리포트 자료(`/admin/round-report`)
 
 ---
 
@@ -108,6 +108,19 @@ docker compose stop db
 
 ---
 
+## 검증
+
+```bash
+npm run typecheck   # 타입 검사
+npm run lint        # ESLint
+npm test            # 평점 집계 규칙 단위 테스트 (DB 불필요)
+```
+
+평점 집계 규칙(보정 평점·균형 평점·표본 적음)은 `docs/RATING_RULES.md`에 정리되어 있습니다.
+파생 통계 테이블이 어긋났을 때는 `npm run db:rebuild-referee-stats`로 차이를 확인하고 `-- --apply`로 다시 집계합니다.
+
+---
+
 ## 프로젝트 구조 (요약)
 
 ```
@@ -123,9 +136,12 @@ seevar/
 ├── components/             # React 컴포넌트 (ui, layout, 도메인별)
 ├── lib/                    # 유틸·액션·스키마
 │   ├── actions/            # Server Actions
-│   ├── auth.ts             # 세션·관리자 체크
+│   ├── services/           # 집계·탈퇴 처리 등 비즈니스 로직
+│   ├── utils/stats.ts      # 평점 집계 규칙 (단일 출처)
+│   ├── auth.ts             # 세션·관리자 체크 (requireAdmin)
 │   ├── prisma.ts           # Prisma 클라이언트 (싱글톤)
 │   └── schemas/            # Zod 스키마
+├── tests/                  # 단위 테스트 (node:test)
 ├── prisma/
 │   ├── schema.prisma       # DB 스키마
 │   ├── seed.ts             # 시드
@@ -138,5 +154,6 @@ seevar/
 ## 참고
 
 - 상세 작업 계획·진행: `progress.md`
+- 평점 집계 규칙: `docs/RATING_RULES.md`
 - 코딩 규칙·도메인 로직: `.cursorrules`
 - DB·시드(팀·심판)·Round 포커스 등: `progress.md` §6 데이터 소스

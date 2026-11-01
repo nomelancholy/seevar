@@ -12,7 +12,9 @@ import {
   MessageSquare,
   Star,
   CalendarRange,
+  ClipboardList,
 } from "lucide-react"
+import { requireAdmin } from "@/lib/auth"
 
 const groups = [
   {
@@ -70,6 +72,18 @@ const groups = [
     ],
   },
   {
+    title: "미디어 리포트",
+    description: "라운드 리뷰 영상·카드뉴스 제작에 쓸 자료를 모읍니다.",
+    sections: [
+      {
+        title: "라운드 리포트 자료",
+        description: "라운드별 심판 평점·쟁점 순간·한줄평 집계와 복사용 텍스트",
+        href: "/admin/round-report",
+        icon: ClipboardList,
+      },
+    ],
+  },
+  {
     title: "커뮤니티 운영",
     description: "사용자 콘텐츠와 계정을 관리합니다.",
     sections: [
@@ -107,7 +121,8 @@ const groups = [
   },
 ]
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await requireAdmin()
   return (
     <main className="max-w-5xl mx-auto pb-12 md:pb-16 space-y-10">
       {groups.map((group) => (

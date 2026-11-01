@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma"
 import { getMatchDetailPath } from "@/lib/match-url"
 import { XP_MOMENT_CREATE, XP_BEST_MOMENT } from "@/lib/utils/xp"
 import { cleanText } from "@/lib/filters/profanity"
+import { normalizeDecisionCategory } from "@/lib/decision-categories"
 
 export type CreateMomentResult = { ok: true; momentId: string } | { ok: false; error: string }
 export type UpdateMomentResult = { ok: true } | { ok: false; error: string }
@@ -27,6 +28,8 @@ type MomentInput = {
   startMinuteInPeriod?: number | null
   endMinute?: number | null
   mediaUrl?: string | null
+  /** 판정 유형 key (선택). 목록에 없는 값은 저장하지 않는다 */
+  category?: string | null
   poll?: {
     title: string
     options: string[]
@@ -106,6 +109,7 @@ export async function createMoment(
         startMinuteInPeriod: input.startMinuteInPeriod ?? null,
         endMinute: end,
         mediaUrl: input.mediaUrl?.trim() || null,
+        category: normalizeDecisionCategory(input.category),
         seeVarCount: 1, // 작성자는 SEE VAR를 한 번 누른 것과 동일
       },
     })

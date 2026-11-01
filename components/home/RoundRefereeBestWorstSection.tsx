@@ -7,25 +7,11 @@ import { EmblemImage } from "@/components/ui/EmblemImage";
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview";
 import { UserProfileLink } from "@/components/user/UserProfileLink";
 import { HomeReviewFeedback } from "@/components/home/HomeReviewFeedback";
-
-/** 아카이브 페이지에서 전달하는 심판 통계 (RoundRefereeRatingsFolder와 동일한 구조) */
-type RoundRefereeStat = {
-  id: string;
-  slug: string;
-  name: string;
-  role: string;
-  avg: number;
-  voteCount: number;
-  matchForDisplay?: {
-    homeName: string;
-    awayName: string;
-    matchPath: string;
-    homeEmblemPath?: string | null;
-    awayEmblemPath?: string | null;
-  };
-  homeAvg?: number;
-  awayAvg?: number;
-};
+import { ROUND_MIN_VOTES } from "@/lib/utils/stats";
+import type {
+  RoundRefereeCard,
+  RoundRefereeStat,
+} from "@/lib/services/round-referee-highlights";
 
 const ROLE_ORDER = ["MAIN", "VAR", "ASSISTANT", "WAITING"] as const;
 const DEFAULT_OPEN_BEST_WORST = new Set(["MAIN", "VAR"]);
@@ -36,43 +22,29 @@ const ROLE_LABEL: Record<string, string> = {
   WAITING: "대기심",
 };
 
-export type RefereeCardData = {
-  refereeId: string;
-  slug: string;
-  name: string;
-  role: string;
-  avg: number;
-  voteCount: number;
-  /** 같은 경기·같은 역할·동일 평점인 다른 심판 (이름, 슬러그) */
-  peerRefs?: { name: string; slug: string }[];
-  matchForDisplay?: {
-    homeName: string;
-    awayName: string;
-    matchPath: string;
-    homeEmblemPath?: string | null;
-    awayEmblemPath?: string | null;
-  };
-  reviews: {
+/** 홈에서는 좋아요 여부·답글까지, 경기 기록(캐시)에서는 한줄평만 내려온다 */
+type CardFeedback = {
+  id: string;
+  userName: string;
+  userHandle?: string | null;
+  userImage?: string | null;
+  teamName: string | null;
+  teamSlug: string | null;
+  teamEmblem: string | null;
+  likeCount: number;
+  likedByMe?: boolean;
+  replies?: {
     id: string;
+    content: string;
     userName: string;
-    userHandle?: string | null;
-    userImage?: string | null;
-    teamName: string | null;
-    teamSlug: string | null;
-    teamEmblem: string | null;
-    likeCount: number;
-    likedByMe?: boolean;
-    replies?: {
-      id: string;
-      content: string;
-      userName: string;
-      userHandle: string | null;
-    }[];
-    comment: string;
-    matchLabel: string;
-    rating: number;
+    userHandle: string | null;
   }[];
+  comment: string;
+  matchLabel: string;
+  rating: number;
 };
+
+export type RefereeCardData = RoundRefereeCard<CardFeedback>;
 
 type Props = {
   bestByRole: Partial<Record<string, RefereeCardData>>;
@@ -162,6 +134,11 @@ export function RoundRefereeBestWorstSection({
             <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap not-italic">
               AVG: {data.avg.toFixed(1)} / 5.0 ({data.voteCount}명)
             </p>
+            {data.lowSample && (
+              <p className="font-mono text-[10px] md:text-xs text-amber-400 mt-1 whitespace-nowrap not-italic">
+                표본 적음 · 참고용
+              </p>
+            )}
           </div>
         </div>
         {data.reviews.length > 0 && (
@@ -364,7 +341,7 @@ export function RoundRefereeBestWorstSection({
           <tbody>
             {filtered.map((ref) => (
               <tr
-                key={`${ref.id}-${ref.role}`}
+                key={`${ref.matchId}-${ref.id}-${ref.role}`}
                 className="border-b border-border/50 last:border-b-0"
               >
                 <td className="py-2.5 pr-2 md:pr-3 align-middle">
@@ -430,14 +407,30 @@ export function RoundRefereeBestWorstSection({
                 </td>
                 <td className="py-2.5 pr-2 md:pr-3 text-right font-bold tabular-nums align-middle whitespace-nowrap">
                   {ref.avg.toFixed(1)} / 5.0
+                  {ref.lowSample && (
+                    <span
+                      className="md:hidden ml-1 text-amber-400 font-normal"
+                      title="표본 적음"
+                    >
+                      *
+                    </span>
+                  )}
                 </td>
-                <td className="hidden md:table-cell py-2.5 text-right text-muted-foreground tabular-nums align-middle">
+                <td className="hidden md:table-cell py-2.5 text-right text-muted-foreground tabular-nums align-middle whitespace-nowrap">
                   {ref.voteCount}명
+                  {ref.lowSample && (
+                    <span className="ml-1.5 text-amber-400">표본 적음</span>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        <p className="mt-3 font-mono text-[10px] md:text-xs text-muted-foreground leading-relaxed">
+          순서와 베스트/워스트는 평가 수를 반영한 보정 평점 기준입니다. 평가가{" "}
+          {ROUND_MIN_VOTES}명 미만이면 표본 적음
+          <span className="md:hidden">(*)</span>으로 표시합니다.
+        </p>
       </div>
     );
   };
