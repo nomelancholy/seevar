@@ -154,11 +154,6 @@ export function RefereeListWithSearch({ referees }: Props) {
                       </span>
                     )}
                   </div>
-                  {r.lowSample && (
-                    <div className="font-mono text-[10px] md:text-xs text-amber-400 mt-0.5">
-                      표본 적음
-                    </div>
-                  )}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3 md:gap-4 border-t border-border pt-3 md:pt-4">

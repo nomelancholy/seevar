@@ -7,7 +7,6 @@ import { EmblemImage } from "@/components/ui/EmblemImage";
 import { TextWithEmbedPreview } from "@/components/embed/TextWithEmbedPreview";
 import { UserProfileLink } from "@/components/user/UserProfileLink";
 import { HomeReviewFeedback } from "@/components/home/HomeReviewFeedback";
-import { ROUND_MIN_VOTES } from "@/lib/utils/stats";
 import type {
   RoundRefereeCard,
   RoundRefereeStat,
@@ -134,11 +133,6 @@ export function RoundRefereeBestWorstSection({
             <p className="font-mono text-sm md:text-base font-bold text-zinc-400 mt-1 whitespace-nowrap not-italic">
               AVG: {data.avg.toFixed(1)} / 5.0 ({data.voteCount}명)
             </p>
-            {data.lowSample && (
-              <p className="font-mono text-[10px] md:text-xs text-amber-400 mt-1 whitespace-nowrap not-italic">
-                표본 적음 · 참고용
-              </p>
-            )}
           </div>
         </div>
         {data.reviews.length > 0 && (
@@ -407,29 +401,16 @@ export function RoundRefereeBestWorstSection({
                 </td>
                 <td className="py-2.5 pr-2 md:pr-3 text-right font-bold tabular-nums align-middle whitespace-nowrap">
                   {ref.avg.toFixed(1)} / 5.0
-                  {ref.lowSample && (
-                    <span
-                      className="md:hidden ml-1 text-amber-400 font-normal"
-                      title="표본 적음"
-                    >
-                      *
-                    </span>
-                  )}
                 </td>
                 <td className="hidden md:table-cell py-2.5 text-right text-muted-foreground tabular-nums align-middle whitespace-nowrap">
                   {ref.voteCount}명
-                  {ref.lowSample && (
-                    <span className="ml-1.5 text-amber-400">표본 적음</span>
-                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         <p className="mt-3 font-mono text-[10px] md:text-xs text-muted-foreground leading-relaxed">
-          순서와 베스트/워스트는 평가 수를 반영한 보정 평점 기준입니다. 평가가{" "}
-          {ROUND_MIN_VOTES}명 미만이면 표본 적음
-          <span className="md:hidden">(*)</span>으로 표시합니다.
+          순서와 베스트/워스트는 평가 수를 반영한 보정 평점 기준입니다.
         </p>
       </div>
     );

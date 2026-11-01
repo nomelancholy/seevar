@@ -283,7 +283,7 @@ export default async function RefereeRankingsPage({ searchParams }: Props) {
                   표본 부족
                 </h2>
                 <p className="font-mono text-[10px] md:text-xs text-muted-foreground mb-4">
-                  평가가 {rankings.minVotes}건 미만이라 순위에서 제외한 심판입니다. 수치는 참고용입니다.
+                  평가가 {rankings.minVotes}건 미만이라 순위에서 제외한 심판입니다.
                 </p>
                 <RankingTable rows={rankings.unranked} backPath={backPath} />
               </section>

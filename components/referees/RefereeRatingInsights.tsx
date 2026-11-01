@@ -1,4 +1,4 @@
-import { FAN_PERSPECTIVE_LABEL, SEASON_MIN_VOTES } from "@/lib/utils/stats"
+import { FAN_PERSPECTIVE_LABEL } from "@/lib/utils/stats"
 
 type PerspectiveRow = {
   key: "HOME" | "AWAY" | "NEUTRAL"
@@ -30,11 +30,6 @@ export function RefereeRatingInsights({
 
   return (
     <div className="mt-6 md:mt-8 border-t border-border pt-4 md:pt-6 space-y-6 md:space-y-8">
-      {totalVotes < SEASON_MIN_VOTES && (
-        <p className="font-mono text-[10px] md:text-xs text-amber-400">
-          평가가 {SEASON_MIN_VOTES}건 미만이라 아래 수치는 참고용입니다.
-        </p>
-      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
         <div>
           <h3 className="font-mono text-xs md:text-sm text-muted-foreground uppercase tracking-widest mb-3">

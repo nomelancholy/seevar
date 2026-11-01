@@ -175,6 +175,11 @@ export function buildRoundRefereeHighlights<TFeedback extends { likeCount: numbe
     count: stat.voteCount,
     name: stat.name,
   })
+  // 평점과 평가 수까지 같으면 한줄평이 있는 심판을 카드에 올린다
+  const byComment = (a: StatWithFeedbacks<TFeedback>, b: StatWithFeedbacks<TFeedback>) =>
+    Math.abs(a.adjusted - b.adjusted) < 1e-9 && a.voteCount === b.voteCount
+      ? Math.min(b.feedbacks.length, 1) - Math.min(a.feedbacks.length, 1)
+      : 0
 
   const bestByRole: RoundRefereeHighlights<TFeedback>["bestByRole"] = {}
   const worstByRole: RoundRefereeHighlights<TFeedback>["worstByRole"] = {}
@@ -183,10 +188,10 @@ export function buildRoundRefereeHighlights<TFeedback extends { likeCount: numbe
     const sameRole = stats.filter((stat) => stat.role === role)
     if (sameRole.length === 0) continue
 
-    const best = [...sameRole].sort((a, b) => compareBest(rank(a), rank(b)))[0]
+    const best = [...sameRole].sort((a, b) => byComment(a, b) || compareBest(rank(a), rank(b)))[0]
     // 베스트와 한 카드로 묶이는 심판은 워스트 후보에서 뺀다 (같은 심판이 양쪽에 걸리지 않게)
     const others = sameRole.filter((stat) => stat !== best && !isPeer(best, stat))
-    const worst = [...others].sort((a, b) => compareWorst(rank(a), rank(b)))[0]
+    const worst = [...others].sort((a, b) => byComment(a, b) || compareWorst(rank(a), rank(b)))[0]
     const hasSpread = worst != null && Math.abs(best.adjusted - worst.adjusted) > 1e-9
 
     if (worst && hasSpread) {

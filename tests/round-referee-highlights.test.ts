@@ -72,6 +72,15 @@ describe("buildRoundRefereeHighlights", () => {
     assert.equal(result.worstByRole.MAIN, undefined)
   })
 
+  it("평점과 평가 수가 같으면 한줄평이 있는 심판을 카드에 올린다", () => {
+    const result = buildRoundRefereeHighlights([
+      review({ refereeId: "가나다", rating: 1, feedback: null }),
+      review({ refereeId: "라마바", rating: 1 }),
+    ])
+    assert.equal(result.worstByRole.MAIN?.refereeId, "라마바")
+    assert.equal(result.worstByRole.MAIN?.reviews.length, 1)
+  })
+
   it("같은 경기에서 함께 평가받은 VAR 2명은 한 카드로 묶고, 워스트 후보에서 뺀다", () => {
     const result = buildRoundRefereeHighlights([
       ...repeat(3, () => review({ refereeId: "var-a", role: "VAR", matchId: "m1", rating: 5 })),
